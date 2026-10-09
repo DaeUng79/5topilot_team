@@ -1,6 +1,15 @@
 # Bootstrap reviewer: confirmed repository owner with write access.
 * @DaeUng79
 
+# Integration coordinator: @DaeUng79.
+# Known participants: @DaeUng79, @u-jing, @Lex6won; fourth handle pending.
+# A/B/C role mapping and collaborator invitation acceptance are NOT confirmed.
+# Do not activate path owners until roles and write access are confirmed.
+# CODEOWNERS is a review map, not a file edit ACL. Cross-area edits are welcome
+# after an issue notification and affected-owner review.
+# Keep require_code_owner_review=false during bootstrap: the sole default owner
+# cannot approve their own PR. Use another accepted collaborator's review.
+
 # Replace these commented examples with the four actual GitHub handles AFTER
 # they accept collaborator invitations and have write access.
 # Last matching rule wins. Do not put fake handles in active rules.

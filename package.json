@@ -10,7 +10,8 @@
     "typecheck": "npm run typecheck --workspace apps/web",
     "contracts:types": "openapi-typescript contracts/openapi.json -o apps/web/src/api/schema.d.ts",
     "demo": "node scripts/serve-reference.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "docs:check": "node scripts/check-team-guide.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",

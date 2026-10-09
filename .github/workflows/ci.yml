@@ -64,6 +64,7 @@ jobs:
       - run: git diff --exit-code -- contracts/openapi.json apps/web/src/api/schema.d.ts
       - run: npm run build
       - run: npx playwright install --with-deps chromium
+      - run: npm run docs:check
       - run: npm run test:e2e
       - name: Legacy Python syntax (does not operate a desktop)
         run: python -m py_compile computer_agent.py

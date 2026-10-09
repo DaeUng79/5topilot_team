@@ -1,12 +1,44 @@
 name: 팀 기능 작업
-description: 담당 영역, API 계약, 완료 기준을 정하고 시작합니다.
+description: 코딩 전 작업 범위와 중복 여부를 알리고, 계약과 완료 기준을 합의합니다.
 title: '[영역] 기능명'
 body:
+  - type: markdown
+    attributes:
+      value: |
+        시작 전 열린 이슈와 PR을 검색하세요. 이 이슈가 작업 알림의 기준 기록입니다.
+        담당 영역 밖도 수정할 수 있지만 관련 담당자에게 먼저 알리고, 같은 파일의 동시 작업은 순서를 합의합니다.
+        이 양식은 자동 잠금이나 자동 담당자 배정 기능이 아닙니다.
+  - type: input
+    id: worker
+    attributes:
+      label: 작업자 / 검토 요청 대상
+      placeholder: '@내계정 / @관련담당자 — A/B/C 계정 연결 전에는 @DaeUng79와 조율'
+    validations:
+      required: true
   - type: dropdown
     id: area
     attributes:
       label: 담당 영역
       options: ['Python/AI', '프론트엔드', '제안평가·결과·DB', '위원·추첨·통합']
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: 변경 예정 파일 · 브랜치 · 작업 시간
+      placeholder: |
+        파일: apps/api/app/modules/committee/service.py
+        브랜치: feat/이슈번호-기능명
+        시작 / 다음 공유 예정: 날짜·시각(KST)
+        공통 파일 변경: 없음 또는 파일 목록
+        이번에 하지 않는 것:
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 중복 작업 확인 / 선행 작업 / 협의 결과
+      placeholder: '검색한 이슈·PR 링크, 겹치는 파일, 먼저 합칠 PR, 상대방 합의 댓글 링크. 없으면 없음.'
     validations:
       required: true
   - type: textarea
@@ -23,3 +55,14 @@ body:
       placeholder: '예: 동일 사업에 동시 추첨 요청 2개가 오면 하나만 확정된다.'
     validations:
       required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: 시작 전 확인
+      options:
+        - label: 열린 이슈·PR의 중복 여부를 확인했고 관련 담당자에게 알렸습니다.
+          required: true
+        - label: 공통 파일·API·DB 변경은 담당자와 순서를 합의한 후 시작하겠습니다.
+          required: true
+        - label: 실제 개인정보·비공개 제안서·비밀키를 이슈나 코드에 올리지 않겠습니다.
+          required: true

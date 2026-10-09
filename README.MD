@@ -4,6 +4,7 @@
 
 - [처음 실행하기](docs/QUICKSTART.md) — Windows setup, 웹/API/원본 디자인 실행
 - [4인 팀 작업 방법](docs/TEAM_WORKFLOW.md) — 역할, 브랜치, PR, API 계약, DB 변경, 통합 검증
+- [팀 공동 개발 가이드 HTML](docs/TEAM_GUIDE.html) — 내려받아 브라우저로 열기; 전체 세션 요약·작업 알림 양식·충돌 대응·클라우드/온프레미스 계획
 - [아키텍처와 현재 구현 범위](docs/ARCHITECTURE.md)
 - 프론트 소스: `apps/web` / 업무 API: `apps/api` / 원본 ZIP: `references/simsaimdang`
 - API 명세: `contracts/openapi.json` / 자동검증: `.github/workflows/ci.yml`
@@ -11,6 +12,11 @@
 현재 실행 가능한 범위는 후보 등록 → 추첨 → 기술평가 임시저장 → 개인 제출·잠금 → 기술 평균 취합입니다.
 개발용 인증만 있으며, 실제 서명·가격평가·위원장 확정·문서 AI·전체 원본 화면 이식은 후속 작업입니다.
 원본 데모는 `npm run demo`, 새 웹은 `npm run dev`로 각각 실행합니다.
+
+통합 담당: `DaeUng79`. 참여 계정: `u-jing`, `Lex6won`, 1명 미정.
+기능 역할과 계정 연결은 아직 미확정이며 모든 팀원은 협의 후 다른 영역도 수정할 수 있습니다.
+목표 개발 환경은 Supabase + Vercel, 최종 배포는 온프레미스입니다. 클라우드 배포는 아직 미구현입니다.
+main 보호 규칙 초안은 `docs/github-rulesets/`에 있습니다. 저장소에 파일이 있다고 활성화되지는 않습니다.
 
 ---
 

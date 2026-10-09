@@ -1,5 +1,15 @@
 # 구현 기준과 현재 범위
 
+## 2026-10-09 환경 결정 (계획과 구현 구분)
+
+공동 개발 환경은 Supabase PostgreSQL + Vercel, 최종 배포 환경은 온프레미스다.
+Vercel에 웹과 짧은 FastAPI 업무 요청을 배포하고 PC 제어/로컬 모델/장시간 문서 작업은
+별도 실행기에 둔다. 핵심 점수·추첨·제출 로직은 클라우드 전용 함수가 아닌 Python 모듈에 둔다.
+표준 PostgreSQL/Alembic과 파일 저장/인증 어댑터를 사용해 이식성을 유지한다.
+이 문단은 목표 구조다. 실제 인증, 클라우드 환경변수, pooler 설정, migration 관리 연결,
+Vercel 배포, Supabase Data API 노출 제한, 온프레미스 전체 패키징은 아직 구현하지 않았다.
+상세 협업·이전 계획은 `TEAM_GUIDE.html`을 참고한다.
+
 ## 디렉터리
 
 ```text

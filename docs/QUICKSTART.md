@@ -14,6 +14,8 @@ Node.js 22.12 이상(팀 기준 22 LTS), Python 3.13, Git을 사용한다.
 ```
 
 가상환경 활성화 없이 실행할 수 있다. setup은 이미 존재하는 .env를 덮어쓰지 않는다.
+기존 `apps/api/.env`가 있다면 DATABASE_URL이 개인 로컬 DB인지 먼저 확인한다.
+setup은 그 연결로 migration과 seed를 실행하므로 공동 Supabase/운영 DB를 가리킨 상태에서 실행하지 않는다.
 API 터미널:
 
 ```powershell
