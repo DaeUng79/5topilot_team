@@ -1,0 +1,1 @@
+import{v as e}from"./app-context-CYkCia_m.js";import{t}from"./eval.projects._id.vendor._vid-Dd71EG3l.js";import{s as n}from"./eval-pages-DMgaw1Nj.js";var r=e(),i=()=>{let{vid:e}=t.useParams();return(0,r.jsx)(n,{vendor:e})};export{i as component};

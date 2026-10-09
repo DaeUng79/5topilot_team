@@ -1,0 +1,25 @@
+name: 팀 기능 작업
+description: 담당 영역, API 계약, 완료 기준을 정하고 시작합니다.
+title: '[영역] 기능명'
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: 담당 영역
+      options: ['Python/AI', '프론트엔드', '제안평가·결과·DB', '위원·추첨·통합']
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: 기능과 계약
+      description: 화면, 요청/응답 필드, 관련 테이블, 다른 담당자와의 연결을 적으세요.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: 완료 기준
+      placeholder: '예: 동일 사업에 동시 추첨 요청 2개가 오면 하나만 확정된다.'
+    validations:
+      required: true

@@ -12,3 +12,21 @@ __pycache__/
 # (선택) 운영체제 임시 파일 무시
 .DS_Store
 Thumbs.db
+
+# Team application generated/local data
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+*.sqlite*
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+playwright-report/
+test-results/
+artifacts/
+uploads/
+*.log

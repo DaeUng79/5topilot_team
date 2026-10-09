@@ -1,3 +1,19 @@
+# 심사임당 · 4인 팀 개발 저장소
+
+기존 Python 에이전트를 유지하면서 프론트엔드, 평가·DB, 평가위원·추첨을 독립 모듈로 개발합니다.
+
+- [처음 실행하기](docs/QUICKSTART.md) — Windows setup, 웹/API/원본 디자인 실행
+- [4인 팀 작업 방법](docs/TEAM_WORKFLOW.md) — 역할, 브랜치, PR, API 계약, DB 변경, 통합 검증
+- [아키텍처와 현재 구현 범위](docs/ARCHITECTURE.md)
+- 프론트 소스: `apps/web` / 업무 API: `apps/api` / 원본 ZIP: `references/simsaimdang`
+- API 명세: `contracts/openapi.json` / 자동검증: `.github/workflows/ci.yml`
+
+현재 실행 가능한 범위는 후보 등록 → 추첨 → 기술평가 임시저장 → 개인 제출·잠금 → 기술 평균 취합입니다.
+개발용 인증만 있으며, 실제 서명·가격평가·위원장 확정·문서 AI·전체 원본 화면 이식은 후속 작업입니다.
+원본 데모는 `npm run demo`, 새 웹은 `npm run dev`로 각각 실행합니다.
+
+---
+
 # Local Computer Use Agent with Gemma 4 E2B
 
 > 이 프로그램은 실제 마우스와 키보드를 제어합니다. 

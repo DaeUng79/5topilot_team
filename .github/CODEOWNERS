@@ -1,0 +1,19 @@
+# Bootstrap reviewer: confirmed repository owner with write access.
+* @DaeUng79
+
+# Replace these commented examples with the four actual GitHub handles AFTER
+# they accept collaborator invitations and have write access.
+# Last matching rule wins. Do not put fake handles in active rules.
+# /computer_agent.py                         @PYTHON_OWNER
+# /services/agent/                           @PYTHON_OWNER
+# /apps/api/app/modules/ai/                  @PYTHON_OWNER
+# /apps/web/                                @FRONTEND_OWNER
+# /apps/api/app/modules/projects/            @EVALUATION_OWNER
+# /apps/api/app/modules/evaluations/         @EVALUATION_OWNER
+# /apps/api/migrations/                      @EVALUATION_OWNER @INTEGRATION_OWNER
+# /apps/api/app/core/                        @EVALUATION_OWNER @INTEGRATION_OWNER
+# /apps/api/app/modules/committee/           @INTEGRATION_OWNER
+# /tests/                                   @INTEGRATION_OWNER
+# /contracts/                               @FRONTEND_OWNER @INTEGRATION_OWNER
+# /.github/                                 @INTEGRATION_OWNER
+# Multiple owners on one line requests either owner, not mandatory approval by both.
