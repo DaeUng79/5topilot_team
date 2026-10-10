@@ -195,6 +195,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/evaluator-access/brief": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Brief
+         * @description 채점 화면용 사업 정보. 선정 위원만.
+         *
+         *     criteria는 확정 스냅샷이며 없으면 시작용 템플릿, 재검토 중이면 409.
+         */
+        get: operations["get_evaluator_brief"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/evaluator-access/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Context
+         * @description 본인확인 전 화면에 보여줄 사업명·위원명.
+         *
+         *     사업 ID와 선정 위원 ID를 모두 아는 접근 링크로만 조회된다. 점수·기준·연락처는 포함하지
+         *     않는다. 실제 인증 연결 시 링크 발급·만료 정책과 함께 재검토한다(SEC-01).
+         */
+        get: operations["get_access_context"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/evaluator-access/request-code": {
         parameters: {
             query?: never;
@@ -315,6 +360,13 @@ export interface components {
              */
             status: "not_connected";
         };
+        /** AccessContextRead */
+        AccessContextRead: {
+            candidate: components["schemas"]["ContextCandidate"];
+            /** Criteria Version */
+            criteria_version: number;
+            project: components["schemas"]["ContextProject"];
+        };
         /** CandidateCreate */
         CandidateCreate: {
             /** Name */
@@ -394,6 +446,22 @@ export interface components {
             status: "confirmed" | "closed";
             /** Submitted */
             submitted: number;
+        };
+        /** ContextCandidate */
+        ContextCandidate: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** ContextProject */
+        ContextProject: {
+            /** Department */
+            department: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
         };
         /** CriteriaConfirm */
         CriteriaConfirm: {
@@ -1150,6 +1218,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SheetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_evaluator_brief: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_access_context: {
+        parameters: {
+            query: {
+                candidate_id: string;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessContextRead"];
                 };
             };
             /** @description Validation Error */

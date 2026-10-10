@@ -18,6 +18,27 @@
         "title": "AIStatus",
         "type": "object"
       },
+      "AccessContextRead": {
+        "properties": {
+          "candidate": {
+            "$ref": "#/components/schemas/ContextCandidate"
+          },
+          "criteria_version": {
+            "title": "Criteria Version",
+            "type": "integer"
+          },
+          "project": {
+            "$ref": "#/components/schemas/ContextProject"
+          }
+        },
+        "required": [
+          "project",
+          "candidate",
+          "criteria_version"
+        ],
+        "title": "AccessContextRead",
+        "type": "object"
+      },
       "CandidateCreate": {
         "additionalProperties": false,
         "properties": {
@@ -244,6 +265,47 @@
           "closed_at"
         ],
         "title": "ConfirmationRead",
+        "type": "object"
+      },
+      "ContextCandidate": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ContextCandidate",
+        "type": "object"
+      },
+      "ContextProject": {
+        "properties": {
+          "department": {
+            "title": "Department",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "department"
+        ],
+        "title": "ContextProject",
         "type": "object"
       },
       "CriteriaConfirm": {
@@ -1901,6 +1963,108 @@
         "summary": "Submit My Sheet",
         "tags": [
           "evaluations"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/evaluator-access/brief": {
+      "get": {
+        "description": "채점 화면용 사업 정보. 선정 위원만.\n\ncriteria는 확정 스냅샷이며 없으면 시작용 템플릿, 재검토 중이면 409.",
+        "operationId": "get_evaluator_brief",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Brief",
+        "tags": [
+          "evaluator-access"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/evaluator-access/context": {
+      "get": {
+        "description": "본인확인 전 화면에 보여줄 사업명·위원명.\n\n사업 ID와 선정 위원 ID를 모두 아는 접근 링크로만 조회된다. 점수·기준·연락처는 포함하지\n않는다. 실제 인증 연결 시 링크 발급·만료 정책과 함께 재검토한다(SEC-01).",
+        "operationId": "get_access_context",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "candidate_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Candidate Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessContextRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Context",
+        "tags": [
+          "evaluator-access"
         ]
       }
     },

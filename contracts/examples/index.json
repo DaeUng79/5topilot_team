@@ -251,6 +251,39 @@
       "kind": "error",
       "operation": "confirm_results",
       "status": 403
+    },
+    {
+      "path": "evaluator-access/context.ok.response.json",
+      "schema": "AccessContextRead",
+      "kind": "response",
+      "operation": "get_access_context",
+      "status": 200,
+      "must_not_contain": [
+        "code",
+        "phone",
+        "scores"
+      ]
+    },
+    {
+      "path": "evaluator-access/context.forbidden.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "get_access_context",
+      "status": 403
+    },
+    {
+      "path": "evaluator-access/brief.ok.response.json",
+      "schema": "ProjectRead",
+      "kind": "response",
+      "operation": "get_evaluator_brief",
+      "status": 200
+    },
+    {
+      "path": "evaluator-access/brief.review.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "get_evaluator_brief",
+      "status": 409
     }
   ]
 }

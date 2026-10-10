@@ -1,13 +1,16 @@
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from app.core.auth import Actor, current_actor
 from app.core.db import get_db
+from app.core.permissions import current_draw, require_project_role
 from app.core.session import issue_session_token
 from app.modules.evaluator_access import service
+from app.modules.projects.criteria import current_confirmation, effective_criteria
+from app.modules.projects.router import ProjectRead
 from app.modules.projects.service import get_project
 
 router = APIRouter(tags=["evaluator-access"])
@@ -42,6 +45,71 @@ class SessionRead(BaseModel):
     expires_at: str
     channel: Literal["demo"]
     actor: SessionActor
+
+
+class ContextProject(BaseModel):
+    id: str
+    name: str
+    department: str
+
+
+class ContextCandidate(BaseModel):
+    id: str
+    name: str
+
+
+class AccessContextRead(BaseModel):
+    project: ContextProject
+    candidate: ContextCandidate
+    criteria_version: int
+
+
+@router.get(
+    "/projects/{project_id}/evaluator-access/context",
+    response_model=AccessContextRead,
+    operation_id="get_access_context",
+)
+def get_context(
+    project_id: str, candidate_id: Annotated[str, Query(min_length=1, max_length=36)], db: DB
+):
+    """본인확인 전 화면에 보여줄 사업명·위원명.
+
+    사업 ID와 선정 위원 ID를 모두 아는 접근 링크로만 조회된다. 점수·기준·연락처는 포함하지
+    않는다. 실제 인증 연결 시 링크 발급·만료 정책과 함께 재검토한다(SEC-01).
+    """
+    project = get_project(db, project_id)
+    service.ensure_assigned(db, project_id, candidate_id)
+    draw = current_draw(db, project_id)
+    name = next(
+        (c["name"] for c in draw.candidate_snapshot if c["id"] == candidate_id), candidate_id
+    )
+    confirmation = current_confirmation(db, project_id)
+    return AccessContextRead(
+        project=ContextProject(id=project.id, name=project.name, department=project.department),
+        candidate=ContextCandidate(id=candidate_id, name=name),
+        criteria_version=confirmation.version if confirmation else 0,
+    )
+
+
+@router.get(
+    "/projects/{project_id}/evaluator-access/brief",
+    response_model=ProjectRead,
+    operation_id="get_evaluator_brief",
+)
+def get_brief(project_id: str, db: DB, actor: Annotated[Actor, Depends(current_actor)]):
+    """채점 화면용 사업 정보. 선정 위원만.
+
+    criteria는 확정 스냅샷이며 없으면 시작용 템플릿, 재검토 중이면 409.
+    """
+    project = require_project_role(db, project_id, actor, {"evaluator"})
+    criteria, _version = effective_criteria(db, project)
+    return ProjectRead(
+        id=project.id,
+        name=project.name,
+        department=project.department,
+        criteria=criteria,
+        vendor_ids=project.vendor_ids,
+    )
 
 
 @router.post(
