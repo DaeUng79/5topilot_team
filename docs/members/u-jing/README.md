@@ -23,13 +23,13 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 1 | API 계약 예제 JSON | contracts/examples/ | OPS-01 | 없음 | 완료(로컬) |
 | 2 | 1 | 합성 테스트 데이터·손 계산 기대값 | tests/fixtures/synthetic/, apps/api/tests/test_contract_examples.py | ACCEPTANCE §2 | 없음 | 완료(로컬) |
-| 3 | 2 | 사업별 권한 공통 계층 ※ | core/permissions.py, core/auth.py (수정) | SEC-01 | DaeUng79·Lex6won | 대기 |
-| 4 | 2 | 평가위원 본인확인·세션 (데모 코드 로컬 전용) | modules/evaluator_access/, core/session.py, core/config.py (수정) | SEC-01 | 없음 | 대기 |
-| 5 | 2 | 관리자·위원장 실제 인증 연결 ※ | core/auth.py (수정) | SEC-01 | DaeUng79 (제공자) | 대기 (외부 연동 대기) |
-| 6 | 2 | 기준 확정 기록 ※ | modules/projects/criteria.py, projects/router.py (수정) | EVAL-01, DOC-03·04 | DaeUng79·Lex6won | 대기 |
-| 7 | 2 | migration 0002 | migrations/versions/0002_*.py, migrations/env.py (수정) | OPS-01 | DaeUng79 (번호) | 대기 |
+| 3 | 2 | 사업별 권한 공통 계층 ※ | core/permissions.py, core/auth.py (수정) | SEC-01 | DaeUng79·Lex6won | 완료(로컬) · 위원장 출처는 미지정 반환 |
+| 4 | 2 | 평가위원 본인확인·세션 (데모 코드 로컬 전용) | modules/evaluator_access/, core/session.py, core/config.py (수정) | SEC-01 | 없음 | 완료(로컬) · 발송 채널은 인터페이스만 |
+| 5 | 2 | 관리자·위원장 실제 인증 연결 ※ | core/auth.py (수정) | SEC-01 | DaeUng79 (제공자) | 외부 연동 대기 · current_actor에 끼울 자리만 확보 |
+| 6 | 2 | 기준 확정 기록 ※ | modules/projects/criteria.py (projects/router.py는 수정하지 않고 main.py에 등록) | EVAL-01, DOC-03·04 | DaeUng79·Lex6won | 완료(로컬) · 확정 권한은 관리자 |
+| 7 | 2 | migration 0002 | migrations/versions/0002_criteria_results_signatures.py, migrations/env.py (수정) | OPS-01 | DaeUng79 (번호) | 완료(로컬) · 공동 DB 미적용 |
 | 8 | 3 | 점수 저장에 기준 버전 고정 | evaluations/router.py, service.py (수정) | EVAL-01 | 없음 | 대기 |
-| 9 | 3 | 권한 검사 공통 호출 교체 | evaluations/router.py (수정) | SEC-01 | 없음 | 대기 |
+| 9 | 3 | 권한 검사 공통 호출 교체 | evaluations/router.py (수정) | SEC-01 | 없음 | 완료(로컬, 2단계에서 선행) |
 | 10 | 3 | PostgreSQL 동시 편집·제출 테스트 | apps/api/tests/ | EVAL-02, EVAL-03 | 없음 | 대기 |
 | 11 | 4 | 집계 정책 v1 (버전 있는 계산) | modules/results/policies.py, service.py | RES-02 | Lex6won (정책 승인) | 대기 |
 | 12 | 4 | 결과 공개 시점 규칙 | modules/results/router.py | RES-01 | Lex6won | 대기 |
@@ -54,6 +54,13 @@
 | 날짜 | 파일 | 변경 | 이유 | 영향 |
 | --- | --- | --- | --- | --- |
 | 2026-10-11 | (없음) | 1단계는 신규 파일만 추가 | — | 기존 테스트 10개 통과 유지 |
+| 2026-10-11 | apps/api/app/core/auth.py | 세션 토큰 분기 추가, Actor.project_id 필드 | 본인확인 세션을 기존 current_actor 의존성으로 받기 위해 | 데모 토큰 동작·메시지·테스트 동일. 커밋 de2f32f |
+| 2026-10-11 | apps/api/app/core/config.py | APP_ENV·SESSION_SECRET·SESSION_TTL_MINUTES·DEMO_VERIFY_CODE, preview/production 데모 금지 검증 | 데모 인증 수단을 배포 환경에서 차단 | 기존 설정 기본값 변경 없음 |
+| 2026-10-11 | apps/api/app/modules/evaluations/router.py | require_assigned 본문을 core/permissions 호출로 교체 | 세션 토큰의 사업 범위 강제 | 호출부·403 메시지 동일 |
+| 2026-10-11 | apps/api/app/modules/evaluations/models.py | criteria_version·signed_at·sheet_hash·sign_method 열(NULL 허용) | 기준 버전 고정·서명 기록(3·4단계) | 0002 migration, 기존 행은 NULL. 커밋 002471b |
+| 2026-10-11 | apps/api/migrations/env.py | criteria·results 모델 import | alembic check가 새 모델을 보도록 | 없음 |
+| 2026-10-11 | apps/api/app/main.py | criteria·evaluator_access 라우터 등록 2줄 | 신규 API 노출 | 기존 라우터 순서 유지. 커밋 48ba37d |
+| 2026-10-11 | apps/api/.env.example | 로컬 전용 값 3개 추가 | 설정 발견성 | setup.ps1이 복사하는 기본 .env에 포함 |
 
 ## 실행과 테스트
 
@@ -67,6 +74,7 @@ API: `apps/api`에서 가상환경(`.venv`)으로 `python -m pytest -q`, `python
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-10 | 아직 없음 | 역할·코드 경로·문서 체계 등록 | 문서 작성 | 제품 검증 미실행 | 기능별 작은 이슈와 PR 등록 |
 | 2026-10-11 | 이슈·PR 미등록 (gh CLI 없음, push 계정 확인 전) | 1단계 항목 1·2: `contracts/examples/` 24개 예제, `tests/fixtures/synthetic/` 4개 자료, `apps/api/tests/test_contract_examples.py`. 커밋 ba89080 | 완료(로컬) | 기준 PR #1 658748e: pytest 10 passed 1 skipped(PostgreSQL). 변경 후: pytest 39 passed 1 skipped, ruff check·format 통과, `npm run typecheck` 통과 | cookiesh1: 화면 mock에 예제 사용 검토. DaeUng79: fixture ID·문서 revision 필드. API·DB 변경 없음 |
+| 2026-10-11 | 이슈·PR 미등록 | 2단계 항목 3·4·6·7·9: core/permissions·session, evaluator_access 모듈(request-code·verify·me), projects/criteria.py(확정·재검토·조회), results/models.py, migration 0002, 계약 재생성. 커밋 de2f32f·002471b·48ba37d·73a5019 | 완료(로컬) | pytest 58 passed 1 skipped(PostgreSQL), ruff 통과, alembic upgrade head·check·downgrade 0001·upgrade(SQLite) 통과, npm typecheck 통과. 신규 API 6개 | DaeUng79: migration 0002 번호·병합 순서, 인증 제공자. Lex6won: 위원장 지정 출처(COM-03), 기준 확정 권한자. 공동 DB 미적용 |
 
 ```text
 담당 기능:
