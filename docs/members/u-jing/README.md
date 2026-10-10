@@ -28,9 +28,9 @@
 | 5 | 2 | 관리자·위원장 실제 인증 연결 ※ | core/auth.py (수정) | SEC-01 | DaeUng79 (제공자) | 외부 연동 대기 · current_actor에 끼울 자리만 확보 |
 | 6 | 2 | 기준 확정 기록 ※ | modules/projects/criteria.py (projects/router.py는 수정하지 않고 main.py에 등록) | EVAL-01, DOC-03·04 | DaeUng79·Lex6won | 완료(로컬) · 확정 권한은 관리자 |
 | 7 | 2 | migration 0002 | migrations/versions/0002_criteria_results_signatures.py, migrations/env.py (수정) | OPS-01 | DaeUng79 (번호) | 완료(로컬) · 공동 DB 미적용 |
-| 8 | 3 | 점수 저장에 기준 버전 고정 | evaluations/router.py, service.py (수정) | EVAL-01 | 없음 | 대기 |
+| 8 | 3 | 점수 저장에 기준 버전 고정 | evaluations/router.py, service.py (수정) | EVAL-01 | 없음 | 완료(로컬) · 버전 불일치·재검토 중 409 |
 | 9 | 3 | 권한 검사 공통 호출 교체 | evaluations/router.py (수정) | SEC-01 | 없음 | 완료(로컬, 2단계에서 선행) |
-| 10 | 3 | PostgreSQL 동시 편집·제출 테스트 | apps/api/tests/ | EVAL-02, EVAL-03 | 없음 | 대기 |
+| 10 | 3 | PostgreSQL 동시 편집·제출 테스트 | apps/api/tests/test_sheet_versions.py | EVAL-02, EVAL-03 | 없음 | 작성 완료 · 두 탭 시나리오는 SQLite 통과, 병렬 4·3건은 CI PostgreSQL에서 실행(로컬 skip) |
 | 11 | 4 | 집계 정책 v1 (버전 있는 계산) | modules/results/policies.py, service.py | RES-02 | Lex6won (정책 승인) | 대기 |
 | 12 | 4 | 결과 공개 시점 규칙 | modules/results/router.py | RES-01 | Lex6won | 대기 |
 | 13 | 4 | 위원장 결과 확인 기록 | modules/results/models.py, router.py | RES-03 | Lex6won (위원장 출처) | 대기 |
@@ -61,6 +61,7 @@
 | 2026-10-11 | apps/api/migrations/env.py | criteria·results 모델 import | alembic check가 새 모델을 보도록 | 없음 |
 | 2026-10-11 | apps/api/app/main.py | criteria·evaluator_access 라우터 등록 2줄 | 신규 API 노출 | 기존 라우터 순서 유지. 커밋 48ba37d |
 | 2026-10-11 | apps/api/.env.example | 로컬 전용 값 3개 추가 | 설정 발견성 | setup.ps1이 복사하는 기본 .env에 포함 |
+| 2026-10-11 | apps/api/app/modules/evaluations/router.py·service.py | 저장·제출이 확정 기준 스냅샷으로 검증하고 criteria_version 기록. validate_scores에 criteria 인자 | EVAL-01 기준 버전 고정 | PR #1 테스트 전부 통과. 확정 기록이 없으면 종전처럼 버전 0으로 동작. 커밋 a4553a3·47b6823 |
 
 ## 실행과 테스트
 
@@ -75,6 +76,7 @@ API: `apps/api`에서 가상환경(`.venv`)으로 `python -m pytest -q`, `python
 | 2026-10-10 | 아직 없음 | 역할·코드 경로·문서 체계 등록 | 문서 작성 | 제품 검증 미실행 | 기능별 작은 이슈와 PR 등록 |
 | 2026-10-11 | 이슈·PR 미등록 (gh CLI 없음, push 계정 확인 전) | 1단계 항목 1·2: `contracts/examples/` 24개 예제, `tests/fixtures/synthetic/` 4개 자료, `apps/api/tests/test_contract_examples.py`. 커밋 ba89080 | 완료(로컬) | 기준 PR #1 658748e: pytest 10 passed 1 skipped(PostgreSQL). 변경 후: pytest 39 passed 1 skipped, ruff check·format 통과, `npm run typecheck` 통과 | cookiesh1: 화면 mock에 예제 사용 검토. DaeUng79: fixture ID·문서 revision 필드. API·DB 변경 없음 |
 | 2026-10-11 | 이슈·PR 미등록 | 2단계 항목 3·4·6·7·9: core/permissions·session, evaluator_access 모듈(request-code·verify·me), projects/criteria.py(확정·재검토·조회), results/models.py, migration 0002, 계약 재생성. 커밋 de2f32f·002471b·48ba37d·73a5019 | 완료(로컬) | pytest 58 passed 1 skipped(PostgreSQL), ruff 통과, alembic upgrade head·check·downgrade 0001·upgrade(SQLite) 통과, npm typecheck 통과. 신규 API 6개 | DaeUng79: migration 0002 번호·병합 순서, 인증 제공자. Lex6won: 위원장 지정 출처(COM-03), 기준 확정 권한자. 공동 DB 미적용 |
+| 2026-10-11 | 이슈·PR 미등록 | 3단계 항목 8·10: 기준 버전 고정(저장·제출), 두 탭 구버전 충돌·제출 후 잠금 테스트, PostgreSQL 병렬 저장·제출 테스트, SheetRead.criteria_version 계약 반영. 커밋 a4553a3·47b6823 | 완료(로컬) · PostgreSQL 병렬 테스트는 CI 실행 대기 | pytest 60 passed 2 skipped(PostgreSQL 2건), ruff 통과, npm typecheck 통과 | Lex6won: 기준 재확정 후 기존 평가표 처리 규칙(현재는 보수적 409). cookiesh1: 409 메시지 화면 표시 |
 
 ```text
 담당 기능:
