@@ -160,6 +160,92 @@
         "title": "CodeRequestRead",
         "type": "object"
       },
+      "ConfirmationRead": {
+        "properties": {
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "closed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed By"
+          },
+          "confirmed_at": {
+            "title": "Confirmed At",
+            "type": "string"
+          },
+          "confirmed_by": {
+            "title": "Confirmed By",
+            "type": "string"
+          },
+          "criteria_version": {
+            "title": "Criteria Version",
+            "type": "integer"
+          },
+          "expected": {
+            "title": "Expected",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result_sha256": {
+            "title": "Result Sha256",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "confirmed",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted": {
+            "title": "Submitted",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "status",
+          "policy_version",
+          "criteria_version",
+          "result_sha256",
+          "expected",
+          "submitted",
+          "confirmed_by",
+          "confirmed_at",
+          "closed_by",
+          "closed_at"
+        ],
+        "title": "ConfirmationRead",
+        "type": "object"
+      },
       "CriteriaConfirm": {
         "additionalProperties": false,
         "properties": {
@@ -483,6 +569,75 @@
         "title": "Health",
         "type": "object"
       },
+      "MemberStatus": {
+        "properties": {
+          "criteria_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Criteria Version"
+          },
+          "evaluator_id": {
+            "title": "Evaluator Id",
+            "type": "string"
+          },
+          "is_chair": {
+            "title": "Is Chair",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed At"
+          },
+          "status": {
+            "enum": [
+              "none",
+              "draft",
+              "submitted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          }
+        },
+        "required": [
+          "evaluator_id",
+          "name",
+          "is_chair",
+          "status",
+          "submitted_at",
+          "signed_at",
+          "criteria_version"
+        ],
+        "title": "MemberStatus",
+        "type": "object"
+      },
       "ProjectCreate": {
         "additionalProperties": false,
         "properties": {
@@ -550,6 +705,29 @@
         "title": "ProjectRead",
         "type": "object"
       },
+      "Ranking": {
+        "properties": {
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "technical_average": {
+            "title": "Technical Average",
+            "type": "number"
+          },
+          "vendor_id": {
+            "title": "Vendor Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "vendor_id",
+          "technical_average",
+          "rank"
+        ],
+        "title": "Ranking",
+        "type": "object"
+      },
       "ResultsRead": {
         "properties": {
           "averages": {
@@ -588,6 +766,105 @@
           "calculation"
         ],
         "title": "ResultsRead",
+        "type": "object"
+      },
+      "ResultsSummary": {
+        "properties": {
+          "averages": {
+            "items": {
+              "$ref": "#/components/schemas/VendorAverage"
+            },
+            "title": "Averages",
+            "type": "array"
+          },
+          "chair_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chair Id"
+          },
+          "confirmable": {
+            "title": "Confirmable",
+            "type": "boolean"
+          },
+          "confirmation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfirmationRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "criteria_version": {
+            "title": "Criteria Version",
+            "type": "integer"
+          },
+          "expected": {
+            "title": "Expected",
+            "type": "integer"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/MemberStatus"
+            },
+            "title": "Members",
+            "type": "array"
+          },
+          "notices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "rankings": {
+            "items": {
+              "$ref": "#/components/schemas/Ranking"
+            },
+            "title": "Rankings",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "collecting",
+              "technical_complete",
+              "confirmed",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submitted": {
+            "title": "Submitted",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "status",
+          "expected",
+          "submitted",
+          "members",
+          "averages",
+          "rankings",
+          "policy_version",
+          "criteria_version",
+          "chair_id",
+          "confirmable",
+          "confirmation",
+          "notices"
+        ],
+        "title": "ResultsSummary",
         "type": "object"
       },
       "ReviewRequest": {
@@ -729,6 +1006,39 @@
             },
             "title": "Scores",
             "type": "array"
+          },
+          "sheet_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sheet Hash"
+          },
+          "sign_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sign Method"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed At"
           },
           "status": {
             "enum": [
@@ -874,6 +1184,24 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VendorAverage": {
+        "properties": {
+          "technical_average": {
+            "title": "Technical Average",
+            "type": "number"
+          },
+          "vendor_id": {
+            "title": "Vendor Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "vendor_id",
+          "technical_average"
+        ],
+        "title": "VendorAverage",
         "type": "object"
       },
       "VerifyRequest": {
@@ -1724,6 +2052,155 @@
         "summary": "Get Results",
         "tags": [
           "evaluations"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/results/confirm": {
+      "post": {
+        "operationId": "confirm_results",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm",
+        "tags": [
+          "results"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/results/confirmation": {
+      "get": {
+        "operationId": "get_results_confirmation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ConfirmationRead"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Results Confirmation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Results Confirmation",
+        "tags": [
+          "results"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/results/summary": {
+      "get": {
+        "operationId": "get_results_summary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultsSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Results Summary",
+        "tags": [
+          "results"
         ]
       }
     }

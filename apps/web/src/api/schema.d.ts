@@ -246,6 +246,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/results/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm */
+        post: operations["confirm_results"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/results/confirmation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Results Confirmation */
+        get: operations["get_results_confirmation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/results/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Results Summary */
+        get: operations["get_results_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -313,6 +364,36 @@ export interface components {
             expires_in: number;
             /** Notice */
             notice: string;
+        };
+        /** ConfirmationRead */
+        ConfirmationRead: {
+            /** Closed At */
+            closed_at: string | null;
+            /** Closed By */
+            closed_by: string | null;
+            /** Confirmed At */
+            confirmed_at: string;
+            /** Confirmed By */
+            confirmed_by: string;
+            /** Criteria Version */
+            criteria_version: number;
+            /** Expected */
+            expected: number;
+            /** Id */
+            id: string;
+            /** Policy Version */
+            policy_version: string;
+            /** Project Id */
+            project_id: string;
+            /** Result Sha256 */
+            result_sha256: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "confirmed" | "closed";
+            /** Submitted */
+            submitted: number;
         };
         /** CriteriaConfirm */
         CriteriaConfirm: {
@@ -420,6 +501,26 @@ export interface components {
              */
             status: string;
         };
+        /** MemberStatus */
+        MemberStatus: {
+            /** Criteria Version */
+            criteria_version: number | null;
+            /** Evaluator Id */
+            evaluator_id: string;
+            /** Is Chair */
+            is_chair: boolean;
+            /** Name */
+            name: string;
+            /** Signed At */
+            signed_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "none" | "draft" | "submitted";
+            /** Submitted At */
+            submitted_at: string | null;
+        };
         /** ProjectCreate */
         ProjectCreate: {
             /** Department */
@@ -440,6 +541,15 @@ export interface components {
             /** Vendor Ids */
             vendor_ids: string[];
         };
+        /** Ranking */
+        Ranking: {
+            /** Rank */
+            rank: number;
+            /** Technical Average */
+            technical_average: number;
+            /** Vendor Id */
+            vendor_id: string;
+        };
         /** ResultsRead */
         ResultsRead: {
             /** Averages */
@@ -453,6 +563,35 @@ export interface components {
              * @enum {string}
              */
             status: "collecting" | "technical_complete";
+            /** Submitted */
+            submitted: number;
+        };
+        /** ResultsSummary */
+        ResultsSummary: {
+            /** Averages */
+            averages: components["schemas"]["VendorAverage"][];
+            /** Chair Id */
+            chair_id: string | null;
+            /** Confirmable */
+            confirmable: boolean;
+            confirmation: components["schemas"]["ConfirmationRead"] | null;
+            /** Criteria Version */
+            criteria_version: number;
+            /** Expected */
+            expected: number;
+            /** Members */
+            members: components["schemas"]["MemberStatus"][];
+            /** Notices */
+            notices: string[];
+            /** Policy Version */
+            policy_version: string;
+            /** Rankings */
+            rankings: components["schemas"]["Ranking"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "collecting" | "technical_complete" | "confirmed" | "closed";
             /** Submitted */
             submitted: number;
         };
@@ -509,6 +648,12 @@ export interface components {
             project_id: string;
             /** Scores */
             scores: components["schemas"]["ScoreEntry"][];
+            /** Sheet Hash */
+            sheet_hash?: string | null;
+            /** Sign Method */
+            sign_method?: string | null;
+            /** Signed At */
+            signed_at?: string | null;
             /**
              * Status
              * @enum {string}
@@ -560,6 +705,13 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VendorAverage */
+        VendorAverage: {
+            /** Technical Average */
+            technical_average: number;
+            /** Vendor Id */
+            vendor_id: string;
         };
         /** VerifyRequest */
         VerifyRequest: {
@@ -1099,6 +1251,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResultsRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_results: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_results_confirmation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_results_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultsSummary"];
                 };
             };
             /** @description Validation Error */

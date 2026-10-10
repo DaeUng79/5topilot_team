@@ -12,7 +12,12 @@ from app.core.db import get_db
 from app.core.permissions import require_project_role
 from app.modules.committee.models import Draw
 from app.modules.evaluations.models import ScoreSheet
-from app.modules.evaluations.service import technical_averages, validate_scores
+from app.modules.evaluations.service import (
+    SIGN_METHOD,
+    sheet_hash,
+    technical_averages,
+    validate_scores,
+)
 from app.modules.projects.criteria import effective_criteria
 from app.modules.projects.service import get_project
 
@@ -47,6 +52,10 @@ class SheetRead(BaseModel):
     submitted_at: str | None
     # 저장 시점의 확정 기준 버전. 0은 미확정 템플릿, None은 0002 이전 행.
     criteria_version: int | None = None
+    # 제출 시 기록. 본인 확인 문구 동의 + 내용 해시(attestation-v1). 법적 전자서명이 아니다.
+    signed_at: str | None = None
+    sheet_hash: str | None = None
+    sign_method: str | None = None
 
 
 class SubmitRequest(BaseModel):
@@ -166,6 +175,7 @@ def submit_my_sheet(project_id: str, body: SubmitRequest, db: DB, actor: User):
         raise HTTPException(422, "먼저 평가표를 저장하세요.")
     ensure_criteria_version(sheet, criteria_version)
     validate_scores(project, sheet.scores, complete=True, criteria=criteria)
+    signed_at = datetime.now(UTC).isoformat()
     result = db.execute(
         update(ScoreSheet)
         .where(
@@ -175,9 +185,14 @@ def submit_my_sheet(project_id: str, body: SubmitRequest, db: DB, actor: User):
         )
         .values(
             status="submitted",
-            submitted_at=datetime.now(UTC).isoformat(),
+            submitted_at=signed_at,
             version=ScoreSheet.version + 1,
             criteria_version=criteria_version,
+            signed_at=signed_at,
+            sheet_hash=sheet_hash(
+                project_id, actor.id, sheet.scores, sheet.opinion, criteria_version
+            ),
+            sign_method=SIGN_METHOD,
         )
     )
     if result.rowcount != 1:

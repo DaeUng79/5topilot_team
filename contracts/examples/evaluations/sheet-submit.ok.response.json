@@ -113,5 +113,8 @@
   "status": "submitted",
   "version": 2,
   "submitted_at": "2026-10-11T05:00:00+00:00",
-  "criteria_version": 1
+  "criteria_version": 1,
+  "signed_at": "2026-10-11T05:00:00+00:00",
+  "sheet_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "sign_method": "attestation-v1"
 }

@@ -103,16 +103,7 @@
       "schema": "ConfirmationRead",
       "kind": "response",
       "status": 200,
-      "draft": true,
-      "stage": 4
-    },
-    {
-      "path": "results/confirmation.review.response.json",
-      "schema": "ErrorDetail",
-      "kind": "error",
-      "status": 409,
-      "draft": true,
-      "stage": 4
+      "operation": "get_results_confirmation"
     },
     {
       "path": "results/report.ok.response.json",
@@ -217,6 +208,49 @@
       "kind": "error",
       "operation": "confirm_criteria",
       "status": 409
+    },
+    {
+      "path": "results/confirmation.empty.response.json",
+      "schema": null,
+      "kind": "response",
+      "operation": "get_results_confirmation",
+      "status": 200,
+      "note": "확정 전에는 null"
+    },
+    {
+      "path": "results/summary.collecting.response.json",
+      "schema": "ResultsSummary",
+      "kind": "response",
+      "operation": "get_results_summary",
+      "status": 200
+    },
+    {
+      "path": "results/summary.ok.response.json",
+      "schema": "ResultsSummary",
+      "kind": "response",
+      "operation": "get_results_summary",
+      "status": 200
+    },
+    {
+      "path": "results/summary.forbidden.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "get_results_summary",
+      "status": 403
+    },
+    {
+      "path": "results/confirm.review.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "confirm_results",
+      "status": 409
+    },
+    {
+      "path": "results/confirm.forbidden.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "confirm_results",
+      "status": 403
     }
   ]
 }

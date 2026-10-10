@@ -1,8 +1,51 @@
+import hashlib
+import json
 from decimal import ROUND_HALF_UP, Decimal
 
 from fastapi import HTTPException
 
 from app.modules.projects.models import Project
+
+# 제출 확인 기록 방식. 본인 확인 문구 동의 + 평가표 해시이며 법적 전자서명이 아니다(RES-03).
+SIGN_METHOD = "attestation-v1"
+
+
+def sheet_hash(
+    project_id: str,
+    evaluator_id: str,
+    scores: list[dict],
+    opinion: str,
+    criteria_version: int | None,
+) -> str:
+    """제출 시점 평가표 내용의 SHA-256. 리포트·결과 확정에서 변조 여부를 다시 계산해 비교한다."""
+    payload = {
+        "project_id": project_id,
+        "evaluator_id": evaluator_id,
+        "criteria_version": criteria_version,
+        "opinion": opinion,
+        "scores": sorted(
+            (
+                {
+                    "vendor_id": s["vendor_id"],
+                    "criterion_id": s["criterion_id"],
+                    "score": str(s["score"]),
+                }
+                for s in scores
+            ),
+            key=lambda s: (s["vendor_id"], s["criterion_id"]),
+        ),
+    }
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def verify_sheet_hash(sheet) -> bool:
+    if not sheet.sheet_hash:
+        return False
+    expected = sheet_hash(
+        sheet.project_id, sheet.evaluator_id, sheet.scores, sheet.opinion, sheet.criteria_version
+    )
+    return expected == sheet.sheet_hash
 
 
 def validate_scores(

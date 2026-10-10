@@ -17,6 +17,7 @@ from app.modules.evaluator_access import router as access_router
 from app.modules.projects import criteria as criteria_module
 from app.modules.projects import router as projects_router
 from app.modules.projects.models import Project
+from app.modules.results import router as results_router
 
 ROOT = Path(__file__).resolve().parents[3]
 EXAMPLES = ROOT / "contracts" / "examples"
@@ -36,7 +37,13 @@ OPERATION_IDS = {
 }
 MODELS: dict[str, type[BaseModel]] = {
     name: obj
-    for module in (evaluations_router, projects_router, access_router, criteria_module)
+    for module in (
+        evaluations_router,
+        projects_router,
+        access_router,
+        criteria_module,
+        results_router,
+    )
     for name, obj in vars(module).items()
     if isinstance(obj, type) and issubclass(obj, BaseModel)
 }
