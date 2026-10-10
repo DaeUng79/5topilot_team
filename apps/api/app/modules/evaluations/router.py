@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.auth import Actor, current_actor, require_admin
 from app.core.db import get_db
+from app.core.permissions import require_project_role
 from app.modules.committee.models import Draw
 from app.modules.evaluations.models import ScoreSheet
 from app.modules.evaluations.service import technical_averages, validate_scores
@@ -65,11 +66,8 @@ class ResultsRead(BaseModel):
 
 
 def require_assigned(db: Session, project_id: str, actor: Actor):
-    project = get_project(db, project_id)
-    draw = db.scalar(select(Draw).where(Draw.project_id == project_id))
-    if actor.role != "evaluator" or not draw or actor.id not in draw.selected_ids:
-        raise HTTPException(403, "이 사업의 선정된 평가위원만 채점할 수 있습니다.")
-    return project
+    """선정된 본위원만. 본인확인 세션은 토큰의 사업에만 유효하다(core/permissions)."""
+    return require_project_role(db, project_id, actor, {"evaluator"})
 
 
 def my_sheet(db: Session, project_id: str, actor_id: str):
