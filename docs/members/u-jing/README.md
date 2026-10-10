@@ -37,11 +37,11 @@
 | 14 | 4 | 평가표 서명 정보 저장·검증 | evaluations/router.py, service.py, models.py (수정) | RES-03, EVAL-03 | 없음 | 완료(로컬) · attestation-v1(확인 문구 동의 + 내용 SHA-256), 전자서명 아님 |
 | 15 | 4 | 평가위원 화면 (접속·본인확인·채점·제출) | apps/web/src/features/evaluator/, main.tsx·EvaluationPage.tsx·client.ts (수정), evaluator-access context·brief API | SEC-01, EVAL-01 | cookiesh1 | 완료(로컬) · 빌드 통과, 브라우저 E2E는 5단계 |
 | 16 | 4 | 관리자 결과·서명·리포트 화면 | apps/web/src/features/results/, App.tsx (수정) | RES-01~03 | cookiesh1 | 완료(로컬) · 출력·보고서 버튼은 5단계 자리 |
-| 17 | 5 | 리포트 데이터 API | modules/results/report.py, router.py | RES-03 | DaeUng79 (revision 필드) | 대기 |
-| 18 | 5 | 사업 완료·보관 | modules/results/ (상태 열 위치 협의) | CLOSE-01 | DaeUng79·Lex6won·cookiesh1 | 대기 |
-| 19 | 5 | 계약·migration·CI 유지 ※ | scripts/, .github/workflows/ci.yml (수정), apps/api/tests/ | OPS-01 | DaeUng79 | 대기 |
-| 20 | 5 | 평가위원 흐름 E2E | tests/e2e/evaluator-flow.spec.ts | SEC-01, EVAL-03 | cookiesh1 | 대기 |
-| 21 | 5 | 문서·검증 기록 | docs/modules/, 이 문서, docs/testing/ACCEPTANCE.md (수정) | 전체 | 없음 | 진행 |
+| 17 | 5 | 리포트 데이터 API | modules/results/report.py, router.py, web ReportView.tsx | RES-03 | DaeUng79 (revision 필드) | 완료(로컬) · 문서 revision 참조는 빈 목록, HWP 생성 범위 밖 |
+| 18 | 5 | 사업 완료·보관 | modules/results/report.py·state.py (상태는 result_confirmations.status) | CLOSE-01 | DaeUng79·Lex6won·cookiesh1 | 완료(로컬) · projects.status 열 여부 협의 |
+| 19 | 5 | 계약·migration·CI 유지 ※ | .github/workflows/ci.yml (수정), scripts/e2e-api.mjs (수정) | OPS-01 | DaeUng79 | 완료(로컬) · CI 실행은 push 뒤 |
+| 20 | 5 | 평가위원 흐름 E2E | tests/e2e/evaluator-flow.spec.ts | SEC-01, EVAL-03 | cookiesh1 | 완료(로컬 Chromium 통과) |
+| 21 | 5 | 문서·검증 기록 | docs/modules/evaluations.md·results.md, 이 문서, docs/testing/ACCEPTANCE.md §6 | 전체 | 없음 | 완료(로컬) · 동료 재현 기록은 비어 있음 |
 
 재사용하고 다시 만들지 않는 기존 코드: 점수 저장·제출·잠금·version 충돌(`evaluations/router.py`), 기술평균(`evaluations/service.py`), 데모 토큰(`core/auth.py`), 채점표 컴포넌트(`ScoreEditor`), 공통 스타일, seed 데이터, CI 계약 차이 검사, E2E 패턴.
 
@@ -68,6 +68,9 @@
 | 2026-10-11 | apps/web/src/App.tsx | 메뉴 항목·Page 타입·렌더 1곳씩 | 결과 화면 연결 | 기존 메뉴 순서 유지 |
 | 2026-10-11 | apps/web/src/features/evaluations/EvaluationPage.tsx | ScoreEditor·vendorName export, client prop(기본값 기존 동작) | 채점표 재사용, 중복 컴포넌트 방지 | 기존 호출부 변경 없음 |
 | 2026-10-11 | apps/web/src/api/client.ts | 타입 4개, sessionApi·publicApi 추가 | 세션·공개 호출 | 기존 api·evaluatorApi 유지 |
+| 2026-10-11 | apps/api/app/modules/evaluations/router.py, projects/criteria.py | 저장·제출·확정·재검토 앞에 ensure_not_sealed 1줄 | 결과 확정·완료 뒤 변경 차단(CLOSE-01) | 봉인 전 동작 동일. 커밋 5cee2dc |
+| 2026-10-11 | .github/workflows/ci.yml | migration 단계에 upgrade 0001→head·downgrade -1·upgrade head 추가 | OPS-01 기존 스키마 업그레이드 검증 | CI 시간 소폭 증가. push 뒤 실행 확인 필요 |
+| 2026-10-11 | scripts/e2e-api.mjs | E2E 서버 환경에 APP_ENV=ci·SESSION_SECRET·DEMO_VERIFY_CODE | 평가위원 E2E 실행 | PR #1 team-flow E2E 그대로 통과 |
 
 ## 실행과 테스트
 
@@ -84,6 +87,7 @@ API: `apps/api`에서 가상환경(`.venv`)으로 `python -m pytest -q`, `python
 | 2026-10-11 | 이슈·PR 미등록 | 2단계 항목 3·4·6·7·9: core/permissions·session, evaluator_access 모듈(request-code·verify·me), projects/criteria.py(확정·재검토·조회), results/models.py, migration 0002, 계약 재생성. 커밋 de2f32f·002471b·48ba37d·73a5019 | 완료(로컬) | pytest 58 passed 1 skipped(PostgreSQL), ruff 통과, alembic upgrade head·check·downgrade 0001·upgrade(SQLite) 통과, npm typecheck 통과. 신규 API 6개 | DaeUng79: migration 0002 번호·병합 순서, 인증 제공자. Lex6won: 위원장 지정 출처(COM-03), 기준 확정 권한자. 공동 DB 미적용 |
 | 2026-10-11 | 이슈·PR 미등록 | 3단계 항목 8·10: 기준 버전 고정(저장·제출), 두 탭 구버전 충돌·제출 후 잠금 테스트, PostgreSQL 병렬 저장·제출 테스트, SheetRead.criteria_version 계약 반영. 커밋 a4553a3·47b6823 | 완료(로컬) · PostgreSQL 병렬 테스트는 CI 실행 대기 | pytest 60 passed 2 skipped(PostgreSQL 2건), ruff 통과, npm typecheck 통과 | Lex6won: 기준 재확정 후 기존 평가표 처리 규칙(현재는 보수적 409). cookiesh1: 409 메시지 화면 표시 |
 | 2026-10-11 | 이슈·PR 미등록 | 4단계 항목 11~16: results 모듈(정책·요약·확정), 제출 서명 기록, evaluator-access context·brief, 평가위원 화면(EvaluatorApp), 결과 화면(ResultsPage), 공통 파일 최소 수정. 커밋 ff30485·e88ee3f·a1da966 | 완료(로컬) · 브라우저 E2E는 5단계 | pytest 71 passed 2 skipped(PostgreSQL), ruff 통과, npm typecheck·build 통과. 신규 API 5개 | Lex6won: 위원장 지정 출처·결과 확정 주체, 집계 정책(최고·최저 제외·가격) 승인. cookiesh1: /evaluator 임시 분기 → 라우터 전환, 결과·평가위원 화면 UX. DaeUng79: 세션 비밀키 주입 |
+| 2026-10-11 | 이슈·PR 미등록 | 5단계 항목 17~21: 리포트·완료 API, 봉인 뒤 변경 차단, 결과표 보기·인쇄·JSON, CI 업그레이드 검사, 평가위원 E2E, 모듈 문서 2개, 인수검증 §6 기록. 커밋 5cee2dc 외 문서 커밋 | 완료(로컬) | pytest 82 passed 2 skipped, ruff 통과, npm typecheck·build 통과, npm run test:e2e 2 passed(Chromium). 스크린샷 artifacts/*.png(미추적) | 동료 재현 전부 미실행. DaeUng79: 리포트 문서 revision 필드, 병합 순서. Lex6won: 위원장·정책. cookiesh1: 인쇄 화면·결과 화면 UX |
 
 ```text
 담당 기능:
