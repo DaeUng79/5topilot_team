@@ -112,5 +112,6 @@
   "opinion": "합성 의견: 만점·절반·0점 조합.",
   "status": "draft",
   "version": 1,
-  "submitted_at": null
+  "submitted_at": null,
+  "criteria_version": 1
 }

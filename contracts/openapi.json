@@ -696,6 +696,17 @@
       },
       "SheetRead": {
         "properties": {
+          "criteria_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Criteria Version"
+          },
           "evaluator_id": {
             "title": "Evaluator Id",
             "type": "string"

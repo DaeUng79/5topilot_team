@@ -497,6 +497,8 @@ export interface components {
         };
         /** SheetRead */
         SheetRead: {
+            /** Criteria Version */
+            criteria_version?: number | null;
             /** Evaluator Id */
             evaluator_id: string;
             /** Id */

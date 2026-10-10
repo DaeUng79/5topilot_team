@@ -76,7 +76,8 @@ def require_assigned(db: Session, project_id: str, actor: Actor):
 def ensure_criteria_version(sheet: ScoreSheet, current: int):
     """평가표가 다른 기준 버전으로 작성됐으면 저장·제출을 막는다(EVAL-01, DOC-04).
 
-    새 기준과 기존 평가표의 처리 규칙은 미합의라 보수적으로 거절한다. 0002 이전 행(None)은 현재 버전을 채택한다.
+    새 기준과 기존 평가표의 처리 규칙은 미합의라 보수적으로 거절한다.
+    0002 이전 행(None)은 현재 버전을 채택한다.
     """
     if sheet.criteria_version is not None and sheet.criteria_version != current:
         raise HTTPException(
