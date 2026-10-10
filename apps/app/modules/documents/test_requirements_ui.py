@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 from streamlit.testing.v1 import AppTest
 from PIL import Image
 
-import streamlit_main as app
+import apps.app.modules.documents.streamlit_main as app
 
 
 DOCUMENT = {

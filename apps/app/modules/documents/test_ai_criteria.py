@@ -5,7 +5,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import step4_ai_criteria as criteria
+import apps.app.modules.documents.step4_ai_criteria as criteria
 
 
 def template_document():

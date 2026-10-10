@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
-from step2_hwpx_storage import make_chunks, mongo_settings, prepare_records, split_text
+from apps.app.modules.documents.step2_hwpx_storage import make_chunks, mongo_settings, prepare_records, split_text
 
 spec = importlib.util.spec_from_file_location("parser", Path(__file__).resolve().parents[1] / "step1_parser_hwpx.py")
 parser = importlib.util.module_from_spec(spec)

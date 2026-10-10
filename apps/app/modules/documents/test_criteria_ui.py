@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from unittest.mock import patch
 
 from streamlit.testing.v1 import AppTest
-import streamlit_main as app
+import apps.app.modules.documents.streamlit_main as app
 
 
 DOCUMENT = {"_id": "document-a", "filename": "sample.hwpx", "active_revision": "revision-a",

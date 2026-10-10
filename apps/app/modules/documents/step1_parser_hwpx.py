@@ -944,7 +944,7 @@ if __name__ == "__main__":
     print("블록 개수:", len(result["blocks"]), "이미지 개수:", len(result["images"]))
     print("파싱 경고:", len(result.get("warnings", [])))
     if not args.no_mongo:
-        from step2_hwpx_storage import MongoStorageError, save_to_mongodb
+        from apps.app.modules.documents.step2_hwpx_storage import MongoStorageError, save_to_mongodb
         try:
             saved = save_to_mongodb(result, input_path, env_path=args.env_file, database=args.database,
                                     store_source=args.store_source, collection_name=args.collection)

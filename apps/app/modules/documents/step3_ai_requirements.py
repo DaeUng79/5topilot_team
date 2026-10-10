@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from step2_hwpx_storage import mongo_settings
+from apps.app.modules.documents.step2_hwpx_storage import mongo_settings
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_MODEL = "gpt-4o"
