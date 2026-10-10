@@ -31,12 +31,12 @@
 | 8 | 3 | 점수 저장에 기준 버전 고정 | evaluations/router.py, service.py (수정) | EVAL-01 | 없음 | 완료(로컬) · 버전 불일치·재검토 중 409 |
 | 9 | 3 | 권한 검사 공통 호출 교체 | evaluations/router.py (수정) | SEC-01 | 없음 | 완료(로컬, 2단계에서 선행) |
 | 10 | 3 | PostgreSQL 동시 편집·제출 테스트 | apps/api/tests/test_sheet_versions.py | EVAL-02, EVAL-03 | 없음 | 작성 완료 · 두 탭 시나리오는 SQLite 통과, 병렬 4·3건은 CI PostgreSQL에서 실행(로컬 skip) |
-| 11 | 4 | 집계 정책 v1 (버전 있는 계산) | modules/results/policies.py, service.py | RES-02 | Lex6won (정책 승인) | 대기 |
-| 12 | 4 | 결과 공개 시점 규칙 | modules/results/router.py | RES-01 | Lex6won | 대기 |
-| 13 | 4 | 위원장 결과 확인 기록 | modules/results/models.py, router.py | RES-03 | Lex6won (위원장 출처) | 대기 |
-| 14 | 4 | 평가표 서명 정보 저장·검증 | evaluations/router.py, models.py (수정) | RES-03, EVAL-03 | 없음 | 대기 |
-| 15 | 4 | 평가위원 화면 (접속·본인확인·채점·제출) | apps/web/src/features/evaluator/, main.tsx·EvaluationPage.tsx·client.ts (수정) | SEC-01, EVAL-01 | cookiesh1 | 대기 |
-| 16 | 4 | 관리자 결과·서명·리포트 화면 | apps/web/src/features/results/, App.tsx (수정) | RES-01~03 | cookiesh1 | 대기 |
+| 11 | 4 | 집계 정책 v1 (버전 있는 계산) | modules/results/policies.py, service.py | RES-02 | Lex6won (정책 승인) | 완료(로컬) · trimmed_mean은 미승인 초안으로 등록만 |
+| 12 | 4 | 결과 공개 시점 규칙 | modules/results/router.py, service.py | RES-01 | Lex6won | 완료(로컬) · 전원 제출 전 평균·순위 비공개, 관리자·위원장만 조회 |
+| 13 | 4 | 위원장 결과 확인 기록 | modules/results/models.py, router.py, service.py | RES-03 | Lex6won (위원장 출처) | 완료(로컬) · 위원장 미지정 상태에서는 확정 불가(COM-03 연계 대기) |
+| 14 | 4 | 평가표 서명 정보 저장·검증 | evaluations/router.py, service.py, models.py (수정) | RES-03, EVAL-03 | 없음 | 완료(로컬) · attestation-v1(확인 문구 동의 + 내용 SHA-256), 전자서명 아님 |
+| 15 | 4 | 평가위원 화면 (접속·본인확인·채점·제출) | apps/web/src/features/evaluator/, main.tsx·EvaluationPage.tsx·client.ts (수정), evaluator-access context·brief API | SEC-01, EVAL-01 | cookiesh1 | 완료(로컬) · 빌드 통과, 브라우저 E2E는 5단계 |
+| 16 | 4 | 관리자 결과·서명·리포트 화면 | apps/web/src/features/results/, App.tsx (수정) | RES-01~03 | cookiesh1 | 완료(로컬) · 출력·보고서 버튼은 5단계 자리 |
 | 17 | 5 | 리포트 데이터 API | modules/results/report.py, router.py | RES-03 | DaeUng79 (revision 필드) | 대기 |
 | 18 | 5 | 사업 완료·보관 | modules/results/ (상태 열 위치 협의) | CLOSE-01 | DaeUng79·Lex6won·cookiesh1 | 대기 |
 | 19 | 5 | 계약·migration·CI 유지 ※ | scripts/, .github/workflows/ci.yml (수정), apps/api/tests/ | OPS-01 | DaeUng79 | 대기 |
@@ -62,6 +62,12 @@
 | 2026-10-11 | apps/api/app/main.py | criteria·evaluator_access 라우터 등록 2줄 | 신규 API 노출 | 기존 라우터 순서 유지. 커밋 48ba37d |
 | 2026-10-11 | apps/api/.env.example | 로컬 전용 값 3개 추가 | 설정 발견성 | setup.ps1이 복사하는 기본 .env에 포함 |
 | 2026-10-11 | apps/api/app/modules/evaluations/router.py·service.py | 저장·제출이 확정 기준 스냅샷으로 검증하고 criteria_version 기록. validate_scores에 criteria 인자 | EVAL-01 기준 버전 고정 | PR #1 테스트 전부 통과. 확정 기록이 없으면 종전처럼 버전 0으로 동작. 커밋 a4553a3·47b6823 |
+| 2026-10-11 | apps/api/app/modules/evaluations/router.py·service.py | 제출 시 signed_at·sheet_hash·sign_method 기록, SheetRead에 세 필드 | RES-03 서명 기록·변조 검증 | 제출 응답에 필드 추가(기존 필드 변경 없음). 커밋 ff30485 |
+| 2026-10-11 | apps/api/app/main.py | results 라우터 등록 1줄 | 결과 API 노출 | 없음. 커밋 ff30485 |
+| 2026-10-11 | apps/web/src/main.tsx | /evaluator 경로 분기 3줄 | 평가위원 화면 진입. 라우터 도입 전 임시 | 기존 App 렌더 동일. 커밋 a1da966 |
+| 2026-10-11 | apps/web/src/App.tsx | 메뉴 항목·Page 타입·렌더 1곳씩 | 결과 화면 연결 | 기존 메뉴 순서 유지 |
+| 2026-10-11 | apps/web/src/features/evaluations/EvaluationPage.tsx | ScoreEditor·vendorName export, client prop(기본값 기존 동작) | 채점표 재사용, 중복 컴포넌트 방지 | 기존 호출부 변경 없음 |
+| 2026-10-11 | apps/web/src/api/client.ts | 타입 4개, sessionApi·publicApi 추가 | 세션·공개 호출 | 기존 api·evaluatorApi 유지 |
 
 ## 실행과 테스트
 
@@ -77,6 +83,7 @@ API: `apps/api`에서 가상환경(`.venv`)으로 `python -m pytest -q`, `python
 | 2026-10-11 | 이슈·PR 미등록 (gh CLI 없음, push 계정 확인 전) | 1단계 항목 1·2: `contracts/examples/` 24개 예제, `tests/fixtures/synthetic/` 4개 자료, `apps/api/tests/test_contract_examples.py`. 커밋 ba89080 | 완료(로컬) | 기준 PR #1 658748e: pytest 10 passed 1 skipped(PostgreSQL). 변경 후: pytest 39 passed 1 skipped, ruff check·format 통과, `npm run typecheck` 통과 | cookiesh1: 화면 mock에 예제 사용 검토. DaeUng79: fixture ID·문서 revision 필드. API·DB 변경 없음 |
 | 2026-10-11 | 이슈·PR 미등록 | 2단계 항목 3·4·6·7·9: core/permissions·session, evaluator_access 모듈(request-code·verify·me), projects/criteria.py(확정·재검토·조회), results/models.py, migration 0002, 계약 재생성. 커밋 de2f32f·002471b·48ba37d·73a5019 | 완료(로컬) | pytest 58 passed 1 skipped(PostgreSQL), ruff 통과, alembic upgrade head·check·downgrade 0001·upgrade(SQLite) 통과, npm typecheck 통과. 신규 API 6개 | DaeUng79: migration 0002 번호·병합 순서, 인증 제공자. Lex6won: 위원장 지정 출처(COM-03), 기준 확정 권한자. 공동 DB 미적용 |
 | 2026-10-11 | 이슈·PR 미등록 | 3단계 항목 8·10: 기준 버전 고정(저장·제출), 두 탭 구버전 충돌·제출 후 잠금 테스트, PostgreSQL 병렬 저장·제출 테스트, SheetRead.criteria_version 계약 반영. 커밋 a4553a3·47b6823 | 완료(로컬) · PostgreSQL 병렬 테스트는 CI 실행 대기 | pytest 60 passed 2 skipped(PostgreSQL 2건), ruff 통과, npm typecheck 통과 | Lex6won: 기준 재확정 후 기존 평가표 처리 규칙(현재는 보수적 409). cookiesh1: 409 메시지 화면 표시 |
+| 2026-10-11 | 이슈·PR 미등록 | 4단계 항목 11~16: results 모듈(정책·요약·확정), 제출 서명 기록, evaluator-access context·brief, 평가위원 화면(EvaluatorApp), 결과 화면(ResultsPage), 공통 파일 최소 수정. 커밋 ff30485·e88ee3f·a1da966 | 완료(로컬) · 브라우저 E2E는 5단계 | pytest 71 passed 2 skipped(PostgreSQL), ruff 통과, npm typecheck·build 통과. 신규 API 5개 | Lex6won: 위원장 지정 출처·결과 확정 주체, 집계 정책(최고·최저 제외·가격) 승인. cookiesh1: /evaluator 임시 분기 → 라우터 전환, 결과·평가위원 화면 UX. DaeUng79: 세션 비밀키 주입 |
 
 ```text
 담당 기능:
