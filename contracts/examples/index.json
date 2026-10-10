@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "examples": [
+    {
+      "path": "evaluations/sheet-save.ok.request.json",
+      "schema": "SheetSave",
+      "kind": "request",
+      "operation": "save_my_sheet"
+    },
+    {
+      "path": "evaluations/sheet-save.ok.response.json",
+      "schema": "SheetRead",
+      "kind": "response",
+      "operation": "save_my_sheet",
+      "status": 200
+    },
+    {
+      "path": "evaluations/sheet-get.empty.response.json",
+      "schema": null,
+      "kind": "response",
+      "operation": "get_my_sheet",
+      "status": 200,
+      "note": "저장한 평가표가 없으면 null"
+    },
+    {
+      "path": "evaluations/sheet-save.conflict.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "save_my_sheet",
+      "status": 409
+    },
+    {
+      "path": "evaluations/sheet-save.invalid-shape.response.json",
+      "schema": "HTTPValidationError",
+      "kind": "error",
+      "operation": "save_my_sheet",
+      "status": 422
+    },
+    {
+      "path": "evaluations/sheet-save.invalid-score.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "save_my_sheet",
+      "status": 422
+    },
+    {
+      "path": "evaluations/sheet-submit.ok.request.json",
+      "schema": "SubmitRequest",
+      "kind": "request",
+      "operation": "submit_my_sheet"
+    },
+    {
+      "path": "evaluations/sheet-submit.ok.response.json",
+      "schema": "SheetRead",
+      "kind": "response",
+      "operation": "submit_my_sheet",
+      "status": 200
+    },
+    {
+      "path": "evaluations/sheet-submit.invalid.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "submit_my_sheet",
+      "status": 422
+    },
+    {
+      "path": "evaluations/evaluations.forbidden.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "get_my_sheet",
+      "status": 403
+    },
+    {
+      "path": "evaluations/auth.unavailable.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "get_my_sheet",
+      "status": 503
+    },
+    {
+      "path": "results/results.collecting.response.json",
+      "schema": "ResultsRead",
+      "kind": "response",
+      "operation": "get_results",
+      "status": 200
+    },
+    {
+      "path": "results/results.ok.response.json",
+      "schema": "ResultsRead",
+      "kind": "response",
+      "operation": "get_results",
+      "status": 200
+    },
+    {
+      "path": "results/results.forbidden.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "get_results",
+      "status": 403
+    },
+    {
+      "path": "results/confirmation.ok.response.json",
+      "schema": "ConfirmationRead",
+      "kind": "response",
+      "status": 200,
+      "draft": true,
+      "stage": 4
+    },
+    {
+      "path": "results/confirmation.review.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "status": 409,
+      "draft": true,
+      "stage": 4
+    },
+    {
+      "path": "results/report.ok.response.json",
+      "schema": "ReportRead",
+      "kind": "response",
+      "status": 200,
+      "draft": true,
+      "stage": 5
+    },
+    {
+      "path": "evaluator-access/verify.ok.request.json",
+      "schema": "VerifyRequest",
+      "kind": "request",
+      "draft": true,
+      "stage": 2
+    },
+    {
+      "path": "evaluator-access/verify.ok.response.json",
+      "schema": "SessionRead",
+      "kind": "response",
+      "status": 200,
+      "draft": true,
+      "stage": 2,
+      "must_not_contain": [
+        "code",
+        "demo_verify_code"
+      ]
+    },
+    {
+      "path": "evaluator-access/verify.invalid.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "status": 401,
+      "draft": true,
+      "stage": 2
+    },
+    {
+      "path": "evaluator-access/verify.unavailable.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "status": 503,
+      "draft": true,
+      "stage": 2
+    },
+    {
+      "path": "criteria/confirmation.ok.response.json",
+      "schema": "CriteriaConfirmationRead",
+      "kind": "response",
+      "status": 200,
+      "draft": true,
+      "stage": 2
+    },
+    {
+      "path": "criteria/confirmation.review.response.json",
+      "schema": "CriteriaConfirmationRead",
+      "kind": "response",
+      "status": 200,
+      "draft": true,
+      "stage": 2
+    }
+  ]
+}

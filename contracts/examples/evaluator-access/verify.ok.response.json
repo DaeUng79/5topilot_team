@@ -1,0 +1,9 @@
+{
+  "token": "[서버가 서명한 세션 토큰]",
+  "expires_at": "2026-10-11T07:00:00+00:00",
+  "channel": "demo",
+  "actor": {
+    "role": "evaluator",
+    "id": "demo-evaluator-1"
+  }
+}

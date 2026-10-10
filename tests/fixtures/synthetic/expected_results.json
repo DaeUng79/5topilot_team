@@ -1,0 +1,63 @@
+{
+  "_note": "사람이 손으로 계산한 기대값. 코드 출력으로 덮어쓰지 않는다. approved=false인 정책은 RES-02 승인 전 초안.",
+  "cases": [
+    {
+      "case": "three_members_full",
+      "policy": "technical_mean_v1",
+      "approved": true,
+      "sheet_ids": [
+        "fx-sheet-a-1",
+        "fx-sheet-a-2",
+        "fx-sheet-a-3"
+      ],
+      "working": {
+        "vendor-a": "(80+70+75)/3 = 75",
+        "vendor-b": "(40+60.5+50)/3 = 50.1666… → 50.17",
+        "vendor-c": "(0+10.25+20)/3 = 10.0833… → 10.08"
+      },
+      "expected": {
+        "vendor-a": 75.0,
+        "vendor-b": 50.17,
+        "vendor-c": 10.08
+      }
+    },
+    {
+      "case": "rounding_half_up",
+      "policy": "technical_mean_v1",
+      "approved": true,
+      "sheet_ids": [
+        "fx-sheet-r-1",
+        "fx-sheet-r-2"
+      ],
+      "working": {
+        "all": "(10.01+10.04)/2 = 10.025 → ROUND_HALF_UP → 10.03 (HALF_EVEN이면 10.02)"
+      },
+      "expected": {
+        "vendor-a": 10.03,
+        "vendor-b": 10.03,
+        "vendor-c": 10.03
+      }
+    },
+    {
+      "case": "three_members_full",
+      "policy": "trimmed_mean_draft",
+      "approved": false,
+      "sheet_ids": [
+        "fx-sheet-a-1",
+        "fx-sheet-a-2",
+        "fx-sheet-a-3"
+      ],
+      "working": {
+        "rule": "최고·최저 1건씩 제외 후 평균 (디자인 캔버스 기준, 위원 3명 이상)",
+        "vendor-a": "80·70 제외 → 75",
+        "vendor-b": "60.5·40 제외 → 50",
+        "vendor-c": "20·0 제외 → 10.25"
+      },
+      "expected": {
+        "vendor-a": 75.0,
+        "vendor-b": 50.0,
+        "vendor-c": 10.25
+      }
+    }
+  ]
+}

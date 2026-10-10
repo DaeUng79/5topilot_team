@@ -1,0 +1,14 @@
+{
+  "id": "fx-confirmation-1",
+  "project_id": "fx-project-a",
+  "status": "confirmed",
+  "policy_version": "technical_mean_v1",
+  "criteria_version": 1,
+  "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "expected": 3,
+  "submitted": 3,
+  "confirmed_by": "demo-evaluator-1",
+  "confirmed_at": "2026-10-11T06:00:00+00:00",
+  "closed_at": null,
+  "closed_by": null
+}

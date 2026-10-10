@@ -1,0 +1,20 @@
+{
+  "status": "technical_complete",
+  "expected": 3,
+  "submitted": 3,
+  "averages": [
+    {
+      "vendor_id": "vendor-a",
+      "technical_average": 75.0
+    },
+    {
+      "vendor_id": "vendor-b",
+      "technical_average": 50.17
+    },
+    {
+      "vendor_id": "vendor-c",
+      "technical_average": 10.08
+    }
+  ],
+  "calculation": "선정위원 전원 단순평균, 소수 둘째 자리 반올림. 가격/순위/최종확정은 미구현."
+}

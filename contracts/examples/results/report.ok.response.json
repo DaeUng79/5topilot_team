@@ -1,0 +1,42 @@
+{
+  "project_id": "fx-project-a",
+  "confirmation_id": "fx-confirmation-1",
+  "generated_at": "2026-10-11T06:10:00+00:00",
+  "policy_version": "technical_mean_v1",
+  "criteria_version": 1,
+  "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "rankings": [
+    {
+      "rank": 1,
+      "vendor_id": "vendor-a",
+      "technical_average": 75.0
+    },
+    {
+      "rank": 2,
+      "vendor_id": "vendor-b",
+      "technical_average": 50.17
+    },
+    {
+      "rank": 3,
+      "vendor_id": "vendor-c",
+      "technical_average": 10.08
+    }
+  ],
+  "sheets": [
+    {
+      "evaluator_id": "demo-evaluator-1",
+      "submitted_at": "2026-10-11T05:00:00+00:00",
+      "signed_at": "2026-10-11T05:00:00+00:00",
+      "sheet_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "sign_method": "attestation-v1"
+    }
+  ],
+  "document_revisions": [
+    {
+      "vendor_id": "vendor-a",
+      "document_id": "[DaeUng79 문서 계약 ID]",
+      "source_revision": "[협의 후 확정]"
+    }
+  ],
+  "notice": "서명은 본인 확인 문구 동의 기록이며 법적 전자서명이 아닙니다. 가격·최종 순위는 정책 승인 전입니다."
+}

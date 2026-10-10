@@ -1,0 +1,68 @@
+{
+  "_note": "apps/api/app/seed.py의 개발용 ID와 같다. 위원장 후보는 COM-03(Lex6won) 협의 전 초안.",
+  "candidates": [
+    {
+      "id": "demo-evaluator-1",
+      "name": "테스트위원 1",
+      "organization": "가상기관 1",
+      "specialty": "정보시스템",
+      "active": true
+    },
+    {
+      "id": "demo-evaluator-2",
+      "name": "테스트위원 2",
+      "organization": "가상기관 2",
+      "specialty": "보안",
+      "active": true
+    },
+    {
+      "id": "demo-evaluator-3",
+      "name": "테스트위원 3",
+      "organization": "가상기관 3",
+      "specialty": "사업관리",
+      "active": true
+    },
+    {
+      "id": "demo-evaluator-4",
+      "name": "테스트위원 4",
+      "organization": "가상기관 4",
+      "specialty": "데이터·AI",
+      "active": true
+    },
+    {
+      "id": "demo-evaluator-5",
+      "name": "테스트위원 5",
+      "organization": "가상기관 5",
+      "specialty": "법률·회계",
+      "active": true
+    }
+  ],
+  "draws": [
+    {
+      "project_id": "fx-project-a",
+      "selected_ids": [
+        "demo-evaluator-1",
+        "demo-evaluator-2",
+        "demo-evaluator-3"
+      ],
+      "reserve_ids": [
+        "demo-evaluator-4"
+      ],
+      "chair_candidate_id": "demo-evaluator-1",
+      "chair_status": "draft"
+    },
+    {
+      "project_id": "fx-project-b",
+      "selected_ids": [
+        "demo-evaluator-5"
+      ],
+      "reserve_ids": [],
+      "chair_candidate_id": null,
+      "chair_status": "draft"
+    }
+  ],
+  "unassigned_ids": [
+    "demo-evaluator-4",
+    "demo-evaluator-5"
+  ]
+}
