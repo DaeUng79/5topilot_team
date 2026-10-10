@@ -1,7 +1,6 @@
 .venv/
 .streamlit/
 .참고자료/
-tests/
 output/
 # 파이썬 캐시 무시
 __pycache__/
@@ -13,4 +12,15 @@ __pycache__/
 .DS_Store
 .streamlit/
 .vscode/
-test_*
+
+# 팀 공통 테스트 소스는 추적하고 생성 산출물만 제외
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+test-results/
+playwright-report/
+node_modules/
+dist/
+.env.*
+!.env.example

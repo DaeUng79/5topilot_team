@@ -1,0 +1,32 @@
+# 확정된 기능별 리뷰 담당. 다른 사람의 수정 권한을 막는 설정이 아님.
+# 대상 브랜치에 반영되고 각 계정에 write 권한이 있어야 자동 리뷰 요청됨.
+* @DaeUng79 @Lex6won
+/apps/web/ @cookiesh1
+/apps/api/app/modules/documents/ @DaeUng79
+/apps/api/app/modules/ai/ @DaeUng79
+/services/document-parser/ @DaeUng79
+/step*.py @DaeUng79
+/streamlit*.py @DaeUng79
+/doc/ @DaeUng79
+/requirements.txt @DaeUng79
+/apps/api/app/modules/committee/ @Lex6won
+/apps/api/app/modules/evaluations/ @u-jing
+/apps/api/app/modules/results/ @u-jing
+/apps/api/app/modules/projects/ @u-jing @DaeUng79 @Lex6won
+/apps/api/app/core/ @DaeUng79 @u-jing @Lex6won
+/apps/api/migrations/ @u-jing @DaeUng79
+/contracts/ @DaeUng79 @cookiesh1 @Lex6won @u-jing
+/docs/contracts/ @DaeUng79 @cookiesh1 @Lex6won @u-jing
+/tests/ @DaeUng79 @u-jing
+/test_*.py @DaeUng79
+/tests/e2e/ @cookiesh1 @u-jing
+/apps/api/tests/ @Lex6won @u-jing
+/docs/team/ @Lex6won @DaeUng79
+/docs/testing/ @u-jing @Lex6won
+/docs/modules/document-parsing.md @DaeUng79
+/docs/members/DaeUng79/ @DaeUng79
+/docs/members/cookiesh1/ @cookiesh1
+/docs/members/Lex6won/ @Lex6won
+/docs/members/u-jing/ @u-jing
+/.github/ @DaeUng79 @Lex6won
+# 필수 owner 승인 활성화 전 본인 PR의 동료/백업 리뷰 경로를 확인할 것.
