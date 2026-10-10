@@ -5,8 +5,17 @@ from fastapi import HTTPException
 from app.modules.projects.models import Project
 
 
-def validate_scores(project: Project, scores: list[dict], *, complete: bool = False):
-    limits = {c["id"]: c["max_score"] for c in project.criteria}
+def validate_scores(
+    project: Project,
+    scores: list[dict],
+    *,
+    complete: bool = False,
+    criteria: list[dict] | None = None,
+):
+    """criteria를 주면 그 확정 스냅샷으로, 없으면 사업의 현재 기준으로 검증한다."""
+    limits = {
+        c["id"]: c["max_score"] for c in (criteria if criteria is not None else project.criteria)
+    }
     found = set()
     for entry in scores:
         key = (entry["vendor_id"], entry["criterion_id"])

@@ -13,6 +13,7 @@ from app.core.permissions import require_project_role
 from app.modules.committee.models import Draw
 from app.modules.evaluations.models import ScoreSheet
 from app.modules.evaluations.service import technical_averages, validate_scores
+from app.modules.projects.criteria import effective_criteria
 from app.modules.projects.service import get_project
 
 router = APIRouter(tags=["evaluations"])
@@ -44,6 +45,8 @@ class SheetRead(BaseModel):
     status: Literal["draft", "submitted"]
     version: int
     submitted_at: str | None
+    # 저장 시점의 확정 기준 버전. 0은 미확정 템플릿, None은 0002 이전 행.
+    criteria_version: int | None = None
 
 
 class SubmitRequest(BaseModel):
@@ -70,6 +73,19 @@ def require_assigned(db: Session, project_id: str, actor: Actor):
     return require_project_role(db, project_id, actor, {"evaluator"})
 
 
+def ensure_criteria_version(sheet: ScoreSheet, current: int):
+    """평가표가 다른 기준 버전으로 작성됐으면 저장·제출을 막는다(EVAL-01, DOC-04).
+
+    새 기준과 기존 평가표의 처리 규칙은 미합의라 보수적으로 거절한다. 0002 이전 행(None)은 현재 버전을 채택한다.
+    """
+    if sheet.criteria_version is not None and sheet.criteria_version != current:
+        raise HTTPException(
+            409,
+            f"평가기준이 v{sheet.criteria_version}에서 v{current}로 바뀌었습니다. "
+            "간사에게 평가표 처리 방법을 확인하세요.",
+        )
+
+
 def my_sheet(db: Session, project_id: str, actor_id: str):
     return db.scalar(
         select(ScoreSheet).where(
@@ -94,17 +110,23 @@ def get_my_sheet(project_id: str, db: DB, actor: User):
 )
 def save_my_sheet(project_id: str, body: SheetSave, db: DB, actor: User):
     project = require_assigned(db, project_id, actor)
+    criteria, criteria_version = effective_criteria(db, project)
     scores = [s.model_dump() for s in body.scores]
-    validate_scores(project, scores)
+    validate_scores(project, scores, criteria=criteria)
     sheet = my_sheet(db, project_id, actor.id)
     if sheet is None:
         if body.expected_version != 0:
             raise HTTPException(409, "평가표 버전이 다릅니다. 다시 불러오세요.")
         sheet = ScoreSheet(
-            project_id=project_id, evaluator_id=actor.id, scores=scores, opinion=body.opinion
+            project_id=project_id,
+            evaluator_id=actor.id,
+            scores=scores,
+            opinion=body.opinion,
+            criteria_version=criteria_version,
         )
         db.add(sheet)
     else:
+        ensure_criteria_version(sheet, criteria_version)
         result = db.execute(
             update(ScoreSheet)
             .where(
@@ -112,7 +134,12 @@ def save_my_sheet(project_id: str, body: SheetSave, db: DB, actor: User):
                 ScoreSheet.version == body.expected_version,
                 ScoreSheet.status == "draft",
             )
-            .values(scores=scores, opinion=body.opinion, version=ScoreSheet.version + 1)
+            .values(
+                scores=scores,
+                opinion=body.opinion,
+                version=ScoreSheet.version + 1,
+                criteria_version=criteria_version,
+            )
         )
         if result.rowcount != 1:
             raise HTTPException(409, "제출 후 수정 불가 또는 다른 창에서 변경됨. 다시 불러오세요.")
@@ -132,10 +159,12 @@ def save_my_sheet(project_id: str, body: SheetSave, db: DB, actor: User):
 )
 def submit_my_sheet(project_id: str, body: SubmitRequest, db: DB, actor: User):
     project = require_assigned(db, project_id, actor)
+    criteria, criteria_version = effective_criteria(db, project)
     sheet = my_sheet(db, project_id, actor.id)
     if sheet is None:
         raise HTTPException(422, "먼저 평가표를 저장하세요.")
-    validate_scores(project, sheet.scores, complete=True)
+    ensure_criteria_version(sheet, criteria_version)
+    validate_scores(project, sheet.scores, complete=True, criteria=criteria)
     result = db.execute(
         update(ScoreSheet)
         .where(
@@ -147,6 +176,7 @@ def submit_my_sheet(project_id: str, body: SubmitRequest, db: DB, actor: User):
             status="submitted",
             submitted_at=datetime.now(UTC).isoformat(),
             version=ScoreSheet.version + 1,
+            criteria_version=criteria_version,
         )
     )
     if result.rowcount != 1:
