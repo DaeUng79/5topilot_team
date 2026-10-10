@@ -20,6 +20,7 @@ from app.modules.evaluations.service import (
 )
 from app.modules.projects.criteria import effective_criteria
 from app.modules.projects.service import get_project
+from app.modules.results.state import ensure_not_sealed
 
 router = APIRouter(tags=["evaluations"])
 DB = Annotated[Session, Depends(get_db)]
@@ -120,6 +121,7 @@ def get_my_sheet(project_id: str, db: DB, actor: User):
 )
 def save_my_sheet(project_id: str, body: SheetSave, db: DB, actor: User):
     project = require_assigned(db, project_id, actor)
+    ensure_not_sealed(db, project_id)
     criteria, criteria_version = effective_criteria(db, project)
     scores = [s.model_dump() for s in body.scores]
     validate_scores(project, scores, criteria=criteria)
@@ -169,6 +171,7 @@ def save_my_sheet(project_id: str, body: SheetSave, db: DB, actor: User):
 )
 def submit_my_sheet(project_id: str, body: SubmitRequest, db: DB, actor: User):
     project = require_assigned(db, project_id, actor)
+    ensure_not_sealed(db, project_id)
     criteria, criteria_version = effective_criteria(db, project)
     sheet = my_sheet(db, project_id, actor.id)
     if sheet is None:

@@ -22,6 +22,7 @@ from app.core.db import Base, get_db
 from app.core.permissions import require_project_role
 from app.modules.projects.models import Project
 from app.modules.projects.service import get_project
+from app.modules.results.state import ensure_not_sealed
 
 Status = Literal["confirmed", "needs_review", "superseded"]
 
@@ -127,6 +128,7 @@ def get_confirmation(project_id: str, db: DB, actor: User):
 )
 def confirm_criteria(project_id: str, body: CriteriaConfirm, db: DB, actor: Admin):
     project = get_project(db, project_id, lock=True)
+    ensure_not_sealed(db, project_id)
     current = current_confirmation(db, project_id)
     current_version = current.version if current else 0
     if body.expected_version != current_version:
@@ -163,6 +165,7 @@ def confirm_criteria(project_id: str, body: CriteriaConfirm, db: DB, actor: Admi
 )
 def flag_review(project_id: str, body: ReviewRequest, db: DB, _: Admin):
     get_project(db, project_id)
+    ensure_not_sealed(db, project_id)
     current = current_confirmation(db, project_id)
     if current is None:
         raise HTTPException(404, "확정된 평가기준이 없습니다.")

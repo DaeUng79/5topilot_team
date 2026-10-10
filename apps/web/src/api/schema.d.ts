@@ -291,6 +291,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/results/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close */
+        post: operations["close_project"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/results/confirm": {
         parameters: {
             query?: never;
@@ -317,6 +334,23 @@ export interface paths {
         };
         /** Get Results Confirmation */
         get: operations["get_results_confirmation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/results/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Report */
+        get: operations["get_results_report"];
         put?: never;
         post?: never;
         delete?: never;
@@ -524,6 +558,15 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** DocumentRevisionRef */
+        DocumentRevisionRef: {
+            /** Document Id */
+            document_id: string;
+            /** Source Revision */
+            source_revision: string;
+            /** Vendor Id */
+            vendor_id: string;
+        };
         /** DrawCreate */
         DrawCreate: {
             /** Candidate Ids */
@@ -617,6 +660,79 @@ export interface components {
             technical_average: number;
             /** Vendor Id */
             vendor_id: string;
+        };
+        /** ReportCriterion */
+        ReportCriterion: {
+            /** Id */
+            id: string;
+            /** Max Score */
+            max_score: number;
+            /** Name */
+            name: string;
+        };
+        /** ReportProject */
+        ReportProject: {
+            /** Department */
+            department: string;
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /** ReportRead */
+        ReportRead: {
+            /** Averages */
+            averages: components["schemas"]["VendorAverage"][];
+            confirmation: components["schemas"]["ConfirmationRead"];
+            /** Criteria */
+            criteria: components["schemas"]["ReportCriterion"][];
+            /** Criteria Version */
+            criteria_version: number;
+            /** Document Revisions */
+            document_revisions: components["schemas"]["DocumentRevisionRef"][];
+            /** Generated At */
+            generated_at: string;
+            /** Notices */
+            notices: string[];
+            /** Policy Version */
+            policy_version: string;
+            project: components["schemas"]["ReportProject"];
+            /** Rankings */
+            rankings: components["schemas"]["Ranking"][];
+            /** Sheets */
+            sheets: components["schemas"]["ReportSheet"][];
+            /** Snapshot Intact */
+            snapshot_intact: boolean;
+            /** Vendor Ids */
+            vendor_ids: string[];
+        };
+        /** ReportSheet */
+        ReportSheet: {
+            /** Criteria Version */
+            criteria_version: number | null;
+            /** Evaluator Id */
+            evaluator_id: string;
+            /**
+             * Integrity
+             * @enum {string}
+             */
+            integrity: "intact" | "mismatch" | "missing";
+            /** Name */
+            name: string;
+            /** Opinion */
+            opinion: string;
+            /** Sheet Hash */
+            sheet_hash: string | null;
+            /** Sign Method */
+            sign_method: string | null;
+            /** Signed At */
+            signed_at: string | null;
+            /** Submitted At */
+            submitted_at: string | null;
+            /** Vendor Totals */
+            vendor_totals: {
+                [key: string]: number;
+            };
         };
         /** ResultsRead */
         ResultsRead: {
@@ -1396,6 +1512,37 @@ export interface operations {
             };
         };
     };
+    close_project: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     confirm_results: {
         parameters: {
             query?: never;
@@ -1445,6 +1592,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ConfirmationRead"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_results_report: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportRead"];
                 };
             };
             /** @description Validation Error */

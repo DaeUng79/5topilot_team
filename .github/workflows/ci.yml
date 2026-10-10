@@ -54,6 +54,9 @@ jobs:
         env:
           DATABASE_URL: postgresql+psycopg://simsa:ci_only_password@localhost:5432/simsa_test
         run: |
+          alembic upgrade 0001
+          alembic upgrade head
+          alembic downgrade -1
           alembic upgrade head
           alembic check
           test "$(alembic heads | wc -l)" -eq 1

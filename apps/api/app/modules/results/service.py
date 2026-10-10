@@ -22,15 +22,12 @@ from app.modules.projects.criteria import current_confirmation
 from app.modules.projects.models import Project
 from app.modules.results.models import ResultConfirmation
 from app.modules.results.policies import CURRENT_POLICY, POLICIES, aggregate, rank
+from app.modules.results.state import get_confirmation
 
 
 def canonical_hash(payload) -> str:
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(encoded.encode()).hexdigest()
-
-
-def get_confirmation(db: Session, project_id: str) -> ResultConfirmation | None:
-    return db.scalar(select(ResultConfirmation).where(ResultConfirmation.project_id == project_id))
 
 
 def summarize(db: Session, project: Project) -> dict:

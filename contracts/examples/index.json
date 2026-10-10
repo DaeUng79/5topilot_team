@@ -110,8 +110,7 @@
       "schema": "ReportRead",
       "kind": "response",
       "status": 200,
-      "draft": true,
-      "stage": 5
+      "operation": "get_results_report"
     },
     {
       "path": "evaluator-access/verify.ok.request.json",
@@ -284,6 +283,35 @@
       "kind": "error",
       "operation": "get_evaluator_brief",
       "status": 409
+    },
+    {
+      "path": "results/report.review.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "get_results_report",
+      "status": 409
+    },
+    {
+      "path": "results/close.ok.response.json",
+      "schema": "ConfirmationRead",
+      "kind": "response",
+      "operation": "close_project",
+      "status": 200
+    },
+    {
+      "path": "results/close.review.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "close_project",
+      "status": 409
+    },
+    {
+      "path": "evaluations/sheet-save.sealed.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "save_my_sheet",
+      "status": 409,
+      "note": "결과 확정·완료 뒤 변경 차단"
     }
   ]
 }

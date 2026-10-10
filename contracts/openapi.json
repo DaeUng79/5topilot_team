@@ -505,6 +505,29 @@
         "title": "CriterionIn",
         "type": "object"
       },
+      "DocumentRevisionRef": {
+        "properties": {
+          "document_id": {
+            "title": "Document Id",
+            "type": "string"
+          },
+          "source_revision": {
+            "title": "Source Revision",
+            "type": "string"
+          },
+          "vendor_id": {
+            "title": "Vendor Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "vendor_id",
+          "document_id",
+          "source_revision"
+        ],
+        "title": "DocumentRevisionRef",
+        "type": "object"
+      },
       "DrawCreate": {
         "additionalProperties": false,
         "properties": {
@@ -788,6 +811,245 @@
           "rank"
         ],
         "title": "Ranking",
+        "type": "object"
+      },
+      "ReportCriterion": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "max_score": {
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "max_score"
+        ],
+        "title": "ReportCriterion",
+        "type": "object"
+      },
+      "ReportProject": {
+        "properties": {
+          "department": {
+            "title": "Department",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "department"
+        ],
+        "title": "ReportProject",
+        "type": "object"
+      },
+      "ReportRead": {
+        "properties": {
+          "averages": {
+            "items": {
+              "$ref": "#/components/schemas/VendorAverage"
+            },
+            "title": "Averages",
+            "type": "array"
+          },
+          "confirmation": {
+            "$ref": "#/components/schemas/ConfirmationRead"
+          },
+          "criteria": {
+            "items": {
+              "$ref": "#/components/schemas/ReportCriterion"
+            },
+            "title": "Criteria",
+            "type": "array"
+          },
+          "criteria_version": {
+            "title": "Criteria Version",
+            "type": "integer"
+          },
+          "document_revisions": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentRevisionRef"
+            },
+            "title": "Document Revisions",
+            "type": "array"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          },
+          "notices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notices",
+            "type": "array"
+          },
+          "policy_version": {
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/ReportProject"
+          },
+          "rankings": {
+            "items": {
+              "$ref": "#/components/schemas/Ranking"
+            },
+            "title": "Rankings",
+            "type": "array"
+          },
+          "sheets": {
+            "items": {
+              "$ref": "#/components/schemas/ReportSheet"
+            },
+            "title": "Sheets",
+            "type": "array"
+          },
+          "snapshot_intact": {
+            "title": "Snapshot Intact",
+            "type": "boolean"
+          },
+          "vendor_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Vendor Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "project",
+          "confirmation",
+          "generated_at",
+          "policy_version",
+          "criteria_version",
+          "criteria",
+          "vendor_ids",
+          "averages",
+          "rankings",
+          "sheets",
+          "document_revisions",
+          "snapshot_intact",
+          "notices"
+        ],
+        "title": "ReportRead",
+        "type": "object"
+      },
+      "ReportSheet": {
+        "properties": {
+          "criteria_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Criteria Version"
+          },
+          "evaluator_id": {
+            "title": "Evaluator Id",
+            "type": "string"
+          },
+          "integrity": {
+            "enum": [
+              "intact",
+              "mismatch",
+              "missing"
+            ],
+            "title": "Integrity",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "opinion": {
+            "title": "Opinion",
+            "type": "string"
+          },
+          "sheet_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sheet Hash"
+          },
+          "sign_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sign Method"
+          },
+          "signed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed At"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "vendor_totals": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Vendor Totals",
+            "type": "object"
+          }
+        },
+        "required": [
+          "evaluator_id",
+          "name",
+          "submitted_at",
+          "signed_at",
+          "sign_method",
+          "sheet_hash",
+          "criteria_version",
+          "integrity",
+          "vendor_totals",
+          "opinion"
+        ],
+        "title": "ReportSheet",
         "type": "object"
       },
       "ResultsRead": {
@@ -2219,6 +2481,53 @@
         ]
       }
     },
+    "/api/v1/projects/{project_id}/results/close": {
+      "post": {
+        "operationId": "close_project",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConfirmationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Close",
+        "tags": [
+          "results"
+        ]
+      }
+    },
     "/api/v1/projects/{project_id}/results/confirm": {
       "post": {
         "operationId": "confirm_results",
@@ -2316,6 +2625,53 @@
           }
         ],
         "summary": "Get Results Confirmation",
+        "tags": [
+          "results"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/results/report": {
+      "get": {
+        "operationId": "get_results_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Report",
         "tags": [
           "results"
         ]
