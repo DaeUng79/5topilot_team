@@ -126,52 +126,97 @@
       "path": "evaluator-access/verify.ok.request.json",
       "schema": "VerifyRequest",
       "kind": "request",
-      "draft": true,
-      "stage": 2
+      "operation": "verify_evaluator"
     },
     {
       "path": "evaluator-access/verify.ok.response.json",
       "schema": "SessionRead",
       "kind": "response",
       "status": 200,
-      "draft": true,
-      "stage": 2,
       "must_not_contain": [
         "code",
         "demo_verify_code"
-      ]
+      ],
+      "operation": "verify_evaluator"
     },
     {
       "path": "evaluator-access/verify.invalid.response.json",
       "schema": "ErrorDetail",
       "kind": "error",
       "status": 401,
-      "draft": true,
-      "stage": 2
+      "operation": "verify_evaluator"
     },
     {
       "path": "evaluator-access/verify.unavailable.response.json",
       "schema": "ErrorDetail",
       "kind": "error",
       "status": 503,
-      "draft": true,
-      "stage": 2
+      "operation": "verify_evaluator"
     },
     {
       "path": "criteria/confirmation.ok.response.json",
       "schema": "CriteriaConfirmationRead",
       "kind": "response",
       "status": 200,
-      "draft": true,
-      "stage": 2
+      "operation": "get_criteria_confirmation"
     },
     {
       "path": "criteria/confirmation.review.response.json",
       "schema": "CriteriaConfirmationRead",
       "kind": "response",
       "status": 200,
-      "draft": true,
-      "stage": 2
+      "operation": "get_criteria_confirmation"
+    },
+    {
+      "path": "evaluator-access/request-code.ok.request.json",
+      "schema": "CodeRequest",
+      "kind": "request",
+      "operation": "request_verification_code"
+    },
+    {
+      "path": "evaluator-access/request-code.ok.response.json",
+      "schema": "CodeRequestRead",
+      "kind": "response",
+      "operation": "request_verification_code",
+      "status": 202,
+      "must_not_contain": [
+        "code"
+      ]
+    },
+    {
+      "path": "evaluator-access/request-code.unavailable.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "request_verification_code",
+      "status": 503
+    },
+    {
+      "path": "evaluator-access/me.ok.response.json",
+      "schema": "SessionActor",
+      "kind": "response",
+      "operation": "get_my_session",
+      "status": 200
+    },
+    {
+      "path": "criteria/confirmation.empty.response.json",
+      "schema": null,
+      "kind": "response",
+      "operation": "get_criteria_confirmation",
+      "status": 200,
+      "note": "확정 기록이 없으면 null (버전 0, 시작용 템플릿 사용)"
+    },
+    {
+      "path": "criteria/confirm.ok.request.json",
+      "schema": "CriteriaConfirm",
+      "kind": "request",
+      "operation": "confirm_criteria"
+    },
+    {
+      "path": "criteria/confirm.conflict.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "confirm_criteria",
+      "status": 409
     }
   ]
 }

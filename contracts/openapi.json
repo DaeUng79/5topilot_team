@@ -116,6 +116,194 @@
         "title": "CandidateSnapshot",
         "type": "object"
       },
+      "CodeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Candidate Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_id"
+        ],
+        "title": "CodeRequest",
+        "type": "object"
+      },
+      "CodeRequestRead": {
+        "properties": {
+          "channel": {
+            "enum": [
+              "demo",
+              "sms",
+              "email"
+            ],
+            "title": "Channel",
+            "type": "string"
+          },
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "notice": {
+            "title": "Notice",
+            "type": "string"
+          }
+        },
+        "required": [
+          "channel",
+          "expires_in",
+          "notice"
+        ],
+        "title": "CodeRequestRead",
+        "type": "object"
+      },
+      "CriteriaConfirm": {
+        "additionalProperties": false,
+        "properties": {
+          "criteria": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CriterionIn"
+                },
+                "maxItems": 100,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "생략하면 사업의 현재 기준을 확정",
+            "title": "Criteria"
+          },
+          "expected_version": {
+            "description": "현재 확정 버전(없으면 0). 다르면 409.",
+            "minimum": 0.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "source_document_id": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Document Id"
+          },
+          "source_revision": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Revision"
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "title": "CriteriaConfirm",
+        "type": "object"
+      },
+      "CriteriaConfirmationRead": {
+        "properties": {
+          "confirmed_at": {
+            "title": "Confirmed At",
+            "type": "string"
+          },
+          "confirmed_by": {
+            "title": "Confirmed By",
+            "type": "string"
+          },
+          "criteria": {
+            "items": {
+              "$ref": "#/components/schemas/CriterionIn"
+            },
+            "title": "Criteria",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "review_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Reason"
+          },
+          "source_document_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Document Id"
+          },
+          "source_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Revision"
+          },
+          "status": {
+            "enum": [
+              "confirmed",
+              "needs_review",
+              "superseded"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "version",
+          "status",
+          "criteria",
+          "confirmed_by",
+          "confirmed_at",
+          "source_document_id",
+          "source_revision",
+          "review_reason"
+        ],
+        "title": "CriteriaConfirmationRead",
+        "type": "object"
+      },
       "Criterion": {
         "properties": {
           "id": {
@@ -137,6 +325,36 @@
           "max_score"
         ],
         "title": "Criterion",
+        "type": "object"
+      },
+      "CriterionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "max_score": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "max_score"
+        ],
+        "title": "CriterionIn",
         "type": "object"
       },
       "DrawCreate": {
@@ -372,6 +590,22 @@
         "title": "ResultsRead",
         "type": "object"
       },
+      "ReviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "ReviewRequest",
+        "type": "object"
+      },
       "ScoreEntry": {
         "additionalProperties": false,
         "properties": {
@@ -396,6 +630,68 @@
           "score"
         ],
         "title": "ScoreEntry",
+        "type": "object"
+      },
+      "SessionActor": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "role": {
+            "enum": [
+              "admin",
+              "evaluator"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "id",
+          "project_id"
+        ],
+        "title": "SessionActor",
+        "type": "object"
+      },
+      "SessionRead": {
+        "properties": {
+          "actor": {
+            "$ref": "#/components/schemas/SessionActor"
+          },
+          "channel": {
+            "const": "demo",
+            "title": "Channel",
+            "type": "string"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "expires_at",
+          "channel",
+          "actor"
+        ],
+        "title": "SessionRead",
         "type": "object"
       },
       "SheetRead": {
@@ -568,6 +864,28 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "VerifyRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "code": {
+            "pattern": "^\\d{6}$",
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "code"
+        ],
+        "title": "VerifyRequest",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -680,6 +998,32 @@
         "summary": "Create Candidate",
         "tags": [
           "committee"
+        ]
+      }
+    },
+    "/api/v1/evaluator-access/me": {
+      "get": {
+        "operationId": "get_my_session",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionActor"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get My Session",
+        "tags": [
+          "evaluator-access"
         ]
       }
     },
@@ -885,6 +1229,175 @@
         ]
       }
     },
+    "/api/v1/projects/{project_id}/criteria/confirm": {
+      "post": {
+        "operationId": "confirm_criteria",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CriteriaConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CriteriaConfirmationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Criteria",
+        "tags": [
+          "criteria"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/criteria/confirmation": {
+      "get": {
+        "operationId": "get_criteria_confirmation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/CriteriaConfirmationRead"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Get Criteria Confirmation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Confirmation",
+        "tags": [
+          "criteria"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/criteria/confirmation/review": {
+      "post": {
+        "operationId": "flag_criteria_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CriteriaConfirmationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Flag Review",
+        "tags": [
+          "criteria"
+        ]
+      }
+    },
     "/api/v1/projects/{project_id}/evaluations/me": {
       "get": {
         "operationId": "get_my_sheet",
@@ -1049,6 +1562,110 @@
         "summary": "Submit My Sheet",
         "tags": [
           "evaluations"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/evaluator-access/request-code": {
+      "post": {
+        "operationId": "request_verification_code",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CodeRequestRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request Code",
+        "tags": [
+          "evaluator-access"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/evaluator-access/verify": {
+      "post": {
+        "operationId": "verify_evaluator",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Verify",
+        "tags": [
+          "evaluator-access"
         ]
       }
     },

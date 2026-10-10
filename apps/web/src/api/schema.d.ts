@@ -39,6 +39,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/evaluator-access/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get My Session */
+        get: operations["get_my_session"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -92,6 +109,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/projects/{project_id}/criteria/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Criteria */
+        post: operations["confirm_criteria"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/criteria/confirmation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Confirmation */
+        get: operations["get_criteria_confirmation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/criteria/confirmation/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Flag Review */
+        post: operations["flag_criteria_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/projects/{project_id}/evaluations/me": {
         parameters: {
             query?: never;
@@ -121,6 +189,40 @@ export interface paths {
         put?: never;
         /** Submit My Sheet */
         post: operations["submit_my_sheet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/evaluator-access/request-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Code */
+        post: operations["request_verification_code"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/evaluator-access/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify */
+        post: operations["verify_evaluator"];
         delete?: never;
         options?: never;
         head?: never;
@@ -195,8 +297,77 @@ export interface components {
             /** Specialty */
             specialty: string;
         };
+        /** CodeRequest */
+        CodeRequest: {
+            /** Candidate Id */
+            candidate_id: string;
+        };
+        /** CodeRequestRead */
+        CodeRequestRead: {
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "demo" | "sms" | "email";
+            /** Expires In */
+            expires_in: number;
+            /** Notice */
+            notice: string;
+        };
+        /** CriteriaConfirm */
+        CriteriaConfirm: {
+            /**
+             * Criteria
+             * @description 생략하면 사업의 현재 기준을 확정
+             */
+            criteria?: components["schemas"]["CriterionIn"][] | null;
+            /**
+             * Expected Version
+             * @description 현재 확정 버전(없으면 0). 다르면 409.
+             */
+            expected_version: number;
+            /** Source Document Id */
+            source_document_id?: string | null;
+            /** Source Revision */
+            source_revision?: string | null;
+        };
+        /** CriteriaConfirmationRead */
+        CriteriaConfirmationRead: {
+            /** Confirmed At */
+            confirmed_at: string;
+            /** Confirmed By */
+            confirmed_by: string;
+            /** Criteria */
+            criteria: components["schemas"]["CriterionIn"][];
+            /** Id */
+            id: string;
+            /** Project Id */
+            project_id: string;
+            /** Review Reason */
+            review_reason: string | null;
+            /** Source Document Id */
+            source_document_id: string | null;
+            /** Source Revision */
+            source_revision: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "confirmed" | "needs_review" | "superseded";
+            /** Version */
+            version: number;
+        };
         /** Criterion */
         Criterion: {
+            /** Id */
+            id: string;
+            /** Max Score */
+            max_score: number;
+            /** Name */
+            name: string;
+        };
+        /** CriterionIn */
+        CriterionIn: {
             /** Id */
             id: string;
             /** Max Score */
@@ -285,6 +456,11 @@ export interface components {
             /** Submitted */
             submitted: number;
         };
+        /** ReviewRequest */
+        ReviewRequest: {
+            /** Reason */
+            reason: string;
+        };
         /** ScoreEntry */
         ScoreEntry: {
             /** Criterion Id */
@@ -293,6 +469,31 @@ export interface components {
             score: number;
             /** Vendor Id */
             vendor_id: string;
+        };
+        /** SessionActor */
+        SessionActor: {
+            /** Id */
+            id: string;
+            /** Project Id */
+            project_id: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "admin" | "evaluator";
+        };
+        /** SessionRead */
+        SessionRead: {
+            actor: components["schemas"]["SessionActor"];
+            /**
+             * Channel
+             * @constant
+             */
+            channel: "demo";
+            /** Expires At */
+            expires_at: string;
+            /** Token */
+            token: string;
         };
         /** SheetRead */
         SheetRead: {
@@ -357,6 +558,13 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VerifyRequest */
+        VerifyRequest: {
+            /** Candidate Id */
+            candidate_id: string;
+            /** Code */
+            code: string;
         };
     };
     responses: never;
@@ -436,6 +644,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionActor"];
                 };
             };
         };
@@ -579,6 +807,107 @@ export interface operations {
             };
         };
     };
+    confirm_criteria: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CriteriaConfirm"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CriteriaConfirmationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_criteria_confirmation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CriteriaConfirmationRead"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    flag_criteria_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CriteriaConfirmationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_my_sheet: {
         parameters: {
             query?: never;
@@ -667,6 +996,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SheetRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_verification_code: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodeRequestRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_evaluator: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionRead"];
                 };
             };
             /** @description Validation Error */

@@ -43,5 +43,6 @@
   "confirmed_by": "local-admin",
   "confirmed_at": "2026-10-11T04:00:00+00:00",
   "source_document_id": null,
-  "source_revision": null
+  "source_revision": null,
+  "review_reason": null
 }

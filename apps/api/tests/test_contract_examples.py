@@ -13,6 +13,8 @@ from pydantic import BaseModel
 
 from app.modules.evaluations import router as evaluations_router
 from app.modules.evaluations.service import technical_averages, validate_scores
+from app.modules.evaluator_access import router as access_router
+from app.modules.projects import criteria as criteria_module
 from app.modules.projects import router as projects_router
 from app.modules.projects.models import Project
 
@@ -34,7 +36,7 @@ OPERATION_IDS = {
 }
 MODELS: dict[str, type[BaseModel]] = {
     name: obj
-    for module in (evaluations_router, projects_router)
+    for module in (evaluations_router, projects_router, access_router, criteria_module)
     for name, obj in vars(module).items()
     if isinstance(obj, type) and issubclass(obj, BaseModel)
 }

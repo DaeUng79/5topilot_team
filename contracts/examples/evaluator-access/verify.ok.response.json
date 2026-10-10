@@ -4,6 +4,7 @@
   "channel": "demo",
   "actor": {
     "role": "evaluator",
-    "id": "demo-evaluator-1"
+    "id": "demo-evaluator-1",
+    "project_id": "fx-project-a"
   }
 }
