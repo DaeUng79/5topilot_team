@@ -17,3 +17,8 @@ class ScoreSheet(Base):
     status: Mapped[str] = mapped_column(String(20), default="draft")
     version: Mapped[int] = mapped_column(Integer, default=1)
     submitted_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # 0002: 저장 시점의 확정 기준 버전(0 = 미확정 템플릿, NULL = 0002 이전 행)과 제출 시 서명 기록.
+    criteria_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    signed_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    sheet_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    sign_method: Mapped[str | None] = mapped_column(String(40), nullable=True)
