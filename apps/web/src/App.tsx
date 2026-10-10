@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { api, unwrap, type Project } from './api/client';
 import { CommitteePage } from './features/committee/CommitteePage';
 import { EvaluationPage } from './features/evaluations/EvaluationPage';
+import { ResultsPage } from './features/results/ResultsPage';
 
-type Page = 'home' | 'committee' | 'evaluations';
+type Page = 'home' | 'committee' | 'evaluations' | 'results';
 
 export function App() {
   const [page, setPage] = useState<Page>('home');
@@ -39,7 +40,7 @@ export function App() {
       <span className="brand-description">공공 제안평가 지원</span><span className="badge">로컬 개발 모드</span>
     </header>
     <aside className="sidebar"><small>업무 메뉴</small>
-      {([['home', '사업 관리'], ['committee', '평가위원 등록·추첨'], ['evaluations', '평가·제출·취합']] as const)
+      {([['home', '사업 관리'], ['committee', '평가위원 등록·추첨'], ['evaluations', '평가·제출·취합'], ['results', '결과·서명·리포트']] as const)
         .map(([key, title]) => <button key={key} className={page === key ? 'active' : ''}
           onClick={() => setPage(key)}>{title}</button>)}
       <a href="http://127.0.0.1:4174" target="_blank" rel="noreferrer">원본 디자인 데모 ↗</a>
@@ -70,6 +71,7 @@ export function App() {
       {page !== 'home' && !project && <section className="panel">사업을 먼저 등록하세요.</section>}
       {page === 'committee' && project && <CommitteePage key={project.id} project={project} />}
       {page === 'evaluations' && project && <EvaluationPage key={project.id} project={project} />}
+      {page === 'results' && project && <ResultsPage key={project.id} project={project} />}
     </main>
   </>;
 }

@@ -38,12 +38,12 @@ export function EvaluationPage({ project }: { project: Project }) {
   </>;
 }
 
-function vendorName(id: string) { return id.replace('vendor-', '').toUpperCase() + '사'; }
+export function vendorName(id: string) { return id.replace('vendor-', '').toUpperCase() + '사'; }
 
-function ScoreEditor({ memberId, project, onSubmitted }: {
-  memberId: string; project: Project; onSubmitted: () => Promise<void>;
+// 평가위원 화면(features/evaluator)이 같은 채점표를 쓴다. client를 주면 그 인증으로 호출한다.
+export function ScoreEditor({ memberId, project, onSubmitted, client = evaluatorApi(memberId) }: {
+  memberId: string; project: Project; onSubmitted: () => Promise<void>; client?: ReturnType<typeof evaluatorApi>;
 }) {
-  const client = evaluatorApi(memberId);
   const params = { path: { project_id: project.id } };
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [scores, setScores] = useState<Score[]>([]);
