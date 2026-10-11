@@ -202,12 +202,13 @@ PYTEST
 | `history_view`                            | 977  | 사이드바에서 최근 문서 목록·열기·삭제를 제공하고 최초 접속 시 최신 문서를 선택한다.               |
 | `main`                                    | 1032 | Streamlit 페이지·사이드바를 구성하고 선택된 문서 또는 초기·연결 오류 안내를 표시한다.             |
 
-### streamlit_page_preview.py — 3개
+### streamlit_main.py 미리보기 작업자 함수 — 4개
 
-[소스 열기](../../apps/documents_daeung/streamlit_page_preview.py)
+[소스 열기](../../apps/documents_daeung/streamlit_main.py)
 
 | 함수                           | 줄 | 설명                                                                                    |
 | ------------------------------ | -- | --------------------------------------------------------------------------------------- |
-| `remove_rendered_page_label` | 12 | 본문 밖의 쪽번호만 제거한다. 화면 바깥쪽에 교정된 쪽번호를 표시한다.                    |
-| `build_page_previews`        | 31 | 원본을 렌더러로 열어 해시·페이지 정보·쪽번호를 제거한 SVG를 반환하고 렌더러를 닫는다. |
-| `source_parser_path`         | 57 | 현재 작업자와 같은 폴더에 있는 파서 소스의 절대 경로를 반환한다.                        |
+| `remove_rendered_page_label` | 55 | 본문 밖의 쪽번호만 제거한다. 화면 바깥쪽에 교정된 쪽번호를 표시한다.                    |
+| `build_page_previews`        | 73 | 원본을 렌더러로 열어 해시·페이지 정보·쪽번호를 제거한 SVG를 반환하고 렌더러를 닫는다. |
+| `source_parser_path`         | 99 | 현재 작업자와 같은 폴더에 있는 파서 소스의 절대 경로를 반환한다.                        |
+| `page_preview_main` | 1122 | 별도 프로세스에서 미리보기를 생성하고 지정한 JSON 파일에 저장한다. |

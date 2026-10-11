@@ -1,4 +1,4 @@
-> 이 문서는 2026-10-10 기준 기존 루트 `README.MD`의 전체 내용을 보존한 문서 처리 모듈 안내입니다. 상대 링크만 현재 위치에 맞게 조정했습니다. 아래 실행 명령과 경로는 저장소 루트를 기준으로 합니다. 제품 전체 소개는 [프로젝트 README](../../README.MD), 담당·진행 기록은 [DaeUng79](../members/DaeUng79/README.md)를 참고하세요.
+> 아래 실행 명령은 저장소 루트를 기준으로 합니다. 제품 전체 소개는 [프로젝트 README](../../README.MD), 담당·진행 기록은 [DaeUng79](../../docs/DaeUng79/README.md)를 참고하세요.
 
 # HWPX/HWP 문서 파싱 및 저장
 
@@ -8,13 +8,12 @@
 
 | 파일                                                  | 역할                                                                                 |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [step1_parser_hwpx.py](../../step1_parser_hwpx.py)           | HWPX/HWP 파싱, 블록·표·이미지·페이지 메타데이터 생성, JSON 출력 및 저장 모듈 호출 |
-| [step2_hwpx_storage.py](../../step2_hwpx_storage.py)         | JSON에서 저장 레코드와 검색용 청크 생성, MongoDB/GridFS 저장                         |
-| [step3_ai_requirements.py](../../step3_ai_requirements.py)   | 저장 문서의 요구사항 총괄표·목록표·세부내역 원문 추출과 버전별 저장                |
-| [step4_ai_criteria.py](../../step4_ai_criteria.py)           | 추출 요구사항 및 요청서 평가기준표 또는 Markdown 기본 서식으로 JSON 기준표 생성·저장 |
-| [streamlit_main.py](../../streamlit_main.py)                 | (파싱결과 확인용) 문서 업로드·등록, 저장 이력 및 상세 보기 UI                       |
-| [streamlit_page_preview.py](../../streamlit_page_preview.py) | (파싱결과 확인용) )원본 한글 파일을 페이지별 SVG로 렌더링하는 별도 프로세스 작업자  |
-| [requirements.txt](../../requirements.txt)                   | 앱·파서 실행에 필요한 Python 의존성                                                 |
+| [step1_parser_hwpx.py](step1_parser_hwpx.py)           | HWPX/HWP 파싱, 블록·표·이미지·페이지 메타데이터 생성, JSON 출력 및 저장 모듈 호출 |
+| [step2_hwpx_storage.py](step2_hwpx_storage.py)         | JSON에서 저장 레코드와 검색용 청크 생성, MongoDB/GridFS 저장                         |
+| [step3_ai_requirements.py](step3_ai_requirements.py)   | 저장 문서의 요구사항 총괄표·목록표·세부내역 원문 추출과 버전별 저장                |
+| [step4_ai_criteria.py](step4_ai_criteria.py)           | 추출 요구사항 및 요청서 평가기준표 또는 Markdown 기본 서식으로 JSON 기준표 생성·저장 |
+| [streamlit_main.py](streamlit_main.py)                 | (파싱결과 확인용) 문서 업로드·등록, 저장 이력 및 상세 보기 UI                       |
+| [requirements.txt](requirements.txt)                   | 앱·파서 실행에 필요한 Python 의존성                                                 |
 
 ## 1. 파싱 구조 — `step1_parser_hwpx.py`
 
@@ -95,9 +94,9 @@ CLI 기본 JSON 경로는 `output/json/parsed.json`입니다.  이미지 출력�
 - **문서별 탭:** `제안요청서`에서 전체 문서를, `제안 요구사항`에서 총괄표·목록표와 세부내역을, `정성적 평가기준`에서 생성된 평가기준표를 확인합니다. 각 생성 버튼을 눌렀을 때만 OpenAI API를 호출하며 저장 결과를 다시 열 때는 호출하지 않습니다.
 - **원본 미리보기:** 원본 파일이 로컬 업로드 폴더나 GridFS에 있으면 페이지 미리보기를 생성·재사용합니다. 원본이 없으면 저장된 블록으로 대체 표시하되 페이지별 정확한 배치는 보장할 수 없습니다.
 
-## 4. `streamlit_page_preview.py`의 역할
+## 4. `streamlit_main.py`의 미리보기 작업자 모드
 
-Streamlit 본체에서 한글 렌더러를 직접 계속 보유하지 않도록 별도 Python 프로세스에서 실행되는 작업자입니다. 파서의 페이지 매핑·인쇄 쪽번호 보정 로직을 이용해 원본을 열고, 각 물리 페이지를 SVG로 렌더링해 다음 구조의 JSON을 반환합니다.
+`streamlit_main.py --page-preview SOURCE --output OUTPUT`으로 실행합니다. Streamlit 본체에서 한글 렌더러를 직접 계속 보유하지 않도록 별도 Python 프로세스에서 실행되는 작업자입니다. 파서의 페이지 매핑·인쇄 쪽번호 보정 로직을 이용해 원본을 열고, 각 물리 페이지를 SVG로 렌더링해 다음 구조의 JSON을 반환합니다.
 
 - `source_sha256`: 입력 원본 검증용 해시
 - `pages`: 물리 페이지와 인쇄 쪽번호 메타데이터
@@ -107,12 +106,14 @@ Streamlit 본체에서 한글 렌더러를 직접 계속 보유하지 않도록 
 
 ## 실행 및 설정
 
-현재 저장소의 의존성 파일을 설치한 뒤 앱을 실행합니다.
+저장소 루트에서 의존성을 설치하고 앱을 실행합니다.
 
 ```sh
-python -m pip install -r requirements.txt
-streamlit run streamlit_main.py
+.venv/bin/python -m pip install -r apps/documents_daeung/requirements.txt
+.venv/bin/python -m streamlit run apps/documents_daeung/streamlit_main.py
 ```
+
+`apps/documents_daeung` 폴더에서 실행할 때는 `../../.venv/bin/python -m streamlit run streamlit_main.py`를 사용합니다. 설정 파일은 이 폴더의 `.env`를 우선 사용하고, 없으면 저장소 루트의 `.env`를 읽습니다.
 
 ### MongoDB 연결 설정
 
@@ -143,10 +144,10 @@ CLI에서도 실행할 수 있습니다. 파일명은 일부 일치와 한글 NF
 
 ```sh
 # 추출·검증 후 원본 문서에 연결해 저장
-.venv/bin/python step3_ai_requirements.py --filename '특허 빅데이터' --save --output output/requirements.json
+.venv/bin/python apps/documents_daeung/step3_ai_requirements.py --filename '특허 빅데이터' --save --output apps/documents_daeung/output/requirements.json
 
 # 특정 문서 재추출 (--force 사용 시 새 API 비용 발생)
-.venv/bin/python step3_ai_requirements.py --document-id '<문서 ID>' --save --force
+.venv/bin/python apps/documents_daeung/step3_ai_requirements.py --document-id '<문서 ID>' --save --force
 ```
 
 `--save`를 생략하면 DB에 쓰지 않습니다. 저장된 결과가 없으면 API 추출은 수행합니다. JSON에는 `summary`, `details` 각각의 `block_ids`와 원문 `blocks`, `document_id`, `source_revision`, 원문 해시, 추출 시각, `usage`, `warnings`가 들어 있습니다.
@@ -157,7 +158,7 @@ CLI에서도 실행할 수 있습니다. 파일명은 일부 일치와 한글 NF
 
 제안요청서 상세 보기의 **정성적 평가기준** 탭에서 생성합니다. 먼저 **제안 요구사항** 탭에서 요구사항을 추출·저장해야 합니다. GPT-4o가 총괄표와 세부내역을 기준표 형식의 JSON으로 작성하며, 화면에서는 제안 요구사항과 같은 문서 스타일로 렌더링합니다.
 
-1. 현재 제안요청서에서 정성적 평가기준표를 찾으면 그 표의 평가부문·평가항목·배점을 우선 사용합니다. 없으면 [doc/ai_criteria.md](../../doc/ai_criteria.md)의 평가기준·평가요소 예시를 기본 서식으로 삼습니다.
+1. 현재 제안요청서에서 정성적 평가기준표를 찾으면 그 표의 평가부문·평가항목·배점을 우선 사용합니다. 없으면 [doc/ai_criteria.md](doc/ai_criteria.md)의 평가기준·평가요소 예시를 기본 서식으로 삼습니다.
 2. JSON에는 `evaluation_division`, `evaluation_item`, `evaluation_criteria`, `evaluation_elements`, `score`를 포함합니다. 기존 요청서의 고정 항목·배점은 바꾸지 않고, 평가기준과 요소는 해당 제안요구사항에 맞춰 작성합니다.
 3. 누락·중복 항목, 빈 평가기준, 총 배점을 검증합니다. 결과는 `RequestCriteria`에 원본 문서 revision, 요구사항 결과 ID, 사용 기준표 버전, 모델 버전을 연결해 저장합니다.
 4. 요구사항 또는 기준표 버전이 바뀌면 이전 결과를 재사용하지 않습니다. JSON을 다운로드할 수 있고 화면에서는 문서형 표로 확인할 수 있습니다.
@@ -165,7 +166,7 @@ CLI에서도 실행할 수 있습니다. 파일명은 일부 일치와 한글 NF
 CLI에서는 다음과 같이 실행할 수 있습니다.
 
 ```sh
-.venv/bin/python step4_ai_criteria.py --document-id '<문서 ID>' --save --output output/criteria.json
+.venv/bin/python apps/documents_daeung/step4_ai_criteria.py --document-id '<문서 ID>' --save --output apps/documents_daeung/output/criteria.json
 ```
 
 `--save`를 생략하면 결과를 저장하지 않습니다. `--force`는 저장 결과가 있어도 GPT-4o를 다시 호출합니다.
@@ -173,5 +174,5 @@ CLI에서는 다음과 같이 실행할 수 있습니다.
 관련 회귀 검증:
 
 ```sh
-.venv/bin/python -m unittest test_ai_requirements test_ai_criteria test_requirements_ui tests.test_document_view -v
+.venv/bin/python -m unittest discover -s apps/documents_daeung/tests -v
 ```

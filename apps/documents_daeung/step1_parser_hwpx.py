@@ -883,7 +883,8 @@ if __name__ == "__main__":
         default=None,
         help="파싱 결과 JSON 경로",
     )
-    parser.add_argument("--env-file", type=Path, default=base_dir / ".env", help="MongoDB 설정 파일")
+    env_path = base_dir / ".env" if (base_dir / ".env").is_file() else base_dir.parents[1] / ".env"
+    parser.add_argument("--env-file", type=Path, default=env_path, help="MongoDB 설정 파일")
     parser.add_argument("--database", help="MongoDB 데이터베이스명 (설정/URI보다 우선)")
     parser.add_argument("--collection", default="Request", help="추출 문서 컬렉션명 (기본: Request)")
     parser.add_argument("--no-mongo", action="store_true", help="MongoDB 저장 없이 로컬 결과만 생성")
@@ -957,7 +958,10 @@ if __name__ == "__main__":
     print("블록 개수:", len(result["blocks"]), "이미지 개수:", len(result["images"]))
     print("파싱 경고:", len(result.get("warnings", [])))
     if not args.no_mongo:
-        from apps.app.modules.documents.step2_hwpx_storage import MongoStorageError, save_to_mongodb
+        if __package__:
+            from .step2_hwpx_storage import MongoStorageError, save_to_mongodb
+        else:
+            from step2_hwpx_storage import MongoStorageError, save_to_mongodb
         try:
             saved = save_to_mongodb(result, input_path, env_path=args.env_file, database=args.database,
                                     store_source=args.store_source, collection_name=args.collection)

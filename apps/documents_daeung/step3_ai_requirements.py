@@ -16,9 +16,13 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from apps.app.documents.step2_hwpx_storage import mongo_settings
+if __package__:
+    from .step2_hwpx_storage import mongo_settings
+else:
+    from step2_hwpx_storage import mongo_settings
 
 ROOT = Path(__file__).resolve().parent
+ENV_PATH = ROOT / ".env" if (ROOT / ".env").is_file() else ROOT.parents[1] / ".env"
 DEFAULT_MODEL = "gpt-4o"
 EXTRACTOR_VERSION = "requirements-v2"
 RESULT_COLLECTION = "RequestRequirements"
@@ -165,7 +169,7 @@ def make_batches(units, max_chars=MAX_BATCH_CHARS):
     return batches
 
 
-def get_client(env_path=ROOT / ".env"):
+def get_client(env_path=ENV_PATH):
     """환경변수 우선으로 API 키를 읽어 제한시간·재시도가 설정된 클라이언트를 만든다. 호출자가 닫아야 한다."""
     from dotenv import dotenv_values
     from openai import OpenAI
@@ -574,7 +578,7 @@ def validate_result(document, result):
         included.update(block_ids)
 
 
-def extract_requirements(document, *, client=None, env_path=ROOT / ".env",
+def extract_requirements(document, *, client=None, env_path=ENV_PATH,
                          model=DEFAULT_MODEL, progress=None):
     """모델이 고른 블록을 원문에서 복사하고 출처 검증 결과·사용량을 반환한다.
 
@@ -642,7 +646,7 @@ def extract_requirements(document, *, client=None, env_path=ROOT / ".env",
 
 
 @contextmanager
-def requirements_database(env_path=ROOT / ".env", database=None):
+def requirements_database(env_path=ENV_PATH, database=None):
     """요구사항용 DB 연결을 열어 제공하고 종료 시 닫는다. 접속 상세를 숨긴 오류로 변환한다."""
     from pymongo import MongoClient
 
@@ -671,7 +675,7 @@ def read_source(db, document_id, collection_name="Request"):
     return document
 
 
-def load_saved_requirements(document, *, env_path=ROOT / ".env", database=None,
+def load_saved_requirements(document, *, env_path=ENV_PATH, database=None,
                             collection_name="Request", model=DEFAULT_MODEL):
     """현재 문서 버전과 원문 동일성을 확인해 저장된 결과를 반환한다. 모델을 호출하지 않는다."""
     if not document.get("active_revision"):
@@ -704,7 +708,7 @@ def save_requirements(db, document, result, collection_name="Request"):
         raise RequirementsError("추출 중 원본 문서가 변경되었습니다. 현재 문서를 다시 열어 주세요.")
 
 
-def extract_and_save_requirements(document_id, *, env_path=ROOT / ".env", database=None,
+def extract_and_save_requirements(document_id, *, env_path=ENV_PATH, database=None,
                                   collection_name="Request", force=False, progress=None):
     """검증된 캐시를 재사용하거나 요구사항을 추출해 저장한다. force=True이면 모델을 다시 호출한다."""
     with requirements_database(env_path, database) as db:
@@ -731,7 +735,7 @@ def main():
     selector = parser.add_mutually_exclusive_group(required=True)
     selector.add_argument("--document-id")
     selector.add_argument("--filename", help="NFC/NFD를 모두 검색하는 파일명 일부; 유일한 결과만 허용")
-    parser.add_argument("--env", type=Path, default=ROOT / ".env")
+    parser.add_argument("--env", type=Path, default=ENV_PATH)
     parser.add_argument("--database", default="Request_for_Proposal")
     parser.add_argument("--save", action="store_true", help="RequestRequirements에 결과 저장")
     parser.add_argument("--force", action="store_true", help="저장된 결과가 있어도 API로 다시 추출")

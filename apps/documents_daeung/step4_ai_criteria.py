@@ -12,9 +12,13 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-import apps.app.documents.step3_ai_requirements as requirements
+if __package__:
+    from . import step3_ai_requirements as requirements
+else:
+    import step3_ai_requirements as requirements
 
 ROOT = Path(__file__).resolve().parent
+ENV_PATH = requirements.ENV_PATH
 DEFAULT_MODEL = requirements.DEFAULT_MODEL
 CRITERIA_VERSION = "qualitative-criteria-v2"
 RESULT_COLLECTION = "RequestCriteria"
@@ -361,7 +365,7 @@ def generate_criteria(document, requirement_result, *, client=None, model=DEFAUL
 
 
 @contextmanager
-def criteria_database(env_path=ROOT / ".env", database=None):
+def criteria_database(env_path=ENV_PATH, database=None):
     """평가기준용 DB 연결을 제공하고 종료 시 닫는다. 연결 상세가 없는 업무 오류로 변환한다."""
     from pymongo import MongoClient
 
@@ -398,7 +402,7 @@ def _load_requirements(db, document):
         raise CriteriaError(str(error)) from None
 
 
-def load_saved_criteria(document, *, env_path=ROOT / ".env", database=None):
+def load_saved_criteria(document, *, env_path=ENV_PATH, database=None):
     """현재 문서·요구사항·서식에 맞는 저장 평가기준을 조회·검증한다. 모델은 호출하지 않는다."""
     if not document.get("active_revision"):
         return None
@@ -466,7 +470,7 @@ def save_criteria(db, document, requirement_result, reference, result,
         raise CriteriaError("생성 중 원본 문서가 변경되었습니다. 현재 문서를 다시 열어 주세요.")
 
 
-def extract_and_save_criteria(document_id, *, env_path=ROOT / ".env", database=None,
+def extract_and_save_criteria(document_id, *, env_path=ENV_PATH, database=None,
                               force=False, progress=None):
     """유효한 기존 결과를 반환하거나 모델로 평가기준을 생성해 DB에 저장한다."""
     with criteria_database(env_path, database) as db:
@@ -494,7 +498,7 @@ def main():
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--document-id", required=True)
-    parser.add_argument("--env", type=Path, default=ROOT / ".env")
+    parser.add_argument("--env", type=Path, default=ENV_PATH)
     parser.add_argument("--database", default="Request_for_Proposal")
     parser.add_argument("--save", action="store_true", help="RequestCriteria에 결과 저장")
     parser.add_argument("--force", action="store_true", help="저장 결과가 있어도 API로 다시 생성")

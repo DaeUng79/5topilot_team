@@ -1,9 +1,11 @@
-"""제안요청서 등록 및 조회: .venv/bin/python -m streamlit run streamlit_main.py"""
+"""제안요청서 등록 및 조회: python -m streamlit run apps/documents_daeung/streamlit_main.py"""
 from __future__ import annotations
 
+import argparse
 import copy
 import hashlib
 import html
+import importlib.util
 import io
 import json
 import math
@@ -12,6 +14,7 @@ import subprocess
 import sys
 import tempfile
 import unicodedata
+import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -22,9 +25,13 @@ from bson import json_util
 from gridfs import GridFS
 from pymongo import MongoClient
 
-from apps.app.documents.step2_hwpx_storage import MongoStorageError, mongo_settings, save_to_mongodb
-    
+if __package__:
+    from .step2_hwpx_storage import MongoStorageError, mongo_settings, save_to_mongodb
+else:
+    from step2_hwpx_storage import MongoStorageError, mongo_settings, save_to_mongodb
+
 ROOT = Path(__file__).resolve().parent
+ENV_PATH = ROOT / ".env" if (ROOT / ".env").is_file() else ROOT.parents[1] / ".env"
 DATABASE = "Request_for_Proposal"
 COLLECTION = "Request"
 MAX_UPLOAD = 50 * 1024 * 1024
@@ -37,11 +44,61 @@ class AppError(RuntimeError):
 
 
 def worker_python():
-    """모듈 폴더의 가상환경 Python을 우선 선택하고 없으면 현재 인터프리터를 사용한다."""
-    for candidate in (ROOT / ".venv/bin/python", ROOT / ".venv/Scripts/python.exe"):
-        if candidate.is_file():
-            return str(candidate)
+    """모듈 또는 저장소의 가상환경 Python을 선택하고 없으면 현재 인터프리터를 사용한다."""
+    for folder in (ROOT, ROOT.parents[1]):
+        for candidate in (folder / ".venv/bin/python", folder / ".venv/Scripts/python.exe"):
+            if candidate.is_file():
+                return str(candidate)
     return sys.executable
+
+
+def remove_rendered_page_label(svg: str, printed_number: int | None) -> str:
+    """본문 밖의 쪽번호만 제거한다. 화면 바깥쪽에 교정된 쪽번호를 표시한다."""
+    if printed_number is None:
+        return svg
+    root = ET.fromstring(svg)
+    # 본문은 clip-path 그룹 안에 있으며 머리말/바닥글의 text는 루트에 있다.
+    lines = {}
+    for node in root.findall('{http://www.w3.org/2000/svg}text'):
+        lines.setdefault(node.get('y'), []).append(node)
+    for nodes in lines.values():
+        text = ''.join(''.join(n.itertext()) for n in nodes).strip()
+        match = re.fullmatch(r'\s*-?\s*(\d+)\s*-?\s*', text)
+        if match and int(match.group(1)) == printed_number:
+            for node in nodes:
+                root.remove(node)
+    return ET.tostring(root, encoding='unicode')
+
+
+def build_page_previews(source: Path) -> dict:
+    """원본을 렌더러로 열어 해시·페이지 정보·쪽번호를 제거한 SVG를 반환하고 렌더러를 닫는다."""
+    from pyhwpxlib.rhwp_bridge import RhwpEngine
+
+    spec = importlib.util.spec_from_file_location('preview_parser', source_parser_path())
+    parser = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(parser)
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    renderer = RhwpEngine().load(str(source))
+    try:
+        if source.suffix.lower() == '.hwpx':
+            mapping, pages = parser.read_rendered_pagination(source, renderer)
+            parser.correct_page_numbers(source, digest, mapping, pages)
+        else:
+            pages = [{'physical_page_number': i + 1,
+                      **parser.page_number_metadata_from_render_tree(renderer.get_page_render_tree(i))}
+                     for i in range(renderer.page_count)]
+        svgs = {}
+        for index, page in enumerate(pages):
+            original = page.get('rendered_page_number', page['page_number'])
+            svgs[str(index + 1)] = remove_rendered_page_label(renderer.render_page_svg(index), original)
+        return {'source_sha256': digest, 'pages': pages, 'svgs': svgs}
+    finally:
+        renderer.close()
+
+
+def source_parser_path():
+    """현재 작업자와 같은 폴더에 있는 파서 소스의 절대 경로를 반환한다."""
+    return Path(__file__).resolve().with_name('step1_parser_hwpx.py')
 
 
 def load_page_previews(document):
@@ -50,7 +107,7 @@ def load_page_previews(document):
     if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
         return None
     signature = hashlib.sha256()
-    for name in ("streamlit_page_preview.py", "step1_parser_hwpx.py", "page_number_corrections.json",
+    for name in ("streamlit_main.py", "step1_parser_hwpx.py", "page_number_corrections.json",
                  "requirements.txt"):
         path = ROOT / name
         if path.is_file():
@@ -87,7 +144,7 @@ def load_page_previews(document):
         output = Path(temporary) / "pages.json"
         try:
             completed = subprocess.run(
-                [worker_python(), str(ROOT / "streamlit_page_preview.py"), str(source),
+                [worker_python(), str(ROOT / "streamlit_main.py"), "--page-preview", str(source),
                  "--output", str(output)], cwd=ROOT, capture_output=True, timeout=300, check=False)
             if completed.returncode:
                 raise AppError("페이지별 화면을 생성하지 못했습니다. 렌더링 환경을 확인해 주세요.")
@@ -104,13 +161,9 @@ def load_page_previews(document):
 
 def parse_in_worker(source: Path):
     """렌더러를 새 프로세스에서 로드해 Streamlit의 import 캐시와 분리한다."""
-    project_python = ROOT / ".venv" / "bin" / "python"
-    if not project_python.is_file():
-        project_python = ROOT / ".venv" / "Scripts" / "python.exe"
-    python = str(project_python) if project_python.is_file() else sys.executable
     with tempfile.TemporaryDirectory(prefix="hwpx-parse-") as temporary:
         output = Path(temporary) / "parsed.json"
-        command = [python, str(ROOT / "step1_parser_hwpx.py"), str(source),
+        command = [worker_python(), str(ROOT / "step1_parser_hwpx.py"), str(source),
                    "--no-mongo", "--strict-pagination", "--output-json", str(output),
                    "--asset-dir", str(ROOT / "output")]
         try:
@@ -135,7 +188,7 @@ def parse_in_worker(source: Path):
 def database_connection():
     """화면용 MongoDB 연결을 생성·확인해 제공하고 종료 시 닫는다. 상세 접속정보는 오류에서 숨긴다."""
     try:
-        uri, database = mongo_settings(ROOT / ".env", DATABASE)
+        uri, database = mongo_settings(ENV_PATH, DATABASE)
         with MongoClient(uri, serverSelectionTimeoutMS=10000, connectTimeoutMS=10000,
                          socketTimeoutMS=60000, appname="rfp-streamlit") as client:
             client.admin.command("ping")
@@ -617,10 +670,13 @@ def render_proposal_document(document):
 
 def load_requirements_result(document):
     """저장 결과 조회는 API를 호출하지 않는다. 화면에서 쉽게 대체 가능한 경계."""
-    from apps.app.documents.step3_ai_requirements import RequirementsError, load_saved_requirements
+    if __package__:
+        from .step3_ai_requirements import RequirementsError, load_saved_requirements
+    else:
+        from step3_ai_requirements import RequirementsError, load_saved_requirements
 
     try:
-        return load_saved_requirements(document, env_path=ROOT / ".env",
+        return load_saved_requirements(document, env_path=ENV_PATH,
                                        database=DATABASE, collection_name=COLLECTION)
     except RequirementsError as error:
         raise AppError(str(error)) from None
@@ -628,11 +684,14 @@ def load_requirements_result(document):
 
 def extract_requirements_result(document, *, force=False, progress=None):
     """문서 요구사항의 추출·저장을 호출하고 기능 오류를 화면용 AppError로 변환한다."""
-    from apps.app.documents.step3_ai_requirements import RequirementsError, extract_and_save_requirements
+    if __package__:
+        from .step3_ai_requirements import RequirementsError, extract_and_save_requirements
+    else:
+        from step3_ai_requirements import RequirementsError, extract_and_save_requirements
 
     try:
         return extract_and_save_requirements(
-            document.get("_id") or document.get("document_id"), env_path=ROOT / ".env",
+            document.get("_id") or document.get("document_id"), env_path=ENV_PATH,
             database=DATABASE, collection_name=COLLECTION, force=force, progress=progress)
     except RequirementsError as error:
         raise AppError(str(error)) from None
@@ -640,21 +699,27 @@ def extract_requirements_result(document, *, force=False, progress=None):
 
 def load_criteria_result(document):
     """현재 문서의 저장 평가기준을 조회하고 기능 오류를 화면용 AppError로 변환한다."""
-    from apps.app.documents.step4_ai_criteria import CriteriaError, load_saved_criteria
+    if __package__:
+        from .step4_ai_criteria import CriteriaError, load_saved_criteria
+    else:
+        from step4_ai_criteria import CriteriaError, load_saved_criteria
 
     try:
-        return load_saved_criteria(document, env_path=ROOT / ".env", database=DATABASE)
+        return load_saved_criteria(document, env_path=ENV_PATH, database=DATABASE)
     except CriteriaError as error:
         raise AppError(str(error)) from None
 
 
 def extract_criteria_result(document, *, force=False, progress=None):
     """문서 평가기준의 생성·저장을 호출하고 기능 오류를 화면용 AppError로 변환한다."""
-    from apps.app.documents.step4_ai_criteria import CriteriaError, extract_and_save_criteria
+    if __package__:
+        from .step4_ai_criteria import CriteriaError, extract_and_save_criteria
+    else:
+        from step4_ai_criteria import CriteriaError, extract_and_save_criteria
 
     try:
         return extract_and_save_criteria(
-            document.get("_id") or document.get("document_id"), env_path=ROOT / ".env",
+            document.get("_id") or document.get("document_id"), env_path=ENV_PATH,
             database=DATABASE, force=force, progress=progress)
     except CriteriaError as error:
         raise AppError(str(error)) from None
@@ -675,7 +740,10 @@ def requirements_match_document(result, document):
 
 def build_requirements_html(document, result):
     """총괄표를 먼저 보여주고 상세 원문은 요구사항별 페이지 정보와 함께 접어 둔다."""
-    from apps.app.documents.step3_ai_requirements import group_detail_items
+    if __package__:
+        from .step3_ai_requirements import group_detail_items
+    else:
+        from step3_ai_requirements import group_detail_items
 
     def reader_fragment(blocks):
         """선택한 블록을 추출 문서로 렌더링하고 공통 스타일과 본문 HTML을 분리해 반환한다."""
@@ -936,7 +1004,7 @@ def register_view():
                 document, source = parse_upload(uploaded.getvalue(), uploaded.name)
                 st.session_state.pending_save = (document, str(source))
                 st.write("2. 몽고DB 저장")
-                saved = save_to_mongodb(document, source, env_path=ROOT / ".env",
+                saved = save_to_mongodb(document, source, env_path=ENV_PATH,
                                         database=DATABASE, collection_name=COLLECTION)
                 st.session_state.saved_upload = saved
                 st.session_state.selected_document = saved["document_id"]
@@ -955,7 +1023,7 @@ def register_view():
         if st.button("DB 저장 재시도", key="retry_save"):
             try:
                 with st.spinner("데이터베이스에 저장 중입니다…"):
-                    saved = save_to_mongodb(document, Path(source), env_path=ROOT / ".env",
+                    saved = save_to_mongodb(document, Path(source), env_path=ENV_PATH,
                                             database=DATABASE, collection_name=COLLECTION)
                 st.session_state.saved_upload = saved
                 st.session_state.selected_document = saved["document_id"]
@@ -1051,5 +1119,18 @@ def main():
         st.warning("저장 자료를 불러오지 못했습니다. 사이드바에서 새로고침해 주세요.")
 
 
+def page_preview_main(argv=None):
+    """별도 프로세스에서 미리보기를 생성하고 지정한 JSON 파일에 저장한다."""
+    cli = argparse.ArgumentParser(description="원본 문서의 페이지별 SVG 미리보기 생성")
+    cli.add_argument("--page-preview", required=True, type=Path, metavar="SOURCE")
+    cli.add_argument("--output", required=True, type=Path)
+    args = cli.parse_args(argv)
+    result = build_page_previews(args.page_preview)
+    args.output.write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
+
+
 if __name__ == "__main__":
-    main()
+    if "--page-preview" in sys.argv[1:]:
+        page_preview_main()
+    else:
+        main()

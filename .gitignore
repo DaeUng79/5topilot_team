@@ -12,7 +12,8 @@ __pycache__/
 .DS_Store
 .streamlit/
 .vscode/
-
+.tests/
+/apps/documents_daeung/tests/
 # 팀 공통 테스트 소스는 추적하고 생성 산출물만 제외
 .pytest_cache/
 .coverage
