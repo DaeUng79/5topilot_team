@@ -8,6 +8,7 @@ from apps.app.documents.streamlit_main import build_document_html, recover_page_
 
 class DocumentViewTests(unittest.TestCase):
     def fixture(self):
+        """병합표·하위 문단·이미지·페이지 정보가 있는 합성 문서를 반환한다."""
         return {'filename': '<script>test</script>', 'pages': [{'physical_page_number': 1, 'page_number': 1}, {'physical_page_number': 2, 'page_number': 2}],
                 'blocks': [
                     {'block_id': 't', 'type': 'table', 'physical_page_numbers': [1],
@@ -18,6 +19,7 @@ class DocumentViewTests(unittest.TestCase):
                 ]}
 
     def test_recover_unnumbered_cover_only_for_matching_content(self):
+        """본문이 같은 경우에만 표지 페이지 정보를 복원하고 입력 문서는 바꾸지 않는지 검증한다."""
         current = {"blocks": [{"block_id": "p", "type": "paragraph", "text": "표지",
                               "physical_page_number": None, "physical_page_numbers": []}]}
         previous = [dict(current["blocks"][0], physical_page_number=1,
@@ -30,6 +32,7 @@ class DocumentViewTests(unittest.TestCase):
         self.assertIsNone(recover_page_metadata(current, previous))
 
     def test_printed_numbers_start_after_unnumbered_pages(self):
+        """번호 없는 앞쪽 페이지 뒤에서 인쇄 쪽번호 표시를 시작하는지 검증한다."""
         document = {"pages": [
             {"physical_page_number": 1, "page_number": None},
             {"physical_page_number": 2, "page_number": None},
@@ -46,6 +49,7 @@ class DocumentViewTests(unittest.TestCase):
         self.assertLess(output.index('content-2'), output.index('aria-label="1쪽 시작"'))
 
     def test_nested_content_once_and_image_embedded(self):
+        """중첩 내용을 한 번만 표시하고 이미지·병합·음영·HTML 이스케이프를 유지하는지 검증한다."""
         data = io.BytesIO()
         Image.new('RGB', (2, 2)).save(data, format='PNG')
         output = build_document_html(self.fixture(), image_loader=lambda _: data.getvalue())
@@ -57,6 +61,7 @@ class DocumentViewTests(unittest.TestCase):
         self.assertNotIn('<script>', output)
 
     def test_missing_original_does_not_put_full_table_on_first_page(self):
+        """원본 없이 여러 페이지에 걸친 표 전체를 첫 페이지 내용으로 표시하지 않는지 검증한다."""
         document = self.fixture()
         document['blocks'][0]['physical_page_numbers'] = [1, 2]
         output = build_document_html(document, selected_page=1)
@@ -65,6 +70,7 @@ class DocumentViewTests(unittest.TestCase):
         self.assertNotIn('시작 쪽', output)
 
     def test_each_page_uses_its_own_rendered_content(self):
+        """페이지별 SVG가 한 번씩 표시되고 페이지 선택 시 해당 원문만 표시되는지 검증한다."""
         document = self.fixture()
         document['blocks'][0]['physical_page_numbers'] = [1, 2]
         previews = {'pages': document['pages'], 'svgs': {
@@ -82,6 +88,7 @@ class DocumentViewTests(unittest.TestCase):
         self.assertNotIn('여러 페이지에 걸친 표', output)
 
     def test_cycle_and_missing_image_have_fallback(self):
+        """순환 참조와 누락 이미지가 렌더링 중단 대신 안내 문구로 표시되는지 검증한다."""
         document = self.fixture()
         document['blocks'][0]['table']['cells'][0][0]['child_block_ids'].append('t')
         output = build_document_html(document, selected_page=1)

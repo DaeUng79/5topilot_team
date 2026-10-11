@@ -39,10 +39,12 @@ template_source가 request_document이면 제안요청서에 수록된 기준표
 
 
 def _json(value):
+    """키 순서를 고정한 JSON 문자열로 해시와 모델 입력을 일관되게 만든다."""
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def _criteria_id(document, requirement_result, reference, model=DEFAULT_MODEL):
+    """문서·요구사항 내용·기준 서식·생성기·모델 버전을 묶어 평가기준 캐시 ID를 만든다."""
     requirements_hash = hashlib.sha256(_json([
         requirement_result.get("summary"), requirement_result.get("details")
     ]).encode("utf-8")).hexdigest()
@@ -56,6 +58,7 @@ def _criteria_id(document, requirement_result, reference, model=DEFAULT_MODEL):
 
 
 def _block_text(block):
+    """문단 본문 또는 표의 셀 텍스트를 행 단위 문자열로 반환한다. 다른 블록 유형은 제외한다."""
     if block.get("type") == "paragraph":
         return str(block.get("text", "")).strip()
     if block.get("type") != "table":
@@ -110,6 +113,7 @@ def _find_document_table(document):
 
 
 def _split_reference_elements(value):
+    """참고 평가요소를 줄 단위로 나누고 앞뒤 공백·글머리 기호를 제거한다."""
     return [part.strip(" \t-•◦") for part in re.split(r"\n+", str(value or "")) if part.strip(" \t-•◦")]
 
 
@@ -149,6 +153,7 @@ def _parse_markdown_template(path=FALLBACK_TEMPLATE_PATH):
 
 
 def _resolve_template(document):
+    """원문 평가표를 우선 선택하고 없으면 Markdown 서식을 읽어 출처·버전·행 목록을 반환한다."""
     rows = _find_document_table(document)
     if rows:
         document_id = str(document.get("_id") or document.get("document_id"))
@@ -199,6 +204,7 @@ def _normalize_template_rows(rows, *, source="request_document"):
 
 
 def _generated_schema(template_rows):
+    """허용된 row_id와 평가기준·평가요소 필드를 갖는 모델 응답 JSON 스키마를 만든다."""
     row_ids = [row["row_id"] for row in template_rows]
     return {
         "type": "object",
@@ -218,6 +224,7 @@ def _generated_schema(template_rows):
 
 
 def _reference_prompt_rows(template_rows):
+    """기준표의 필요한 항목·배점만 골라 모델에 전달할 행 목록을 만든다."""
     return [{key: row[key] for key in ("row_id", "evaluation_division", "division_score",
                                         "evaluation_item", "evaluation_criteria",
                                         "reference_elements", "score") if key in row}
@@ -225,6 +232,7 @@ def _reference_prompt_rows(template_rows):
 
 
 def _call_model(client, model, requirements_source, template_rows, template_source):
+    """모델 응답의 항목·문자열을 검사하고 한 번 교정 요청한다. 배점은 기준표 값을 유지하며 사용량도 반환한다."""
     schema = _generated_schema(template_rows)
     try:
         messages = [
@@ -314,7 +322,11 @@ def _call_model(client, model, requirements_source, template_rows, template_sour
 
 
 def generate_criteria(document, requirement_result, *, client=None, model=DEFAULT_MODEL):
-    """요구사항을 참조 서식에 맞춘 배점 불변 평가기준 행으로 변환한다."""
+    """검증된 요구사항에서 모델로 평가기준 초안을 만들고 출처 버전·사용량을 반환한다.
+
+    항목과 배점은 참조 서식을 유지한다. 행별 근거 블록 연결이나 사람의 승인,
+    DB 저장은 수행하지 않는다.
+    """
     try:
         requirements.validate_result(document, requirement_result)
     except requirements.RequirementsError as error:
@@ -350,6 +362,7 @@ def generate_criteria(document, requirement_result, *, client=None, model=DEFAUL
 
 @contextmanager
 def criteria_database(env_path=ROOT / ".env", database=None):
+    """평가기준용 DB 연결을 제공하고 종료 시 닫는다. 연결 상세가 없는 업무 오류로 변환한다."""
     from pymongo import MongoClient
 
     try:
@@ -364,6 +377,7 @@ def criteria_database(env_path=ROOT / ".env", database=None):
 
 
 def _read_source(db, document_id):
+    """요구사항 모듈로 원문을 조회하고 실패를 평가기준용 오류로 변환한다."""
     try:
         return requirements.read_source(db, document_id, REQUEST_COLLECTION)
     except requirements.RequirementsError as error:
@@ -371,6 +385,7 @@ def _read_source(db, document_id):
 
 
 def _load_requirements(db, document):
+    """현재 원문·모델에 연결된 요구사항 결과를 조회해 검증하고 없으면 선행 추출을 요구한다."""
     try:
         requirements._identity(document)
         result_id = requirements._result_id(document, DEFAULT_MODEL)
@@ -384,6 +399,7 @@ def _load_requirements(db, document):
 
 
 def load_saved_criteria(document, *, env_path=ROOT / ".env", database=None):
+    """현재 문서·요구사항·서식에 맞는 저장 평가기준을 조회·검증한다. 모델은 호출하지 않는다."""
     if not document.get("active_revision"):
         return None
     with criteria_database(env_path, database) as db:
@@ -399,6 +415,7 @@ def load_saved_criteria(document, *, env_path=ROOT / ".env", database=None):
 
 
 def _validate_saved(document, requirement_result, reference, result):
+    """저장 결과의 출처·버전·항목 구성·배점·내용 유무를 검증하고 불일치하면 오류를 낸다."""
     expected_id = _criteria_id(document, requirement_result, reference)
     if (result.get("_id") != expected_id
             or result.get("document_id") != str(document.get("_id") or document.get("document_id"))
@@ -433,6 +450,7 @@ def _validate_saved(document, requirement_result, reference, result):
 
 def save_criteria(db, document, requirement_result, reference, result,
                   collection_name=REQUEST_COLLECTION):
+    """현재 원문과 서식을 다시 검증해 결과를 저장하고 문서 버전을 재확인한다. 승인 처리는 수행하지 않는다."""
     from bson import BSON
 
     _validate_saved(document, requirement_result, reference, result)
@@ -450,6 +468,7 @@ def save_criteria(db, document, requirement_result, reference, result,
 
 def extract_and_save_criteria(document_id, *, env_path=ROOT / ".env", database=None,
                               force=False, progress=None):
+    """유효한 기존 결과를 반환하거나 모델로 평가기준을 생성해 DB에 저장한다."""
     with criteria_database(env_path, database) as db:
         document = _read_source(db, str(document_id))
         requirement_result = _load_requirements(db, document)
@@ -470,6 +489,7 @@ def extract_and_save_criteria(document_id, *, env_path=ROOT / ".env", database=N
 
 
 def main():
+    """문서 ID와 CLI 옵션으로 기준을 생성하고 선택적으로 DB·JSON 파일에 저장한다."""
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)

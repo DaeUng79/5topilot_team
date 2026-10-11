@@ -37,6 +37,7 @@ class AppError(RuntimeError):
 
 
 def worker_python():
+    """모듈 폴더의 가상환경 Python을 우선 선택하고 없으면 현재 인터프리터를 사용한다."""
     for candidate in (ROOT / ".venv/bin/python", ROOT / ".venv/Scripts/python.exe"):
         if candidate.is_file():
             return str(candidate)
@@ -132,6 +133,7 @@ def parse_in_worker(source: Path):
 
 @contextmanager
 def database_connection():
+    """화면용 MongoDB 연결을 생성·확인해 제공하고 종료 시 닫는다. 상세 접속정보는 오류에서 숨긴다."""
     try:
         uri, database = mongo_settings(ROOT / ".env", DATABASE)
         with MongoClient(uri, serverSelectionTimeoutMS=10000, connectTimeoutMS=10000,
@@ -144,6 +146,7 @@ def database_connection():
 
 
 def history_query(search=""):
+    """조회 가능한 문서 상태와 NFC/NFD 파일명 검색 조건을 만든다. 검색어는 정규식 문자로 실행하지 않는다."""
     query = {"$or": [{"status": "ready"}, {"status": {"$exists": False}}]}
     if search.strip():
         forms = {unicodedata.normalize(form, search.strip()) for form in ("NFC", "NFD")}
@@ -154,6 +157,7 @@ def history_query(search=""):
 
 
 def load_history(search="", page=1):
+    """문서 총수와 최근 저장순 목록을 조회하고 유효 범위로 보정한 페이지 번호도 반환한다."""
     with database_connection() as db:
         query = history_query(search)
         total = db[COLLECTION].count_documents(query)
@@ -173,6 +177,7 @@ PAGE_FIELDS = {"physical_page_number", "physical_page_numbers", "page_number",
 def recover_page_metadata(document, previous_blocks):
     """동일 본문의 이전 버전에서 페이지 정보만 복원한다. DB는 변경하지 않는다."""
     def content(value, parent=None):
+        """페이지·DB 운송 필드와 중복 표 문맥을 제외해 이전 버전과 비교할 본문 구조를 만든다."""
         if isinstance(value, dict):
             return {k: content(v, k) for k, v in value.items()
                     if k not in PAGE_FIELDS | {"_id", "revision", "document_id"}
@@ -213,6 +218,7 @@ def recover_page_metadata(document, previous_blocks):
 
 
 def load_document(document_id):
+    """활성 문서를 조회하고 필요하면 블록을 조립하거나 동일 본문의 과거 페이지 정보를 메모리에서 복원한다."""
     with database_connection() as db:
         document = db[COLLECTION].find_one({"_id": document_id})
         if document and "blocks" not in document and document.get("active_revision"):
@@ -265,6 +271,7 @@ def delete_document(document_id):
 
 
 def load_image(asset_id):
+    """GridFS에서 지정한 파일을 읽어 바이트로 반환한다. 미리보기 용량 제한을 넘으면 오류를 낸다."""
     with database_connection() as db:
         file = GridFS(db, collection="hwpx_files").get(asset_id)
         if file.length > MAX_UPLOAD:
@@ -273,6 +280,7 @@ def load_image(asset_id):
 
 
 def clean_filename(filename):
+    """경로 성분·제어문자를 제거하고 한글을 정규화한다. 허용 확장자와 파일명 길이를 확인한다."""
     name = unicodedata.normalize("NFC", filename.replace("\\", "/").rsplit("/", 1)[-1])
     name = "".join(c for c in name if c.isprintable()).strip()
     if not name or Path(name).suffix.lower() not in {".hwpx", ".hwp"}:
@@ -305,14 +313,17 @@ def parse_upload(data: bytes, filename: str):
 
 
 def json_bytes(document):
+    """BSON 날짜 등도 표현할 수 있는 UTF-8 JSON 다운로드 바이트를 만든다."""
     return json_util.dumps(document, ensure_ascii=False, indent=2).encode("utf-8")
 
 
 def display_name(name):
+    """표시할 이름을 NFC로 정규화하고 비어 있으면 기본 문서명을 반환한다."""
     return unicodedata.normalize("NFC", str(name or "이름 없는 문서"))
 
 
 def display_time(value):
+    """저장 시각을 한국 시간 문자열로 표시한다. 시간대 없는 datetime은 UTC로 간주한다."""
     if not isinstance(value, datetime):
         return "저장 시각 없음"
     if value.tzinfo is None:
@@ -321,6 +332,7 @@ def display_time(value):
 
 
 def page_label(block):
+    """블록의 물리 페이지를 표시용 문자열로 만들고 정보가 없으면 미확인 문구를 반환한다."""
     pages = block.get("physical_page_numbers") or []
     if not pages and block.get("physical_page_number") is not None:
         pages = [block["physical_page_number"]]
@@ -353,6 +365,7 @@ def build_document_html(document, selected_page=None, image_loader=None, page_pr
     image_cache = {}
 
     def pages_of(block):
+        """블록에 연결된 양의 정수 물리 페이지를 중복 없이 정렬해 반환한다."""
         pages = block.get("physical_page_numbers") or [block.get("physical_page_number")]
         return sorted({p for p in pages if isinstance(p, int) and p > 0})
 
@@ -369,10 +382,12 @@ def build_document_html(document, selected_page=None, image_loader=None, page_pr
             printed_pages[metadata.get("physical_page_number")] = metadata["page_number"]
 
     def printed_label(physical_page):
+        """물리 페이지에 대응하는 인쇄 쪽번호를 이스케이프해 표시하고 없으면 빈 문자열을 반환한다."""
         number = printed_pages.get(physical_page)
         return f"{html.escape(str(number))}쪽" if number is not None else ""
 
     def render(block, ancestors=frozenset()):
+        """문단·표·이미지를 HTML로 재귀 렌더링한다. 참조 순환과 이미지 누락은 안내 문구로 표시한다."""
         block_id = block.get("block_id")
         if block_id in ancestors:
             return '<p class="notice">중첩 요소의 참조를 확인할 수 없습니다.</p>'
@@ -517,6 +532,7 @@ figure {margin:16px 0;text-align:center;} img {max-width:100%;height:auto;vertic
 
 
 def document_view(document):
+    """원본 미리보기 또는 저장 블록 기반 HTML을 표시하고 미리보기 실패는 경고로 알린다."""
     try:
         previews = load_page_previews(document)
     except AppError as error:
@@ -527,6 +543,7 @@ def document_view(document):
 
 
 def render_proposal_document(document):
+    """문서 정보·JSON 다운로드·원문·표·이미지 선택 화면을 구성한다."""
     if not document:
         st.info("문서를 찾을 수 없습니다. 저장 목록을 새로고침해 주세요.")
         return
@@ -610,6 +627,7 @@ def load_requirements_result(document):
 
 
 def extract_requirements_result(document, *, force=False, progress=None):
+    """문서 요구사항의 추출·저장을 호출하고 기능 오류를 화면용 AppError로 변환한다."""
     from apps.app.documents.step3_ai_requirements import RequirementsError, extract_and_save_requirements
 
     try:
@@ -621,6 +639,7 @@ def extract_requirements_result(document, *, force=False, progress=None):
 
 
 def load_criteria_result(document):
+    """현재 문서의 저장 평가기준을 조회하고 기능 오류를 화면용 AppError로 변환한다."""
     from apps.app.documents.step4_ai_criteria import CriteriaError, load_saved_criteria
 
     try:
@@ -630,6 +649,7 @@ def load_criteria_result(document):
 
 
 def extract_criteria_result(document, *, force=False, progress=None):
+    """문서 평가기준의 생성·저장을 호출하고 기능 오류를 화면용 AppError로 변환한다."""
     from apps.app.documents.step4_ai_criteria import CriteriaError, extract_and_save_criteria
 
     try:
@@ -647,6 +667,7 @@ def requirements_state_key(document):
 
 
 def requirements_match_document(result, document):
+    """요구사항 결과의 문서 ID와 source_revision이 현재 문서 상태와 일치하는지 반환한다."""
     return bool(result and document.get("active_revision")
                 and str(result.get("document_id")) == requirements_state_key(document)[0]
                 and str(result.get("source_revision")) == requirements_state_key(document)[1])
@@ -657,6 +678,7 @@ def build_requirements_html(document, result):
     from apps.app.documents.step3_ai_requirements import group_detail_items
 
     def reader_fragment(blocks):
+        """선택한 블록을 추출 문서로 렌더링하고 공통 스타일과 본문 HTML을 분리해 반환한다."""
         if not blocks:
             return "", '<p class="notice">추출된 원문이 없습니다.</p>'
         excerpt = {"filename": document.get("filename"), "blocks": blocks,
@@ -741,6 +763,7 @@ def build_criteria_html(document, result):
 
 
 def render_requirements(document):
+    """요구사항 조회·재추출·다운로드 화면을 표시하고 버전별 세션 캐시를 관리한다."""
     st.subheader("제안 요구사항")
     st.caption(display_name(document.get("filename")))
     if not document.get("active_revision"):
@@ -804,6 +827,7 @@ def render_requirements(document):
 
 
 def render_criteria(document):
+    """요구사항이 준비되면 평가기준 조회·생성·다운로드 화면과 결과 캐시를 관리한다."""
     st.subheader("정성적 지표 평가기준표")
     st.caption("제안요청서에 정성적 평가기준표가 있으면 해당 항목·배점을 우선 사용하고, 없으면 doc/ai_criteria.md를 참고해 생성합니다.")
     if not document.get("active_revision"):
@@ -873,6 +897,7 @@ def render_criteria(document):
 
 
 def render_document(document):
+    """선택 문서의 원문·요구사항·평가기준 탭을 구성하고 각 화면 함수를 호출한다."""
     if not document:
         st.info("문서를 찾을 수 없습니다. 저장 목록을 새로고침해 주세요.")
         return
@@ -887,12 +912,14 @@ def render_document(document):
 
 
 def clear_upload_feedback():
+    """새 파일 선택 시 이전 업로드의 저장 대기·성공 상태를 세션에서 제거한다."""
     st.session_state.pop("pending_save", None)
     st.session_state.pop("saved_upload", None)
 
 
 def register_view():
     # st.subheader("제안요청서 등록")
+    """HWPX 업로드·파싱·DB 저장을 처리하고 저장 실패 시 결과 다운로드와 저장 재시도를 제공한다."""
     with st.container(border=True):
         uploaded = st.file_uploader("파일 등록", type=["hwpx"], key="proposal_upload",
                                     on_change=clear_upload_feedback,
@@ -948,7 +975,7 @@ def register_view():
 
 
 def history_view():
-    """사이드바에서 문서를 검색·선택하고, 최초 접속 시 최신 문서를 선택한다."""
+    """사이드바에서 최근 문서 목록·열기·삭제를 제공하고 최초 접속 시 최신 문서를 선택한다."""
     st.subheader("저장 이력")
     if st.session_state.get("deleted_document_name"):
         st.success(f"문서를 삭제했습니다: {st.session_state.pop('deleted_document_name')}")
@@ -1003,6 +1030,7 @@ def history_view():
     return True
 
 def main():
+    """Streamlit 페이지·사이드바를 구성하고 선택된 문서 또는 초기·연결 오류 안내를 표시한다."""
     st.set_page_config(page_title="제안요청서 보관함", page_icon="📄", layout="wide")
     with st.sidebar:
         st.markdown("### 제안요청서 보관함")

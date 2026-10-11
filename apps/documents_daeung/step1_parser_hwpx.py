@@ -94,6 +94,7 @@ def parse_image(
     )
 
     def size_of(tag: str) -> dict[str, int] | None:
+        """그림 크기 태그를 정수 너비·높이로 읽고 없거나 변환할 수 없으면 None을 반환한다."""
         node = pic.find(f"{{{HP}}}{tag}")
         if node is None:
             return None
@@ -270,6 +271,7 @@ def page_number_metadata_from_render_tree(page_tree: dict[str, Any]) -> dict[str
     """머리말·바닥글에 실제 표시되는 쪽번호와 출처를 읽는다."""
 
     def visit(node: dict[str, Any], node_type: str):
+        """지정한 유형의 렌더 노드를 순회하며 해당 노드 아래는 중복 탐색하지 않는다."""
         if node.get("type") == node_type:
             yield node
             return
@@ -293,6 +295,7 @@ def page_number_from_render_tree(page_tree: dict[str, Any]) -> int | None:
 
 
 def section_files_in_order(names) -> list[str]:
+    """ZIP 내부의 구역 XML 경로만 골라 section 번호의 숫자 순서로 반환한다."""
     return sorted(
         (name for name in names if re.fullmatch(r"Contents/section\d+\.xml", name)),
         key=lambda name: int(re.search(r"section(\d+)", name).group(1)),
@@ -353,6 +356,7 @@ def read_rendered_pagination(
             })
 
             def collect(node):
+                """머리말·꼬리말을 제외한 문단 인덱스를 현재 물리 페이지에 연결한다."""
                 if node.get("type") in ("Header", "Footer", "PageBg"):
                     return
                 paragraph_index = node.get("pi")
@@ -527,6 +531,7 @@ def parse_hwp(path: str | Path) -> dict[str, Any]:
             columns: list[dict[str, Any]] = []
 
             def collect_columns(node: dict[str, Any]) -> None:
+                """렌더 트리에서 본문 Column 노드를 찾아 바깥 columns 목록에 추가한다."""
                 if node.get("type") == "Column":
                     columns.append(node)
                     return
@@ -543,6 +548,7 @@ def parse_hwp(path: str | Path) -> dict[str, Any]:
                 paragraph_images: list[dict[str, Any]] = []
 
                 def append_image() -> None:
+                    """HWP 이미지의 위치와 미추출 안내를 블록·이미지 목록에 추가한다. 바이너리는 추출하지 않는다."""
                     nonlocal block_index, image_index
                     image_index += 1
                     image_id = f"img_{image_index:04d}"
@@ -576,6 +582,7 @@ def parse_hwp(path: str | Path) -> dict[str, Any]:
                     document["images"].append(image)
 
                 def flush_paragraph() -> None:
+                    """누적한 HWP 텍스트와 이미지 위치를 문서에 추가하고 문단 버퍼를 비운다."""
                     nonlocal block_index, paragraph_index
                     text = "".join(paragraph_parts).strip()
                     if text:
@@ -662,6 +669,7 @@ def parse_hwpx(
     assets = {}
 
     def warn(code, **details):
+        """오류 코드와 부가 정보를 문서의 warnings 목록에 누적한다."""
         document["warnings"].append({"code": code, **details})
 
     with zipfile.ZipFile(path) as archive:
@@ -704,6 +712,7 @@ def parse_hwpx(
             locations = {}
 
             def locate(node, location):
+                """XML 노드별로 같은 이름의 형제 순번을 포함한 원본 경로를 기록한다."""
                 locations[node] = location
                 siblings = Counter()
                 for child in node:
@@ -714,6 +723,7 @@ def parse_hwpx(
             locate(sec, "/sec[1]")
 
             def base(kind, node, source_index, parent_block, parent_cell):
+                """유형별 블록 ID·문서 순서·부모 관계·XML 출처를 가진 공통 레코드를 만든다."""
                 counts[kind] += 1
                 prefix = {"paragraph": "p", "table": "tbl", "image": "img"}[kind]
                 return {
@@ -729,11 +739,13 @@ def parse_hwpx(
                 }
 
             def parse_paragraph(p, source_index, parent_block=None, parent_cell=None):
+                """문단과 셀 내부의 표·그림을 재귀 추출해 문서에 추가하고 생성된 블록 ID를 반환한다."""
                 created = []
                 parts = []
                 runs = []
 
                 def flush():
+                    """누적한 텍스트와 문자 스타일을 문단 블록으로 등록한 뒤 버퍼를 비운다."""
                     value = "".join(parts).strip()
                     if value:
                         block = base("paragraph", p, source_index, parent_block, parent_cell)
@@ -746,6 +758,7 @@ def parse_hwpx(
                     runs.clear()
 
                 def visit(node, char_style=None):
+                    """XML 내용 순서대로 텍스트·표·그림을 처리하고 이미지 파일을 출력 폴더에 저장한다."""
                     if node.tag == f"{{{HP}}}run":
                         char_style = node.get("charPrIDRef")
                     if node.tag in {f"{{{HP}}}t", f"{{{HP}}}tab", f"{{{HP}}}lineBreak"}:

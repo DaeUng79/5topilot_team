@@ -65,15 +65,18 @@ SELECTION_SCHEMA = {
 
 
 def _json(value):
+    """한글을 유지하고 키를 정렬한 공백 없는 JSON 문자열을 반환한다."""
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
 def source_fingerprint(document):
-    # blocks 컬렉션의 운송용 필드는 원문에 포함하지 않는다.
+    # 이 함수는 입력 blocks를 그대로 해시한다. DB 운송용 필드는 조회 단계에서 제외한다.
+    """전달된 blocks 전체의 JSON 해시를 반환한다. 호출 전에 운송용 필드를 제거해야 동일성을 유지할 수 있다."""
     return hashlib.sha256(_json(document["blocks"]).encode("utf-8")).hexdigest()
 
 
 def _identity(document):
+    """문서 ID와 활성 revision의 존재·일치를 검사하고 두 값을 반환한다."""
     document_id = document.get("_id") or document.get("document_id")
     revision = document.get("active_revision")
     if not document_id or not revision:
@@ -84,11 +87,13 @@ def _identity(document):
 
 
 def _result_id(document, model=DEFAULT_MODEL):
+    """문서 ID·활성 revision·추출기 버전·모델을 조합해 재사용 가능한 결과 ID를 만든다."""
     document_id, revision = _identity(document)
     return hashlib.sha256(_json([str(document_id), revision, EXTRACTOR_VERSION, model]).encode()).hexdigest()
 
 
 def _lookup(document):
+    """비어 있거나 중복된 블록 ID를 거절하고 ID로 원문 블록을 찾는 사전을 만든다."""
     blocks = document.get("blocks")
     if not isinstance(blocks, list) or not blocks:
         raise RequirementsError("파싱된 본문이 없습니다. 원본 파일을 다시 등록해 주세요.")
@@ -161,6 +166,7 @@ def make_batches(units, max_chars=MAX_BATCH_CHARS):
 
 
 def get_client(env_path=ROOT / ".env"):
+    """환경변수 우선으로 API 키를 읽어 제한시간·재시도가 설정된 클라이언트를 만든다. 호출자가 닫아야 한다."""
     from dotenv import dotenv_values
     from openai import OpenAI
 
@@ -174,6 +180,7 @@ def get_client(env_path=ROOT / ".env"):
 
 
 def _select(client, batch, model, index, total):
+    """한 배치의 요구사항 블록 ID를 모델로 선택·검증한다. 중복 분류는 한 번 교정 요청하며 사용량도 반환한다."""
     try:
         messages = [{"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": _json({"batch": index, "total_batches": total,
@@ -234,6 +241,7 @@ def _select(client, batch, model, index, total):
 
 
 def _section(document, selected):
+    """선택 블록과 모든 하위 요소를 원문 순서대로 깊은 복사한다. 없는 참조는 오류로 처리한다."""
     lookup = _lookup(document)
     wanted = set(selected)
     if not wanted <= lookup.keys():
@@ -433,6 +441,7 @@ def group_detail_items(document, details):
     items = []
 
     def add_item(root_id, item_blocks, label, codes=()):
+        """상세 항목의 블록과 원문에서 물리 페이지를 모아 표시용 items 목록에 추가한다."""
         page_numbers = set()
         for block in item_blocks:
             source = source_lookup.get(block["block_id"], {})
@@ -473,6 +482,7 @@ def group_detail_items(document, details):
                 grouped_start_row = None
 
                 def flush_group():
+                    """현재 요구사항의 표 행·머리글·하위 블록을 묶고 병합 범위를 보정한 표시용 항목을 추가한다."""
                     if not grouped_rows or not grouped_codes:
                         return
                     table_block = copy.deepcopy(root)
@@ -566,7 +576,11 @@ def validate_result(document, result):
 
 def extract_requirements(document, *, client=None, env_path=ROOT / ".env",
                          model=DEFAULT_MODEL, progress=None):
-    """요구사항 목록의 상세 항목을 모두 찾으면 이후 배치 스캔을 중단한다."""
+    """모델이 고른 블록을 원문에서 복사하고 출처 검증 결과·사용량을 반환한다.
+
+    발견한 목록 번호가 상세에 모두 있으면 뒤 배치를 생략하는 휴리스틱을 쓴다.
+    문서 전체 검사가 보장되는 것은 아니며, DB 저장은 호출자가 따로 수행한다.
+    """
     document_id, revision = _identity(document)
     batches = make_batches(compact_blocks(document))
     own_client = client is None
@@ -629,6 +643,7 @@ def extract_requirements(document, *, client=None, env_path=ROOT / ".env",
 
 @contextmanager
 def requirements_database(env_path=ROOT / ".env", database=None):
+    """요구사항용 DB 연결을 열어 제공하고 종료 시 닫는다. 접속 상세를 숨긴 오류로 변환한다."""
     from pymongo import MongoClient
 
     try:
@@ -643,6 +658,7 @@ def requirements_database(env_path=ROOT / ".env", database=None):
 
 
 def read_source(db, document_id, collection_name="Request"):
+    """문서와 활성 버전의 본문을 조회해 식별자를 검증한다. 분리된 블록에서는 DB 운송 필드를 제외한다."""
     document = db[collection_name].find_one({"_id": document_id})
     if not document:
         raise RequirementsError("원본 문서를 찾지 못했습니다. 등록 목록을 새로고침해 주세요.")
@@ -657,6 +673,7 @@ def read_source(db, document_id, collection_name="Request"):
 
 def load_saved_requirements(document, *, env_path=ROOT / ".env", database=None,
                             collection_name="Request", model=DEFAULT_MODEL):
+    """현재 문서 버전과 원문 동일성을 확인해 저장된 결과를 반환한다. 모델을 호출하지 않는다."""
     if not document.get("active_revision"):
         return None
     with requirements_database(env_path, database) as db:
@@ -670,6 +687,7 @@ def load_saved_requirements(document, *, env_path=ROOT / ".env", database=None,
 
 
 def save_requirements(db, document, result, collection_name="Request"):
+    """원문·버전·BSON 크기를 검증해 결과를 upsert하고 저장 후 버전을 재확인한다. 다중 문서 트랜잭션은 아니다."""
     from bson import BSON
 
     validate_result(document, result)
@@ -688,6 +706,7 @@ def save_requirements(db, document, result, collection_name="Request"):
 
 def extract_and_save_requirements(document_id, *, env_path=ROOT / ".env", database=None,
                                   collection_name="Request", force=False, progress=None):
+    """검증된 캐시를 재사용하거나 요구사항을 추출해 저장한다. force=True이면 모델을 다시 호출한다."""
     with requirements_database(env_path, database) as db:
         document = read_source(db, document_id, collection_name)
         if not force:
@@ -707,6 +726,7 @@ def extract_and_save_requirements(document_id, *, env_path=ROOT / ".env", databa
 
 
 def main():
+    """CLI에서 문서 ID 또는 유일한 파일명으로 대상을 고르고 추출·선택적 DB 저장·JSON 출력을 수행한다."""
     parser = argparse.ArgumentParser(description=__doc__)
     selector = parser.add_mutually_exclusive_group(required=True)
     selector.add_argument("--document-id")

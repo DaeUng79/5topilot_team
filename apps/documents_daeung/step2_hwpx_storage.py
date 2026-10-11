@@ -20,6 +20,7 @@ class MongoStorageError(RuntimeError):
 
 
 def mongo_settings(env_path: Path, database: str | None = None) -> tuple[str, str | None]:
+    """환경변수와 지정한 .env에서 MongoDB URI·DB명을 읽는다. 환경변수를 우선하며 옛 설정 표현식은 실행하지 않는다."""
     from dotenv import dotenv_values
 
     # MongoDB 암호의 ${...}를 dotenv 변수로 확장하지 않는다.
@@ -60,7 +61,11 @@ def split_text(text: str, limit: int = 2000):
 
 
 def make_chunks(document: dict[str, Any]) -> list[dict[str, Any]]:
-    """셀 좌표·병합·출처를 유지한 검색 텍스트. 임베딩/OCR API는 호출하지 않는다."""
+    """문단·표 행을 검색 청크로 만들고 셀·블록·페이지 참조를 붙인다.
+
+    표의 char_start/char_end는 좌표 설명을 붙인 행 텍스트의 범위다.
+    원본 XML이나 셀 문자열의 오프셋이 아니며, 임베딩·OCR은 수행하지 않는다.
+    """
     chunks = []
     for block in document["blocks"]:
         kind = block["type"]
@@ -100,7 +105,12 @@ def make_chunks(document: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def prepare_records(document: dict[str, Any]) -> dict[str, Any]:
-    """JSON의 호환용 tables/images 복제를 제거하고 BSON 크기를 선검증한다."""
+    """파싱 결과를 메타데이터·블록·자산·청크로 구성하고 BSON 크기를 검사한다.
+
+    입력 JSON 전체로 revision을 계산하므로 로컬 경로 변경도 해시에 반영된다.
+    호환용 tables/images는 제외하지만 메타데이터의 blocks/assets 복제는 유지한다.
+    입력은 수정하지 않으며 이 함수에서는 DB에 접근하지 않는다.
+    """
     from bson import BSON
 
     document_id = document["document_id"]
@@ -140,7 +150,11 @@ def prepare_records(document: dict[str, Any]) -> dict[str, Any]:
 def save_to_mongodb(document: dict[str, Any], source_path: Path, *,
                     env_path: Path, database: str | None = None,
                     store_source: bool = False, collection_name: str = "Request") -> dict[str, Any]:
-    """격리된 hwpx_* 컬렉션에 멱등 저장 후 마지막에 활성 revision을 전환한다."""
+    """파일 해시를 검증하고 버전별 레코드를 저장한 뒤 활성 revision을 바꾼다.
+
+    원본 파일은 store_source=True일 때만 GridFS에 저장한다. 중간 실패는
+    MongoStorageError로 알리며, 전체 작업은 다중 문서 트랜잭션이 아니다.
+    """
     from gridfs import GridFS
     from gridfs.errors import FileExists
     from pymongo import MongoClient, ReplaceOne

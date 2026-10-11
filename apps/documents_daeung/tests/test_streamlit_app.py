@@ -30,18 +30,22 @@ SAVED = {'document_id': 'doc1', 'counts': DOC['counts']}
 
 
 def app_test():
+    """Streamlit 진입점을 AppTest로 구성하고 실행 제한시간을 설정한다."""
     return AppTest.from_string('from streamlit_main import main\nmain()', default_timeout=45)
 
 
 class StreamlitTests(unittest.TestCase):
     def setUp(self):
+        """화면 조회 함수를 대역으로 교체하고 각 테스트 종료 시 원상 복구한다."""
         for name, value in (("load_history", ([], 0, 1)), ("load_document", DOC), ("load_image", b"")):
             patcher = patch.object(app, name, return_value=value)
             patcher.start()
             self.addCleanup(patcher.stop)
 
     def test_parser_worker_uses_project_environment_without_db_write(self):
+        """파서 작업자의 Python 경로·DB 저장 생략 옵션·제한시간·출력 페이지 정보를 검증한다."""
         def run(command, **kwargs):
+            """파서 작업자를 대신해 명령 옵션을 검증하고 합성 페이지 JSON을 출력한다."""
             self.assertEqual(command[0], str(app.ROOT / '.venv/bin/python'))
             self.assertIn('--no-mongo', command)
             self.assertIn('--strict-pagination', command)
@@ -57,6 +61,7 @@ class StreamlitTests(unittest.TestCase):
         self.assertEqual(result['pages'][1]['page_number'], 1)
 
     def test_parser_worker_failure_and_timeout(self):
+        """작업자 실패·시간 초과를 화면 오류로 변환하고 내부 메시지를 숨기는지 검증한다."""
         for failure in (subprocess.CompletedProcess([], 1, stderr=b'private details'),
                         subprocess.TimeoutExpired('parser', 300)):
             kwargs = ({'side_effect': failure} if isinstance(failure, Exception)
@@ -68,6 +73,7 @@ class StreamlitTests(unittest.TestCase):
             self.assertNotIn('private details', str(caught.exception))
 
     def test_latest_document_opens_in_main(self):
+        """최신 문서의 초기 열기와 선택 변경·새 문서 추가 후 기존 선택 유지 동작을 검증한다."""
         older = dict(DOC, _id="older")
         with patch.object(app, "load_history", return_value=([DOC, older], 2, 1)) as history, \
              patch.object(app, "load_document", return_value=DOC) as load:
@@ -92,6 +98,7 @@ class StreamlitTests(unittest.TestCase):
             load.assert_called_with("older")
 
     def test_delete_confirmation_and_empty_state(self):
+        """삭제 확인·취소 흐름을 거치고 삭제 뒤 빈 목록 상태로 전환되는지 검증한다."""
         with patch.object(app, "load_history", return_value=([DOC], 1, 1)) as history, \
              patch.object(app, "delete_document") as delete:
             at = app_test().run()
@@ -108,6 +115,7 @@ class StreamlitTests(unittest.TestCase):
             self.assertTrue(any(x.value == "제안요청서를 등록해주세요" for x in at.main.info))
 
     def test_delete_preserves_shared_files(self):
+        """다른 문서에서 참조하는 GridFS 파일은 문서 삭제 때 지우지 않는지 검증한다."""
         db = MagicMock()
         db[app.COLLECTION].find_one.side_effect = [
             {"assets": [{"gridfs_id": "shared"}, {"gridfs_id": "unique"}]},
@@ -122,12 +130,14 @@ class StreamlitTests(unittest.TestCase):
         db[app.COLLECTION].delete_one.assert_called_once_with({"_id": "doc1"})
 
     def test_initial_view_requires_file(self):
+        """초기 화면에서 파일이 없으면 등록 버튼을 비활성화하는지 검증한다."""
         at = app_test().run()
         self.assertFalse(at.exception)
         self.assertTrue(at.button(key='register').disabled)
         self.assertTrue(any(x.value == '제안요청서를 등록해주세요' for x in at.main.info))
 
     def test_upload_save_and_open(self):
+        """업로드·파싱·저장·문서 열기·표 표시 흐름과 중복 저장 방지를 검증한다."""
         with patch.object(app, 'parse_upload', return_value=(DOC, Path('source.hwpx'))) as parse, \
              patch.object(app, 'save_to_mongodb', return_value=SAVED) as save, \
              patch.object(app, 'load_history', return_value=([DOC], 1, 1)), \
@@ -152,6 +162,7 @@ class StreamlitTests(unittest.TestCase):
             save.assert_called_once()
 
     def test_save_failure_keeps_result_and_retry(self):
+        """DB 저장 실패 시 결과를 보존하고 재시도·새 파일 선택 때 상태를 갱신하는지 검증한다."""
         with patch.object(app, 'parse_upload', return_value=(DOC, Path('source.hwpx'))), \
              patch.object(app, 'save_to_mongodb', side_effect=[MongoStorageError('연결 실패'), SAVED]) as save:
             at = app_test().run()
@@ -168,6 +179,7 @@ class StreamlitTests(unittest.TestCase):
             self.assertNotIn('saved_upload', at.session_state)
 
     def test_history_selection_table_and_image(self):
+        """이력에서 문서를 선택해 표·이미지를 확인하는 화면 동작을 검증한다."""
         image = io.BytesIO()
         Image.new('RGB', (4, 4), 'blue').save(image, format='PNG')
         with patch.object(app, 'load_history', return_value=([DOC], 1, 1)) as history, \
@@ -187,6 +199,7 @@ class StreamlitTests(unittest.TestCase):
             self.assertFalse(at.exception)
 
     def test_empty_and_disconnected_history(self):
+        """빈 이력·연결 실패·연결 회복에 따라 안내 상태가 전환되는지 검증한다."""
         with patch.object(app, 'load_history', return_value=([], 0, 1)):
             at = app_test().run()
             self.assertTrue(any(x.value == '제안요청서를 등록해주세요' for x in at.main.info))
@@ -205,6 +218,7 @@ class StreamlitTests(unittest.TestCase):
             self.assertFalse(at.exception)
 
     def test_untrusted_names_text_and_search(self):
+        """파일명 정리·파일 형식 검사·HTML 이스케이프·검색어 처리·한국 시간 표시를 검증한다."""
         self.assertEqual(app.clean_filename('../../test.hwpx'), 'test.hwpx')
         self.assertEqual(app.clean_filename('C:\\folder\\test.hwp'), 'test.hwp')
         with self.assertRaises(app.AppError):

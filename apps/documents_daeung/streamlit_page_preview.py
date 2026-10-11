@@ -29,6 +29,7 @@ def remove_rendered_page_label(svg: str, printed_number: int | None) -> str:
 
 
 def build_page_previews(source: Path) -> dict:
+    """원본을 렌더러로 열어 해시·페이지 정보·쪽번호를 제거한 SVG를 반환하고 렌더러를 닫는다."""
     from pyhwpxlib.rhwp_bridge import RhwpEngine
 
     spec = importlib.util.spec_from_file_location('preview_parser', source_parser_path())
@@ -54,6 +55,7 @@ def build_page_previews(source: Path) -> dict:
 
 
 def source_parser_path():
+    """현재 작업자와 같은 폴더에 있는 파서 소스의 절대 경로를 반환한다."""
     return Path(__file__).resolve().with_name('step1_parser_hwpx.py')
 
 
