@@ -1,75 +1,90 @@
-import { useEffect, useState } from 'react';
-import { api, unwrap, useMock, type Project } from './api/client';
-import { CommitteePage } from './features/committee/CommitteePage';
-import { EvaluationPage } from './features/evaluations/EvaluationPage';
+import { lazy, Suspense, type ReactNode } from 'react';
+import { createBrowserRouter, Link, Navigate, Outlet, RouterProvider, useLocation } from 'react-router';
+import type { Role } from './api/contract';
+import { useSession } from './lib/session';
+import { AdminLayout } from './layouts/AdminLayout';
+import { EvalLayout } from './layouts/EvalLayout';
+import { LoginPage } from './pages/Login';
+import { Dashboard } from './pages/admin/Dashboard';
+import { ProjectsPage } from './pages/admin/Projects';
+import { ProjectDetail } from './pages/admin/ProjectDetail';
+import { EvaluatorsPage } from './pages/admin/Evaluators';
+import { AssignedPage } from './pages/eval/Assigned';
+import { EvalProject } from './pages/eval/EvalProject';
+import { EvalHome } from './pages/eval/EvalHome';
+import { DocsPage } from './pages/eval/Docs';
+import { EvaluatePage } from './pages/eval/Evaluate';
+import { SubmitPage } from './pages/eval/Submit';
+import { ChairPage } from './pages/eval/Chair';
+import { Forbidden } from './ui/states';
 
-type Page = 'home' | 'committee' | 'evaluations';
+// 시연 도구는 VITE_USE_MOCK=1 빌드에서만 포함됩니다.
+const DemoPanel = import.meta.env.VITE_USE_MOCK === '1' ? lazy(() => import('./demo/DemoPanel')) : null;
 
-export function App() {
-  const [page, setPage] = useState<Page>('home');
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [projectId, setProjectId] = useState('');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const project = projects.find(p => p.id === projectId);
-
-  async function load() {
-    setError('');
-    try {
-      const data = unwrap(await api.GET('/api/v1/projects'));
-      setProjects(data);
-      setProjectId(old => data.some(p => p.id === old) ? old : data[0]?.id ?? '');
-    } catch (e) { setError(String(e)); }
-  }
-  useEffect(() => { void load(); }, []);
-
-  async function createProject(form: HTMLFormElement) {
-    setBusy(true); setError('');
-    try {
-      const data = new FormData(form);
-      const created = unwrap(await api.POST('/api/v1/projects', {
-        body: { name: String(data.get('name')), department: String(data.get('department')) },
-      }));
-      await load(); setProjectId(created.id); form.reset();
-    } catch (e) { setError(String(e)); } finally { setBusy(false); }
-  }
-
+function Root() {
   return <>
-    <header><span className="brand-mark">심</span><strong>심사임당</strong>
-      <span className="brand-description">공공 제안평가 지원</span><span className="badge">{useMock ? 'mock 데이터 모드' : '로컬 개발 모드'}</span>
-    </header>
-    <aside className="sidebar"><small>업무 메뉴</small>
-      {([['home', '사업 관리'], ['committee', '평가위원 등록·추첨'], ['evaluations', '평가·제출·취합']] as const)
-        .map(([key, title]) => <button key={key} className={page === key ? 'active' : ''}
-          onClick={() => setPage(key)}>{title}</button>)}
-      <a href="http://127.0.0.1:4174" target="_blank" rel="noreferrer">원본 디자인 데모 ↗</a>
-      <div className="principle">판단은 사람이 합니다<p>AI는 문서의 근거를 찾고 정리하는 역할을 맡습니다.</p></div>
-    </aside>
-    <main>
-      <div className="toolbar"><label>진행 사업 <select value={projectId} onChange={e => setProjectId(e.target.value)}>
-        {!projects.length && <option value="">사업 없음</option>}
-        {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-      </select></label><button onClick={() => void load()}>새로고침</button></div>
-      <p className="dev-note">테스트 데이터로 연결을 확인하는 개발 화면입니다. 계정 전환은 실제 인증이 아니며, 제출 확인은 전자서명이 아닙니다.</p>
-      {error && <div className="error" role="alert">{error}<p>API 서버(127.0.0.1:8000) 실행을 확인하거나, 서버 없이 확인하려면 VITE_USE_MOCK=1로 실행하세요.</p></div>}
-      {page === 'home' && <>
-        <h1>사업 관리</h1><p className="muted">평가 준비부터 제출·취합까지, 한 곳에서 진행하세요.</p>
-        <div className="steps">01 사업 준비 <span>→</span> 02 위원 추첨 <span>→</span> 03 평가·제출 <span>→</span> 04 기술점수 취합</div>
-        <section className="panel"><h2>새 사업 등록</h2><p className="muted">초기 통합 예제는 기술항목 7개, 제안사 3개를 사용합니다.</p>
-          <form className="form-row" onSubmit={e => { e.preventDefault(); void createProject(e.currentTarget); }}>
-            <label>사업명<input name="name" required maxLength={200} placeholder="예: 정보시스템 구축 사업" /></label>
-            <label>담당 부서<input name="department" required maxLength={100} placeholder="예: 정보화사업팀" /></label>
-            <button className="primary" disabled={busy}>사업 등록</button>
-          </form>
-        </section>
-        {project && <section className="panel"><h2>{project.name}</h2><p>{project.department} · 제안사 {project.vendor_ids.length}개 · 기술평가 80점</p>
-          <div className="actions"><button className="primary" onClick={() => setPage('committee')}>위원 등록·추첨으로 이동 →</button>
-            <button onClick={() => setPage('evaluations')}>평가 진행 보기</button></div>
-        </section>}
-      </>}
-      {page !== 'home' && !project && <section className="panel">사업을 먼저 등록하세요.</section>}
-      {page === 'committee' && project && <CommitteePage key={project.id} project={project} />}
-      {page === 'evaluations' && project && <EvaluationPage key={project.id} project={project} />}
-    </main>
+    {import.meta.env.VITE_USE_MOCK === '1' && <div className="mock-banner" role="note">MOCK · 실제 서버 아님 — 합성 데이터로 화면을 확인하는 모드입니다</div>}
+    <Outlet />
+    {DemoPanel && <Suspense fallback={null}><DemoPanel /></Suspense>}
   </>;
 }
+
+const homeOf = (role: Role) => (role === 'admin' ? '/admin' : '/eval');
+
+function RequireRole({ role, children }: { role: Role; children: ReactNode }) {
+  const { session, loggedOut } = useSession();
+  const location = useLocation();
+  // 직접 로그아웃했으면 돌아올 위치(next)를 남기지 않습니다.
+  if (!session && loggedOut) return <Navigate to="/login" replace />;
+  if (!session) return <Navigate to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} replace />;
+  if (session.role !== role) return <main className="center-page"><Forbidden
+    detail={role === 'admin' ? '관리자 화면입니다. 평가위원 계정으로는 볼 수 없습니다.' : '평가위원 화면입니다. 관리자 계정으로는 볼 수 없습니다.'}
+    action={<Link className="btn" to={homeOf(session.role)}>내 화면으로 이동</Link>} /></main>;
+  return children;
+}
+
+function Home() {
+  const { session } = useSession();
+  return <Navigate to={session ? homeOf(session.role) : '/login'} replace />;
+}
+
+function NotFound() {
+  return <main className="center-page"><div className="state"><strong>페이지를 찾을 수 없어요</strong>
+    <p className="muted">주소가 바뀌었거나 없는 화면입니다.</p><Link className="btn" to="/">처음으로</Link></div></main>;
+}
+
+const router = createBrowserRouter([{
+  element: <Root />,
+  children: [
+    { path: '/', element: <Home /> },
+    { path: '/login', element: <LoginPage /> },
+    {
+      path: '/admin', element: <RequireRole role="admin"><AdminLayout /></RequireRole>,
+      children: [
+        { index: true, element: <Dashboard /> },
+        { path: 'projects', element: <ProjectsPage /> },
+        { path: 'projects/:projectId', element: <ProjectDetail /> },
+        { path: 'evaluators', element: <EvaluatorsPage /> },
+      ],
+    },
+    {
+      path: '/eval', element: <RequireRole role="evaluator"><EvalLayout /></RequireRole>,
+      children: [
+        { index: true, element: <AssignedPage /> },
+        {
+          path: 'projects/:projectId', element: <EvalProject />,
+          children: [
+            { index: true, element: <EvalHome /> },
+            { path: 'docs', element: <DocsPage /> },
+            { path: 'evaluate', element: <EvaluatePage /> },
+            { path: 'submit', element: <SubmitPage /> },
+            { path: 'chair', element: <ChairPage /> },
+          ],
+        },
+      ],
+    },
+    { path: '*', element: <NotFound /> },
+  ],
+}]);
+
+export function App() { return <RouterProvider router={router} />; }
