@@ -6,8 +6,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import apps.app.modules.documents.streamlit_main as app
-from apps.app.modules.documents.streamlit_page_preview import remove_rendered_page_label
+import apps.app.documents.streamlit_main as app
+from apps.app.documents.streamlit_page_preview import remove_rendered_page_label
 
 
 class PagePreviewTests(unittest.TestCase):

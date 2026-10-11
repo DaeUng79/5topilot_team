@@ -3,7 +3,7 @@ import base64
 import io
 import unittest
 from PIL import Image
-from apps.app.modules.documents.streamlit_main import build_document_html, recover_page_metadata
+from apps.app.documents.streamlit_main import build_document_html, recover_page_metadata
 
 
 class DocumentViewTests(unittest.TestCase):

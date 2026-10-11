@@ -22,7 +22,7 @@ from bson import json_util
 from gridfs import GridFS
 from pymongo import MongoClient
 
-from apps.app.modules.documents.step2_hwpx_storage import MongoStorageError, mongo_settings, save_to_mongodb
+from apps.app.documents.step2_hwpx_storage import MongoStorageError, mongo_settings, save_to_mongodb
     
 ROOT = Path(__file__).resolve().parent
 DATABASE = "Request_for_Proposal"
@@ -600,7 +600,7 @@ def render_proposal_document(document):
 
 def load_requirements_result(document):
     """저장 결과 조회는 API를 호출하지 않는다. 화면에서 쉽게 대체 가능한 경계."""
-    from apps.app.modules.documents.step3_ai_requirements import RequirementsError, load_saved_requirements
+    from apps.app.documents.step3_ai_requirements import RequirementsError, load_saved_requirements
 
     try:
         return load_saved_requirements(document, env_path=ROOT / ".env",
@@ -610,7 +610,7 @@ def load_requirements_result(document):
 
 
 def extract_requirements_result(document, *, force=False, progress=None):
-    from apps.app.modules.documents.step3_ai_requirements import RequirementsError, extract_and_save_requirements
+    from apps.app.documents.step3_ai_requirements import RequirementsError, extract_and_save_requirements
 
     try:
         return extract_and_save_requirements(
@@ -621,7 +621,7 @@ def extract_requirements_result(document, *, force=False, progress=None):
 
 
 def load_criteria_result(document):
-    from apps.app.modules.documents.step4_ai_criteria import CriteriaError, load_saved_criteria
+    from apps.app.documents.step4_ai_criteria import CriteriaError, load_saved_criteria
 
     try:
         return load_saved_criteria(document, env_path=ROOT / ".env", database=DATABASE)
@@ -630,7 +630,7 @@ def load_criteria_result(document):
 
 
 def extract_criteria_result(document, *, force=False, progress=None):
-    from apps.app.modules.documents.step4_ai_criteria import CriteriaError, extract_and_save_criteria
+    from apps.app.documents.step4_ai_criteria import CriteriaError, extract_and_save_criteria
 
     try:
         return extract_and_save_criteria(
@@ -654,7 +654,7 @@ def requirements_match_document(result, document):
 
 def build_requirements_html(document, result):
     """총괄표를 먼저 보여주고 상세 원문은 요구사항별 페이지 정보와 함께 접어 둔다."""
-    from apps.app.modules.documents.step3_ai_requirements import group_detail_items
+    from apps.app.documents.step3_ai_requirements import group_detail_items
 
     def reader_fragment(blocks):
         if not blocks:

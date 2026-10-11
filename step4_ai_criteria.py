@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-import apps.app.modules.documents.step3_ai_requirements as requirements
+import apps.app.documents.step3_ai_requirements as requirements
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_MODEL = requirements.DEFAULT_MODEL

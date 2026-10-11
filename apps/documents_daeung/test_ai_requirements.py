@@ -12,7 +12,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import apps.app.modules.documents.step3_ai_requirements as requirements
+import apps.app.documents.step3_ai_requirements as requirements
 
 
 def selection(summary=(), details=(), review=False):

@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from apps.app.modules.documents.step2_hwpx_storage import MongoStorageError, prepare_records, save_to_mongodb
+from apps.app.documents.step2_hwpx_storage import MongoStorageError, prepare_records, save_to_mongodb
 
 
 class Collection:
