@@ -2,7 +2,7 @@
   "id": "fx-confirmation-1",
   "project_id": "fx-project-a",
   "status": "confirmed",
-  "policy_version": "technical_mean_v1",
+  "policy_version": "trimmed_mean_v1",
   "criteria_version": 1,
   "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
   "expected": 3,

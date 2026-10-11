@@ -12,12 +12,13 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 
 from app.modules.evaluations import router as evaluations_router
-from app.modules.evaluations.service import technical_averages, validate_scores
+from app.modules.evaluations.service import validate_scores
 from app.modules.evaluator_access import router as access_router
 from app.modules.projects import criteria as criteria_module
 from app.modules.projects import router as projects_router
 from app.modules.projects.models import Project
 from app.modules.results import router as results_router
+from app.modules.results.policies import CURRENT_POLICY, POLICIES
 
 ROOT = Path(__file__).resolve().parents[3]
 EXAMPLES = ROOT / "contracts" / "examples"
@@ -137,23 +138,20 @@ def test_fixture_sheets_follow_current_validation_rules():
         assert exc.value.status_code == 422, bad["reason"]
 
 
-APPROVED_CASES = [
-    c for c in fixture("expected_results.json")["cases"] if c["policy"] == "technical_mean_v1"
-]
+CASES = fixture("expected_results.json")["cases"]
 
 
-@pytest.mark.parametrize("case", APPROVED_CASES, ids=lambda c: c["case"])
-def test_expected_results_match_current_calculation(case):
+@pytest.mark.parametrize("case", CASES, ids=lambda c: f"{c['policy']}-{c['case']}")
+def test_expected_results_match_registered_policy(case):
+    policy = POLICIES[case["policy"]]
+    assert case["approved"] == policy.approved
     project = project_a()
     by_id = {s["id"]: s for s in fixture("sheets.json")["complete"]}
     sheets = [SheetStub(by_id[sheet_id]["scores"]) for sheet_id in case["sheet_ids"]]
-    got = {r["vendor_id"]: r["technical_average"] for r in technical_averages(project, sheets)}
+    got = {r["vendor_id"]: r["technical_average"] for r in policy.aggregate(project, sheets)}
     assert got == case["expected"]
 
 
-def test_unapproved_policies_are_marked_and_not_the_current_one():
-    cases = fixture("expected_results.json")["cases"]
-    assert APPROVED_CASES, "현행 정책 사례가 하나 이상 필요"
-    for case in cases:
-        if case["policy"] != "technical_mean_v1":
-            assert case["approved"] is False
+def test_current_policy_has_fixture_cases():
+    assert CURRENT_POLICY == "trimmed_mean_v1"
+    assert [c for c in CASES if c["policy"] == CURRENT_POLICY], "현행 정책 사례가 하나 이상 필요"

@@ -8,7 +8,7 @@
     "id": "fx-confirmation-1",
     "project_id": "fx-project-a",
     "status": "confirmed",
-    "policy_version": "technical_mean_v1",
+    "policy_version": "trimmed_mean_v1",
     "criteria_version": 1,
     "result_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "expected": 3,
@@ -19,7 +19,7 @@
     "closed_at": null
   },
   "generated_at": "2026-10-11T06:10:00+00:00",
-  "policy_version": "technical_mean_v1",
+  "policy_version": "trimmed_mean_v1",
   "criteria_version": 1,
   "criteria": [
     {
@@ -70,11 +70,11 @@
     },
     {
       "vendor_id": "vendor-b",
-      "technical_average": 50.17
+      "technical_average": 50.0
     },
     {
       "vendor_id": "vendor-c",
-      "technical_average": 10.08
+      "technical_average": 10.25
     }
   ],
   "rankings": [
@@ -86,12 +86,12 @@
     {
       "rank": 2,
       "vendor_id": "vendor-b",
-      "technical_average": 50.17
+      "technical_average": 50.0
     },
     {
       "rank": 3,
       "vendor_id": "vendor-c",
-      "technical_average": 10.08
+      "technical_average": 10.25
     }
   ],
   "sheets": [
@@ -147,7 +147,7 @@
   "document_revisions": [],
   "snapshot_intact": true,
   "notices": [
-    "선정위원 전원 기술점수 단순평균, 소수 둘째 자리 ROUND_HALF_UP. 가격·최종 순위 산식 미포함.",
+    "제안사별 위원 총점에서 최고·최저 1개씩 제외한 평균(위원 3명 이상, 2명 이하는 전체 평균), 소수 둘째 자리 ROUND_HALF_UP. 가격·최종 순위 산식 미포함.",
     "서명은 본인 확인 문구 동의와 평가표 내용 해시 기록이며 법적 전자서명이 아닙니다.",
     "가격점수·최종 순위 산식은 정책 승인 전입니다. 표시 순위는 기술 평균 기준입니다.",
     "문서 revision 참조는 문서 모듈(DaeUng79) 연결 뒤 채워집니다."

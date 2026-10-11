@@ -38,11 +38,11 @@
     },
     {
       "vendor_id": "vendor-b",
-      "technical_average": 50.17
+      "technical_average": 50.0
     },
     {
       "vendor_id": "vendor-c",
-      "technical_average": 10.08
+      "technical_average": 10.25
     }
   ],
   "rankings": [
@@ -54,21 +54,21 @@
     {
       "rank": 2,
       "vendor_id": "vendor-b",
-      "technical_average": 50.17
+      "technical_average": 50.0
     },
     {
       "rank": 3,
       "vendor_id": "vendor-c",
-      "technical_average": 10.08
+      "technical_average": 10.25
     }
   ],
-  "policy_version": "technical_mean_v1",
+  "policy_version": "trimmed_mean_v1",
   "criteria_version": 1,
   "chair_id": "demo-evaluator-1",
   "confirmable": true,
   "confirmation": null,
   "notices": [
-    "선정위원 전원 기술점수 단순평균, 소수 둘째 자리 ROUND_HALF_UP. 가격·최종 순위 산식 미포함.",
+    "제안사별 위원 총점에서 최고·최저 1개씩 제외한 평균(위원 3명 이상, 2명 이하는 전체 평균), 소수 둘째 자리 ROUND_HALF_UP. 가격·최종 순위 산식 미포함.",
     "가격점수·최종 순위 산식은 정책 승인 전이며 표시 순위는 기술 평균 기준입니다."
   ]
 }

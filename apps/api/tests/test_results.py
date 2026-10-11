@@ -3,7 +3,6 @@
 EVAL-03의 개인 제출과 사업 결과 확정이 별도 상태임도 함께 확인한다.
 """
 
-import json
 from pathlib import Path
 
 import pytest
@@ -13,7 +12,6 @@ from sqlalchemy.orm import Session
 
 from app.core import permissions
 from app.modules.evaluations.models import ScoreSheet
-from app.modules.projects.models import Project
 from app.modules.results import policies
 
 FIXTURES = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "synthetic"
@@ -87,7 +85,7 @@ def test_summary_hides_averages_until_all_submitted_and_checks_roles(client, adm
     assert summary["averages"] == [] and summary["rankings"] == []
     assert [m["status"] for m in summary["members"]] == ["none", "none"]
     assert summary["chair_id"] is None and summary["confirmable"] is False
-    assert summary["policy_version"] == "technical_mean_v1" and summary["criteria_version"] == 1
+    assert summary["policy_version"] == "trimmed_mean_v1" and summary["criteria_version"] == 1
     assert client.get(url, headers=first).status_code == 403
     assert client.get(url).status_code == 401
 
@@ -142,7 +140,7 @@ def test_confirm_requires_chair_completion_and_seals_once(
     confirmed = client.post(confirm_url, headers=first)
     assert confirmed.status_code == 201, confirmed.text
     body = confirmed.json()
-    assert body["status"] == "confirmed" and body["policy_version"] == "technical_mean_v1"
+    assert body["status"] == "confirmed" and body["policy_version"] == "trimmed_mean_v1"
     assert body["criteria_version"] == 1 and len(body["result_sha256"]) == 64
     assert body["confirmed_by"] == selected[0] and body["expected"] == body["submitted"] == 2
     assert client.post(confirm_url, headers=first).status_code == 409
@@ -223,12 +221,12 @@ def test_confirm_detects_tampered_sheet(
     assert tampered.json()["detail"].endswith(selected[1])
 
 
-def test_policies_registry_ranking_and_draft_matches_fixture():
+def test_policies_registry_and_ranking():
     with pytest.raises(HTTPException) as exc:
-        policies.aggregate("trimmed_mean_draft", None, [])
-    assert exc.value.status_code == 409
-    with pytest.raises(HTTPException):
         policies.aggregate("unknown", None, [])
+    assert exc.value.status_code == 409
+    assert policies.CURRENT_POLICY == "trimmed_mean_v1"
+    assert policies.POLICIES["trimmed_mean_v1"].approved
     assert policies.rank(
         [
             {"vendor_id": "b", "technical_average": 75.0},
@@ -241,19 +239,23 @@ def test_policies_registry_ranking_and_draft_matches_fixture():
         {"rank": 3, "vendor_id": "c", "technical_average": 10.0},
     ]
 
-    projects = json.loads((FIXTURES / "project_demo.json").read_text(encoding="utf-8"))
-    data = next(p for p in projects["projects"] if p["id"] == "fx-project-a")
-    sheets = json.loads((FIXTURES / "sheets.json").read_text(encoding="utf-8"))["complete"]
-    cases = json.loads((FIXTURES / "expected_results.json").read_text(encoding="utf-8"))["cases"]
-    draft = next(c for c in cases if c["policy"] == "trimmed_mean_draft")
-    assert draft["approved"] is False and not policies.POLICIES["trimmed_mean_draft"].approved
 
-    class Stub:
-        def __init__(self, scores):
-            self.scores = scores
-
-    by_id = {s["id"]: s for s in sheets}
-    got = policies.trimmed_mean_draft(
-        Project(**data), [Stub(by_id[i]["scores"]) for i in draft["sheet_ids"]]
-    )
-    assert {r["vendor_id"]: r["technical_average"] for r in got} == draft["expected"]
+def test_summary_trims_highest_and_lowest_totals_with_three_members(client, admin, setup_project):
+    project, candidates = setup_project
+    base = f"/api/v1/projects/{project['id']}"
+    confirm_criteria(client, admin, base)
+    selected = draw_members(client, admin, project, candidates, seats=3)["selected_ids"]
+    a, b, c = project["vendor_ids"]
+    ratios = [{a: 1, b: 1, c: 0}, {a: 0.5, b: 1, c: 0}, {a: 0.75, b: 1, c: 1}]
+    for member, ratio in zip(selected, ratios):
+        save_and_submit(client, actor(member), base, scores_for(project, ratio))
+    summary = client.get(base + "/results/summary", headers=admin).json()
+    assert summary["policy_version"] == "trimmed_mean_v1"
+    assert {x["vendor_id"]: x["technical_average"] for x in summary["averages"]} == {
+        a: 60.0,  # [80, 40, 60] → 80·40 제외
+        b: 80.0,  # [80, 80, 80] → 동점이라도 1개씩만 제외
+        c: 0.0,  # [0, 0, 80] → 80·0 제외
+    }
+    legacy = client.get(base + "/results", headers=admin).json()
+    assert legacy["averages"] == summary["averages"]
+    assert legacy["calculation"].startswith("trimmed_mean_v1")

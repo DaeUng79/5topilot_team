@@ -39,7 +39,7 @@ def test_report_is_rebuilt_from_snapshot_with_integrity(client, admin, setup_pro
     report = first.json()
     assert report["confirmation"]["id"] == confirmation["id"]
     assert report["snapshot_intact"] is True
-    assert report["policy_version"] == "technical_mean_v1" and report["criteria_version"] == 1
+    assert report["policy_version"] == "trimmed_mean_v1" and report["criteria_version"] == 1
     assert [c["id"] for c in report["criteria"]] == [c["id"] for c in project["criteria"]]
     assert [r["rank"] for r in report["rankings"]] == [1, 2, 3]
     assert [a["technical_average"] for a in report["averages"]] == [80, 60, 40]

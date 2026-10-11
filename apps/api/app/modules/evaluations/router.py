@@ -12,14 +12,10 @@ from app.core.db import get_db
 from app.core.permissions import require_project_role
 from app.modules.committee.models import Draw
 from app.modules.evaluations.models import ScoreSheet
-from app.modules.evaluations.service import (
-    SIGN_METHOD,
-    sheet_hash,
-    technical_averages,
-    validate_scores,
-)
+from app.modules.evaluations.service import SIGN_METHOD, sheet_hash, validate_scores
 from app.modules.projects.criteria import effective_criteria
 from app.modules.projects.service import get_project
+from app.modules.results.policies import CURRENT_POLICY, POLICIES, aggregate
 from app.modules.results.state import ensure_not_sealed
 
 router = APIRouter(tags=["evaluations"])
@@ -224,6 +220,8 @@ def get_results(project_id: str, db: DB, _: Annotated[Actor, Depends(require_adm
         status="technical_complete" if complete else "collecting",
         expected=len(selected),
         submitted=len(sheets),
-        averages=technical_averages(project, sheets) if complete else [],
-        calculation="선정위원 전원 단순평균, 소수 둘째 자리 반올림. 가격/순위/최종확정은 미구현.",
+        averages=aggregate(CURRENT_POLICY, project, sheets) if complete else [],
+        calculation=(
+            f"{CURRENT_POLICY}: {POLICIES[CURRENT_POLICY].description} 확정은 results 모듈."
+        ),
     )

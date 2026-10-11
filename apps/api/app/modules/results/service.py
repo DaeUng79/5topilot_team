@@ -74,19 +74,24 @@ def summarize(db: Session, project: Project) -> dict:
         }
         for member in selected
     ]
-    averages = aggregate(CURRENT_POLICY, project, submitted) if complete else []
     if confirmation is not None:
         status = confirmation.status
+        snapshot = confirmation.result_snapshot
+        averages, rankings = snapshot["averages"], snapshot["rankings"]
+        policy_version = snapshot["policy_version"]
     else:
         status = "technical_complete" if complete else "collecting"
+        averages = aggregate(CURRENT_POLICY, project, submitted) if complete else []
+        rankings = rank(averages) if complete else []
+        policy_version = CURRENT_POLICY
     return {
         "status": status,
         "expected": len(selected),
         "submitted": len(submitted),
         "members": members,
         "averages": averages,
-        "rankings": rank(averages) if complete else [],
-        "policy_version": CURRENT_POLICY,
+        "rankings": rankings,
+        "policy_version": policy_version,
         "criteria_version": criteria.version if criteria else 0,
         "chair_id": chair,
         "confirmable": complete and confirmation is None and chair is not None,
