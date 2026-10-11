@@ -44,14 +44,14 @@
 
 `src/features`, `core`, `migrations`, `apps/api/tests`, `tests/e2e`, `tests/fixtures`는 목표 또는 PR #1 경로다. 실행 구현이 추가된 것으로 해석하지 않는다. 신규 API 모듈의 README는 업무 경계를 예약한다.
 
-| 개발 내용 | 코드 위치 | 함께 기록할 문서 |
-| --- | --- | --- |
-| 기존 파서 개선 | 현재 루트 `step*.py`, `streamlit*.py` | DaeUng79 개인 README, 문서 파싱 상세 설명 |
-| 파서 웹 연결 | `services/document-parser/`, API `documents/` | 문서 처리 계약 |
-| 웹 화면 | `apps/web/src/features/<기능>/` | 담당자 개인 README, 기능 이슈 |
-| 업무 서버 로직 | `apps/api/app/modules/<기능>/` | 개인 README, API/DB 변경 내역 |
-| 공통 명세 | `contracts/` | 프론트·백엔드 공동 리뷰 |
-| 자동 테스트 | 루트 기존 테스트, `tests/`, 향후 `apps/api/tests/` | 명령·결과·커밋 기록 |
+| 개발 내용      | 코드 위치                                             | 함께 기록할 문서                          |
+| -------------- | ----------------------------------------------------- | ----------------------------------------- |
+| 기존 파서 개선 | 현재 루트`step*.py`, `streamlit*.py`              | DaeUng79 개인 README, 문서 파싱 상세 설명 |
+| 파서 웹 연결   | `services/document-parser/`, API `documents/`     | 문서 처리 계약                            |
+| 웹 화면        | `apps/web/src/features/<기능>/`                     | 담당자 개인 README, 기능 이슈             |
+| 업무 서버 로직 | `apps/api/app/modules/<기능>/`                      | 개인 README, API/DB 변경 내역             |
+| 공통 명세      | `contracts/`                                        | 프론트·백엔드 공동 리뷰                  |
+| 자동 테스트    | 루트 기존 테스트,`tests/`, 향후 `apps/api/tests/` | 명령·결과·커밋 기록                     |
 
 ## 적용 순서
 
