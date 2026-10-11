@@ -18,10 +18,10 @@
 
 | 버전 | 승인 | 내용 |
 | --- | --- | --- |
-| `technical_mean_v1` | 예(현행) | PR #1 계산 그대로. 선정위원 전원 업체별 기술점수 합계의 단순평균, Decimal·ROUND_HALF_UP·소수 둘째 자리 |
-| `trimmed_mean_draft` | 아니오 | 디자인 캔버스의 최고·최저 1건 제외 평균(위원 3명 이상). 승인 전이라 호출하면 409 |
+| `trimmed_mean_v1` | 예(현행) | 제안사별로 위원별 총점(항목 합계) 중 최고 1개·최저 1개를 제외한 평균. 위원 2명 이하면 전체 평균. 동점 최고(최저)는 1개만 제외. Decimal·ROUND_HALF_UP·소수 둘째 자리. 2026-10-11 u-jing 지시로 승인, PM(Lex6won) 확인 대기 |
+| `technical_mean_v1` | 예(기록용) | PR #1 단순평균. 비교·기록용으로 남기며 현행 집계에는 쓰지 않는다 |
 
-순위는 기술 평균 내림차순, 동점은 같은 순위(1, 1, 3). 가격점수·최종 순위 산식·동점 규칙은 승인 전이며 화면에 "정책 승인 전"으로 표시한다. 손 계산 기대값은 `tests/fixtures/synthetic/expected_results.json`.
+순위는 기술 평균 내림차순, 동점은 같은 순위(1, 1, 3). 가격점수·최종 순위 산식·동점 규칙은 승인 전이며 화면에 "정책 승인 전"으로 표시한다. 손 계산 기대값은 `tests/fixtures/synthetic/expected_results.json`(3명 제외, 2명 미제외, 5명 제외 사례). 결과가 확정된 사업은 정책이 바뀌어도 확정 스냅샷의 평균·순위·정책을 그대로 보여준다. PR #1의 `GET /projects/{id}/results`도 같은 현행 정책을 쓴다.
 
 ## 3. 취합·확정·리포트·완료 (results/service.py, report.py, state.py)
 

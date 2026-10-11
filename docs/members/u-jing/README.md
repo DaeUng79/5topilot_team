@@ -31,7 +31,7 @@
 | 8 | 3 | 점수 저장에 기준 버전 고정 | evaluations/router.py, service.py (수정) | EVAL-01 | 없음 | 완료(로컬) · 버전 불일치·재검토 중 409 |
 | 9 | 3 | 권한 검사 공통 호출 교체 | evaluations/router.py (수정) | SEC-01 | 없음 | 완료(로컬, 2단계에서 선행) |
 | 10 | 3 | PostgreSQL 동시 편집·제출 테스트 | apps/api/tests/test_sheet_versions.py | EVAL-02, EVAL-03 | 없음 | 작성 완료 · 두 탭 시나리오는 SQLite 통과, 병렬 4·3건은 CI PostgreSQL에서 실행(로컬 skip) |
-| 11 | 4 | 집계 정책 v1 (버전 있는 계산) | modules/results/policies.py, service.py | RES-02 | Lex6won (정책 승인) | 완료(로컬) · trimmed_mean은 미승인 초안으로 등록만 |
+| 11 | 4 | 집계 정책 v1 (버전 있는 계산) | modules/results/policies.py, service.py | RES-02 | Lex6won (정책 승인) | 완료(로컬) · 현행 trimmed_mean_v1(최고·최저 제외 평균, 2026-10-11 사용자 지시), PM 확인 대기 |
 | 12 | 4 | 결과 공개 시점 규칙 | modules/results/router.py, service.py | RES-01 | Lex6won | 완료(로컬) · 전원 제출 전 평균·순위 비공개, 관리자·위원장만 조회 |
 | 13 | 4 | 위원장 결과 확인 기록 | modules/results/models.py, router.py, service.py | RES-03 | Lex6won (위원장 출처) | 완료(로컬) · 위원장 미지정 상태에서는 확정 불가(COM-03 연계 대기) |
 | 14 | 4 | 평가표 서명 정보 저장·검증 | evaluations/router.py, service.py, models.py (수정) | RES-03, EVAL-03 | 없음 | 완료(로컬) · attestation-v1(확인 문구 동의 + 내용 SHA-256), 전자서명 아님 |
@@ -45,7 +45,7 @@
 
 재사용하고 다시 만들지 않는 기존 코드: 점수 저장·제출·잠금·version 충돌(`evaluations/router.py`), 기술평균(`evaluations/service.py`), 데모 토큰(`core/auth.py`), 채점표 컴포넌트(`ScoreEditor`), 공통 스타일, seed 데이터, CI 계약 차이 검사, E2E 패턴.
 
-업무 규칙이 확정되지 않아 승인 전까지 PR #1 동작을 유지하는 것: 점수 입력 단위(디자인 5단계 버튼 vs 0.01 단위), 집계 산식(최고·최저 제외·가격 20점), 자동 저장, 서명 저장 형식, 미제출자 알림, HWP 보고서 파일 생성.
+업무 규칙이 확정되지 않아 승인 전까지 PR #1 동작을 유지하는 것: 점수 입력 단위(디자인 5단계 버튼 vs 0.01 단위), 가격 20점·합계·최종 순위 산식, 자동 저장, 서명 저장 형식, 미제출자 알림, HWP 보고서 파일 생성. 기술점수 집계는 2026-10-11 사용자 지시로 최고·최저 제외 평균(trimmed_mean_v1)을 현행으로 적용했다(위원 2명 이하 전체 평균 가정, PM 확인 대기).
 
 ## 공통 파일 변경 기록
 
