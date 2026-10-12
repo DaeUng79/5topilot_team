@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { describeError, request } from '../../../api/client';
 import type { CriteriaConfirm, CriteriaRead, CriterionDraft, DocumentRead, DocumentUpload, JobStatus } from '../../../api/contract';
 import { useLoad } from '../../../lib/useLoad';
-import { formatDateTime, pageLabel, vendorName } from '../../../lib/format';
+import { formatDateTime, pageLabel } from '../../../lib/format';
 import { Async, Empty } from '../../../ui/states';
-import { Badge, Card, Dialog, Notice, type Tone } from '../../../ui/ui';
+import { Badge, Card, Dialog, Notice, VendorLabel, useToast, type Tone } from '../../../ui/ui';
 import type { ProjectSummary } from '../common';
 
 const jobInfo: Record<JobStatus, { label: string; tone: Tone }> = {
@@ -32,7 +32,7 @@ export function DocumentsTab({ summary, onChanged }: { summary: ProjectSummary; 
 
   const slots: { kind: 'rfp' | 'proposal'; vendor: string | null; label: string }[] = [
     { kind: 'rfp', vendor: null, label: '제안요청서' },
-    ...summary.project.vendor_ids.map(v => ({ kind: 'proposal' as const, vendor: v, label: `${vendorName(v)} 제안서` })),
+    ...summary.project.vendor_ids.map(v => ({ kind: 'proposal' as const, vendor: v, label: `${v} 제안서` })),
   ];
 
   return <>
@@ -69,7 +69,7 @@ function DocRow({ pid, slot, doc, locked, onUploaded }: {
   const job = doc ? jobInfo[doc.job.status] : null;
   return <li className="doc-row">
     <div className="doc-main">
-      <strong>{slot.label}</strong>
+      <strong>{slot.vendor ? <><VendorLabel id={slot.vendor} /> 제안서</> : slot.label}</strong>
       {doc ? <span className="muted">{doc.filename} · v{doc.revision} · {formatDateTime(doc.uploaded_at)}</span> : <span className="muted">아직 올리지 않았어요</span>}
       {doc && (doc.job.status === 'queued' || doc.job.status === 'parsing') && <ol className="job-steps" aria-label="처리 단계">
         {(['queued', 'parsing', 'done'] as const).map(s => <li key={s} className={s === doc.job.status ? 'current' : ''}>{jobInfo[s].label}</li>)}
@@ -100,10 +100,11 @@ function CriteriaReview({ pid, criteria, onConfirmed }: { pid: string; criteria:
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
   useEffect(() => { setItems(criteria.items); setReviewed([]); }, [criteria.version]);
 
   if (criteria.status === 'none') return <Card title="평가기준"><Empty title="평가기준 초안이 아직 없어요">
-    제안요청서를 올리면 AI가 항목·배점 후보와 원문 근거를 찾아 초안을 만듭니다. 확정은 사람이 합니다.</Empty></Card>;
+    제안요청서를 올리면 AI가 초안을 만들고, 확정은 사람이 해요.</Empty></Card>;
 
   const total = items.reduce((a, i) => a + (Number(i.max_score) || 0), 0);
   const needReview = items.filter(i => i.needs_review && !reviewed.includes(i.id));
@@ -115,15 +116,15 @@ function CriteriaReview({ pid, criteria, onConfirmed }: { pid: string; criteria:
       await request('POST', `/api/v1/projects/${pid}/criteria/confirm`, {
         expected_version: criteria.version, items: items.map(({ id, area, name, max_score, description }) => ({ id, area, name, max_score, description })),
       } satisfies CriteriaConfirm);
-      setConfirming(false); await onConfirmed();
+      setConfirming(false); await onConfirmed(); toast('평가기준을 확정했어요.');
     } catch (e) { setError(e); setConfirming(false); } finally { setBusy(false); }
   }
 
   return <Card title={<>평가기준 {editable ? <Badge tone="warning">AI 초안 · 검토 필요</Badge> : <Badge tone="success">확정 v{criteria.version}</Badge>}</>}
     actions={!editable && <span className="muted">{criteria.confirmed_by} · {formatDateTime(criteria.confirmed_at)} 확정 · 원본 v{criteria.source_revision}
       {criteria.locked && ' · 평가 시작으로 잠김'}</span>}>
-    {editable && <Notice tone="info" title="AI가 찾은 후보입니다. 항목명·배점을 확인하고 필요하면 고친 뒤 확정하세요.">
-      근거 칩을 누르면 제안요청서 원문을 볼 수 있습니다. "쪽 미확인" 항목은 원문 위치를 직접 확인해야 합니다.</Notice>}
+    {editable && <Notice tone="info" title="AI가 찾은 후보예요. 항목명·배점을 확인·수정한 뒤 확정하세요.">
+      근거 칩을 누르면 원문을 볼 수 있어요. "쪽 미확인" 항목은 위치를 직접 확인하세요.</Notice>}
     <div className="table-wrap"><table className="table">
       <thead><tr><th>영역</th><th>평가항목</th><th className="num">배점</th><th>원문 근거</th>{editable && <th>검토</th>}</tr></thead>
       <tbody>{items.map((item, idx) => <tr key={item.id} className={item.needs_review && !reviewed.includes(item.id) ? 'row-warn' : ''}>

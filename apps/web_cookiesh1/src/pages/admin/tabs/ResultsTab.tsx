@@ -26,7 +26,7 @@ export function Locked({ results, onRefresh }: { results: Results; onRefresh: ()
     <div className="state">
       <div className="state-icon" aria-hidden="true">🔒</div>
       <strong>모든 평가위원이 제출해야 결과가 열려요</strong>
-      <p className="muted">현재 {results.submitted} / {results.expected}명 제출. 결과 공개 여부는 서버 응답(status: {results.status})을 따릅니다.</p>
+      <p className="muted" title={`결과 공개 여부는 서버 응답(status: ${results.status})을 따릅니다.`}>현재 {results.submitted} / {results.expected}명 제출 · 공개 여부는 서버 응답을 따릅니다</p>
       <Progress value={results.submitted} max={results.expected} label="제출 진행률" />
       <button className="btn" onClick={onRefresh}>다시 확인</button>
     </div>

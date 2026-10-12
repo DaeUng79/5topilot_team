@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { request, type Project } from '../../../api/client';
 import type { ProgressRead } from '../../../api/contract';
 import { useLoad } from '../../../lib/useLoad';
-import { formatTime, vendorName } from '../../../lib/format';
+import { formatTime } from '../../../lib/format';
 import { Async, Empty } from '../../../ui/states';
-import { Badge, Card, StatCard, type Tone } from '../../../ui/ui';
+import { Badge, Card, StatCard, VendorLabel, type Tone } from '../../../ui/ui';
 
 const sheetInfo: Record<ProgressRead['members'][number]['sheet_status'], { label: string; tone: Tone }> = {
   not_started: { label: '미시작', tone: 'neutral' }, draft: { label: '작성 중', tone: 'warning' }, submitted: { label: '제출 완료', tone: 'success' },
@@ -71,9 +71,9 @@ function PresentationTimer({ order }: { order: string[] }) {
   return <Card title="발표 시간 관리" actions={<span className="muted">발표 10~20분 · 질의응답 5~10분</span>}>
     <div className="timer">
       <div className="timer-order" role="group" aria-label="발표 순서">{order.map((v, i) => <button key={v} className={`btn sm ${v === vendor ? 'primary' : ''}`}
-        onClick={() => { setVendor(v); reset('present'); }}>{i + 1}. {vendorName(v)}</button>)}</div>
+        onClick={() => { setVendor(v); reset('present'); }} aria-pressed={v === vendor}>{i + 1}. <VendorLabel id={v} /></button>)}</div>
       <div className={`timer-face ${left <= 60 ? 'urgent' : ''}`} aria-live="off">
-        <span className="muted">{vendorName(vendor)} {phase === 'present' ? '발표' : '질의응답'}</span>
+        <span className="muted timer-who"><VendorLabel id={vendor} /> {phase === 'present' ? '발표' : '질의응답'}</span>
         <strong className="mono">{mm}:{ss}</strong>
         {left === 0 && <Badge tone="danger">시간 종료</Badge>}
       </div>

@@ -3,7 +3,7 @@ import { api, unwrap } from '../../api/client';
 import { useLoad } from '../../lib/useLoad';
 import { formatDate, formatDateTime, vendorName } from '../../lib/format';
 import { Async } from '../../ui/states';
-import { Badge, Card, Notice, Progress } from '../../ui/ui';
+import { Badge, Card, Notice, Progress, VendorLabel } from '../../ui/ui';
 import { sheetLabel } from './Assigned';
 import { useEval } from './EvalProject';
 
@@ -24,20 +24,20 @@ export function EvalHome() {
             <Badge tone={sheetLabel[status].tone}>{sheetLabel[status].label}</Badge></div>
         </div>
         {sheet?.status === 'submitted' && <Notice tone="success" title={`${formatDateTime(sheet.submitted_at)}에 제출했습니다.`}>
-          제출 후에는 수정할 수 없어요. 수정이 필요하면 간사에게 요청해 주세요.</Notice>}
+          제출 후에는 수정할 수 없어요. 수정은 간사에게 요청하세요.</Notice>}
         <Card title="제안사별 진행">
           <ul className="vendor-progress">{project.vendor_ids.map(v => <li key={v}>
-            <strong>{vendorName(v)}</strong>
+            <VendorLabel id={v} />
             <Progress value={filled(v)} max={perVendor} label={`${vendorName(v)} 작성 진행률`} />
             <span className="muted">{filled(v)} / {perVendor} 항목</span>
           </li>)}</ul>
           <div className="row end"><Link className="btn primary" to="evaluate">{sheet?.status === 'submitted' ? '제출한 평가 보기' : sheet ? '평가 이어하기' : '평가 시작하기'} ›</Link></div>
         </Card>
         <div className="tool-cards">
-          <Link to="docs?doc=rfp" className="tool-card"><strong>제안요청서 보기</strong><span>평가 기준과 원문 확인</span></Link>
-          <Link to="docs" className="tool-card"><strong>제안서 보기</strong><span>업체별 원문을 쪽 번호와 함께</span></Link>
-          <Link to="docs?ask=1" className="tool-card"><strong>문서에 질문하기</strong><span>답변마다 출처 쪽이 붙어요</span></Link>
-          {assignment.role === 'chair' && <Link to="chair" className="tool-card accent"><strong>위원장 확인</strong><span>전원 제출 후 집계 결과 확인</span></Link>}
+          <Link to="docs?doc=rfp" className="tool-card"><strong>제안요청서 보기</strong><span>평가 기준 확인</span></Link>
+          <Link to="docs" className="tool-card"><strong>제안서 보기</strong><span>업체별 원문</span></Link>
+          <Link to="docs?ask=1" className="tool-card"><strong>문서에 질문하기</strong><span>답변에 출처 쪽 표시</span></Link>
+          {assignment.role === 'chair' && <Link to="chair" className="tool-card accent"><strong>위원장 확인</strong><span>전원 제출 후 집계 확인</span></Link>}
         </div>
       </>;
     }}

@@ -5,7 +5,7 @@ import type { AskAnswer, Citation, DocumentContent, DocumentRead } from '../../a
 import { useLoad } from '../../lib/useLoad';
 import { pageLabel, vendorName } from '../../lib/format';
 import { Async, Empty, Loading } from '../../ui/states';
-import { Badge, Card, Notice } from '../../ui/ui';
+import { Badge, Card, Notice, VendorLabel } from '../../ui/ui';
 import { useEval } from './EvalProject';
 
 const statusInfo = { answered: null, no_evidence: { tone: 'warning', title: '근거를 찾지 못했어요' },
@@ -30,10 +30,10 @@ export function DocsPage() {
   return <div className="docs-layout">
     <section className="docs-viewer" aria-label="원문 보기">
       <Async load={docs} loadingLabel="문서 목록을 불러오는 중"
-        empty={() => !ready.length && <Card><Empty title="볼 수 있는 문서가 아직 없어요">간사가 문서를 올리고 처리가 끝나면 표시됩니다.</Empty></Card>}>
+        empty={() => !ready.length && <Card><Empty title="볼 수 있는 문서가 아직 없어요">문서 처리가 끝나면 표시돼요.</Empty></Card>}>
         {() => <>
           <div className="doc-tabs" role="tablist">{ready.map(d => <button key={d.id} role="tab" aria-selected={d === activeDoc}
-            className={d === activeDoc ? 'active' : ''} onClick={() => open(keyOf(d))}>{d.kind === 'rfp' ? '제안요청서' : vendorName(d.vendor_id!)}</button>)}</div>
+            className={d === activeDoc ? 'active' : ''} onClick={() => open(keyOf(d))}>{d.kind === 'rfp' ? '제안요청서' : <VendorLabel id={d.vendor_id!} />}</button>)}</div>
           {activeDoc && <DocumentView key={activeDoc.id} projectId={project.id} doc={activeDoc} highlight={block} />}
         </>}
       </Async>
@@ -80,7 +80,7 @@ function AskPanel({ projectId, vendorIds, onCite, autoFocus }: { projectId: stri
     finally { setBusy(false); }
   }
   return <aside className="ask-panel" aria-label="문서에 질문하기">
-    <div className="ask-head"><strong>문서에 질문하기</strong><span className="muted small">이 사업의 문서 안에서만 답하고 출처 쪽을 함께 보여 드려요.</span></div>
+    <div className="ask-head"><strong>문서에 질문하기</strong><span className="muted small">이 사업 문서 안에서만, 출처 쪽과 함께 답해요.</span></div>
     <div className="ask-log" aria-live="polite">
       {!history.length && <p className="muted">예: 하자보수 기간은 어떻게 되나요?</p>}
       {history.map((h, i) => <div key={i} className="ask-item">
@@ -95,7 +95,7 @@ function AskPanel({ projectId, vendorIds, onCite, autoFocus }: { projectId: stri
         </div>}
       </div>)}
     </div>
-    <p className="muted small">답변의 출처가 내용을 뒷받침하는지 반드시 원문에서 확인해 주세요. 챗봇은 점수를 입력·제출할 수 없습니다.</p>
+    <p className="muted small">출처를 원문에서 꼭 확인하세요. 챗봇은 점수를 입력·제출하지 않아요.</p>
     <form className="ask-form" onSubmit={ask}>
       <label className="field inline"><span className="sr-only">검색 범위</span><select value={scope} onChange={e => setScope(e.target.value)}>
         <option value="all">이 사업 전체 문서</option><option value="rfp">제안요청서만</option>

@@ -1,4 +1,7 @@
 export function vendorName(id: string) { return id.replace('vendor-', '').toUpperCase() + '사'; }
+export function vendorLetter(id: string) { return id.replace('vendor-', '').toUpperCase(); }
+/** 업체 구분색 CSS 변수 (styles.css --vendor-a…e) */
+export function vendorColor(id: string) { return `var(--vendor-${id.replace('vendor-', '').toLowerCase()}, var(--gray-50))`; }
 
 export function formatTime(iso: string | null | undefined) {
   if (!iso) return '-';

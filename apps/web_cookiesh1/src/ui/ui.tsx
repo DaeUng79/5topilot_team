@@ -1,5 +1,6 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { vendorColor, vendorLetter, vendorName } from '../lib/format';
 
 export function PageHeader({ title, description, actions, eyebrow }: { title: string; description?: ReactNode; actions?: ReactNode; eyebrow?: ReactNode }) {
   return <div className="page-header">
@@ -81,3 +82,26 @@ export function Progress({ value, max, label }: { value: number; max: number; la
     <div className="progress-bar" style={{ width: `${pct}%` }} />
   </div>;
 }
+
+/** 업체 표시: 색 점 + 글자 + 이름 (색만으로 구분하지 않음) */
+export function VendorDot({ id }: { id: string }) {
+  return <span className="vendor-dot" aria-hidden="true" style={{ '--vc': vendorColor(id) } as CSSProperties}>{vendorLetter(id)}</span>;
+}
+export function VendorLabel({ id }: { id: string }) {
+  return <span className="vendor-label"><VendorDot id={id} />{vendorName(id)}</span>;
+}
+
+/** 가벼운 완료 알림 전용. 저장 실패·오류 같은 중요한 상태는 토스트로 보내지 말고 화면에 고정 표시합니다. */
+const ToastContext = createContext<(message: string) => void>(() => {});
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [items, setItems] = useState<{ id: number; message: string }[]>([]);
+  const show = useCallback((message: string) => {
+    const id = Date.now() + Math.random();
+    setItems(list => [...list.slice(-2), { id, message }]);
+    setTimeout(() => setItems(list => list.filter(t => t.id !== id)), 2600);
+  }, []);
+  return <ToastContext.Provider value={show}>{children}
+    <div className="toasts" role="status" aria-live="polite">{items.map(t => <div key={t.id} className="toast">{t.message}</div>)}</div>
+  </ToastContext.Provider>;
+}
+export const useToast = () => useContext(ToastContext);

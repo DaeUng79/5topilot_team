@@ -4,7 +4,7 @@ import type { ResultsConfirm, ResultsDetail } from '../../api/contract';
 import { useLoad } from '../../lib/useLoad';
 import { ResultsReport } from '../../ui/ResultsReport';
 import { Async, Forbidden } from '../../ui/states';
-import { Card, Dialog, Notice } from '../../ui/ui';
+import { Card, Dialog, Notice, useToast } from '../../ui/ui';
 import { Locked } from '../admin/tabs/ResultsTab';
 import { useEval } from './EvalProject';
 
@@ -20,11 +20,12 @@ export function ChairPage() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
   if (assignment.role !== 'chair') return <Forbidden detail="위원장만 볼 수 있는 화면입니다." />;
 
   async function confirm() {
     setBusy(true); setError(null);
-    try { await request('POST', `/api/v1/projects/${project.id}/results/confirm`, { attested: true } satisfies ResultsConfirm); setOpen(false); await load.reload(); }
+    try { await request('POST', `/api/v1/projects/${project.id}/results/confirm`, { attested: true } satisfies ResultsConfirm); setOpen(false); await load.reload(); toast('결과 확인을 기록했어요.'); }
     catch (e) { setError(e); setOpen(false); } finally { setBusy(false); }
   }
 

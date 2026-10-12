@@ -5,7 +5,7 @@ import type { ChairSet, DrawExclusion } from '../../../api/contract';
 import { useLoad } from '../../../lib/useLoad';
 import { formatDateTime } from '../../../lib/format';
 import { Async, Empty } from '../../../ui/states';
-import { Badge, Card, Dialog, Notice } from '../../../ui/ui';
+import { Badge, Card, Dialog, Notice, useToast } from '../../../ui/ui';
 import type { ProjectSummary } from '../common';
 
 export function CommitteeTab({ summary, onChanged }: { summary: ProjectSummary; onChanged: () => Promise<void> }) {
@@ -34,6 +34,7 @@ function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: strin
   const [reserves, setReserves] = useState(2);
   const [reviewed, setReviewed] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const toast = useToast();
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
 
@@ -50,7 +51,7 @@ function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: strin
         candidate_ids: pool, seats, reserves,
         exclusions: Object.entries(excluded).map(([candidate_id, reason]) => ({ candidate_id, reason: reason.trim() })),
       });
-      setConfirming(false); await onDrawn();
+      setConfirming(false); await onDrawn(); toast('위원 추첨을 완료했어요.');
     } catch (e) { setError(e); setConfirming(false); } finally { setBusy(false); }
   }
 
@@ -58,7 +59,7 @@ function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: strin
     {!criteriaConfirmed && <Notice tone="warning" title="평가기준이 아직 확정되지 않았어요">추첨은 할 수 있지만, 위원은 기준 확정 후에 평가를 시작할 수 있습니다.</Notice>}
     <Card title={<>후보 검토 <span className="count">{eligible.length}명 추첨 대상</span></>}
       actions={<Link to="/admin/evaluators">후보 관리 ›</Link>}>
-      <p className="muted">추첨 모집단에 넣을 후보를 고르고, 이해관계가 있는 후보는 제척 사유를 적으세요. 제척 기준은 담당자(Lex6won) 합의 전 임시 화면입니다.</p>
+      <p className="muted">이해관계가 있는 후보는 제척 사유를 적으세요. (제척 기준은 담당자 Lex6won 합의 전 임시)</p>
       <div className="table-wrap"><table className="table">
         <thead><tr><th>포함</th><th>이름</th><th>소속</th><th>전문분야</th><th>제척</th></tr></thead>
         <tbody>{candidates.map(c => {
@@ -106,11 +107,12 @@ function DrawResult({ pid, draw, exclusions, candidates, chairId, onChanged }: {
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const toast = useToast();
   const nameOf = (id: string) => draw.candidate_snapshot.find(c => c.id === id)?.name ?? candidates.find(c => c.id === id)?.name ?? id;
 
   async function saveChair() {
     setBusy(true); setError(null); setSaved(false);
-    try { await request('PUT', `/api/v1/projects/${pid}/committee/chair`, { evaluator_id: chair } satisfies ChairSet); setSaved(true); await onChanged(); }
+    try { await request('PUT', `/api/v1/projects/${pid}/committee/chair`, { evaluator_id: chair } satisfies ChairSet); setSaved(true); await onChanged(); toast('위원장 지정을 완료했어요.'); }
     catch (e) { setError(e); } finally { setBusy(false); }
   }
 
@@ -131,7 +133,7 @@ function DrawResult({ pid, draw, exclusions, candidates, chairId, onChanged }: {
       </details>
     </Card>
     <Card title="위원장 지정">
-      <p className="muted">위원장은 본위원 중 1명입니다. 전원 제출 후 결과를 확인합니다. (권한 범위는 담당자 합의 전 mock 가정)</p>
+      <p className="muted">본위원 중 1명을 지정해요. (권한 범위는 담당자 합의 전 mock 가정)</p>
       <div className="form-row">
         <label className="field">위원장<select value={chair} onChange={e => { setChair(e.target.value); setSaved(false); }}>
           <option value="">선택하세요</option>

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { api, describeError, unwrap, type Candidate } from '../../api/client';
 import { useLoad } from '../../lib/useLoad';
 import { Async, Empty } from '../../ui/states';
-import { Card, Dialog, Notice, PageHeader } from '../../ui/ui';
+import { Card, Dialog, Notice, PageHeader, useToast } from '../../ui/ui';
 import { parseCsv, TEMPLATE, type Row } from '../../lib/csv';
 
 export function EvaluatorsPage() {
@@ -11,7 +11,7 @@ export function EvaluatorsPage() {
   const [adding, setAdding] = useState(false);
   const [bulk, setBulk] = useState(false);
   return <>
-    <PageHeader eyebrow="평가위원 관리" title="평가위원 후보" description="후보를 등록하면 사업별 추첨 모집단에 넣을 수 있습니다."
+    <PageHeader eyebrow="평가위원 관리" title="평가위원 후보"
       actions={<><button className="btn" onClick={() => setBulk(true)}>CSV 일괄 등록</button>
         <button className="btn primary" onClick={() => setAdding(true)}>＋ 개별 등록</button></>} />
     <Card>
@@ -38,6 +38,7 @@ export function EvaluatorsPage() {
 }
 
 function AddDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => void; onAdded: () => void }) {
+  const toast = useToast();
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -47,7 +48,7 @@ function AddDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => v
     try {
       unwrap(await api.POST('/api/v1/committee/candidates', { body: {
         name: String(data.get('name')).trim(), organization: String(data.get('organization')).trim(), specialty: String(data.get('specialty')).trim() } }));
-      form.reset(); onAdded(); onClose();
+      form.reset(); onAdded(); onClose(); toast('평가위원 후보를 등록했어요.');
     } catch (err) { setError(err); } finally { setBusy(false); }
   }
   return <Dialog open={open} onClose={onClose} title="평가위원 후보 등록">
@@ -55,7 +56,7 @@ function AddDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => v
       <label className="field">이름<input name="name" required maxLength={100} autoFocus /></label>
       <label className="field">소속<input name="organization" required maxLength={200} /></label>
       <label className="field">전문분야<input name="specialty" required maxLength={100} placeholder="예: 정보시스템, 보안" /></label>
-      <p className="muted small">연락처는 현재 API 계약에 없어 받지 않습니다(본인확인용 번호는 담당자 합의 후 추가).</p>
+      <p className="muted small">연락처는 API 계약에 없어 받지 않아요. (본인확인 번호는 담당자 합의 후 추가)</p>
       {error !== null && <Notice tone="danger" role="alert" title={describeError(error).title}>{describeError(error).detail}</Notice>}
       <div className="dialog-actions"><button type="button" className="btn" onClick={onClose}>취소</button>
         <button className="btn primary" disabled={busy}>{busy ? '등록 중…' : '등록'}</button></div>
@@ -64,6 +65,7 @@ function AddDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => v
 }
 
 function BulkDialog({ open, existing, onClose, onDone }: { open: boolean; existing: Candidate[]; onClose: () => void; onDone: () => void }) {
+  const toast = useToast();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [result, setResult] = useState<{ ok: number; failed: string[] } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -82,6 +84,7 @@ function BulkDialog({ open, existing, onClose, onDone }: { open: boolean; existi
       catch (e) { failed.push(`${r.line}행 ${r.name}: ${describeError(e).detail}`); }
     }
     setResult({ ok: valid.length - failed.length, failed }); setBusy(false); onDone();
+    if (!failed.length) toast('CSV 등록을 완료했어요.');
   }
   return <Dialog open={open} onClose={close} title="CSV로 일괄 등록" actions={result
     ? <button className="btn primary" onClick={close}>닫기</button>
@@ -89,7 +92,7 @@ function BulkDialog({ open, existing, onClose, onDone }: { open: boolean; existi
       <button className="btn primary" disabled={!valid.length || busy} onClick={() => void register()}>{busy ? '등록 중…' : `${valid.length}명 등록`}</button></>}>
     {result ? <Notice tone={result.failed.length ? 'warning' : 'success'} role="status" title={`${result.ok}명을 등록했습니다.`}>
       {result.failed.length > 0 && <ul>{result.failed.map(f => <li key={f}>{f}</li>)}</ul>}</Notice> : <>
-      <p className="muted">양식을 내려받아 엑셀에서 작성한 뒤 <strong>CSV UTF-8</strong>로 저장해 올려 주세요. (.xlsx 직접 읽기는 후속 작업)</p>
+      <p className="muted"><strong>CSV UTF-8</strong> 파일만 올릴 수 있어요. (.xlsx는 후속 작업)</p>
       <div className="row"><button className="btn sm" onClick={downloadTemplate}>양식 내려받기 (.csv)</button>
         <label className="btn sm">파일 선택<input type="file" accept=".csv,text/csv" hidden onChange={async e => {
           const f = e.target.files?.[0]; if (f) setRows(parseCsv(await f.text(), existing)); e.target.value = '';

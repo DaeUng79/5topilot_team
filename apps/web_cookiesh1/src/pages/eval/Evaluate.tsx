@@ -1,18 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useBlocker, useSearchParams } from 'react-router';
 import { api, ApiError, describeError, request, unwrap, type Score, type Sheet } from '../../api/client';
-import type { Match } from '../../api/contract';
+import type { Evidence, Match } from '../../api/contract';
 import { clearDraft, readDraft, writeDraft, type Draft } from '../../lib/draft';
 import { useSession } from '../../lib/session';
 import { useLoad } from '../../lib/useLoad';
 import { formatDateTime, formatScore, formatTime, pageLabel, vendorName } from '../../lib/format';
 import { Async } from '../../ui/states';
-import { Badge, Card, Dialog, Notice } from '../../ui/ui';
+import { Badge, Card, Dialog, Notice, VendorDot, VendorLabel, useToast } from '../../ui/ui';
+import { EvidenceDrawer } from './EvidenceDrawer';
 import { useEval } from './EvalProject';
 
 type Cells = Record<string, string>;
 const cellKey = (v: string, c: string) => `${v}:${c}`;
 const toCells = (scores: Score[]): Cells => Object.fromEntries(scores.map(s => [cellKey(s.vendor_id, s.criterion_id), String(s.score)]));
+
+// 근거 열람 기록: 이 브라우저(세션)에만 남고 서버로 보내지 않습니다.
+export const seenKey = (e: Evidence) => `${e.document_id}#${e.block_id}`;
+const seenStore = (pid: string, uid: string) => `simsa-seen:${pid}:${uid}`;
+export function readSeen(pid: string, uid: string): Set<string> {
+  try { return new Set<string>(JSON.parse(sessionStorage.getItem(seenStore(pid, uid)) ?? '[]')); } catch { return new Set(); }
+}
+const GRADES = [['탁월', 1], ['우수', 0.9], ['보통', 0.8], ['미흡', 0.7], ['불량', 0.6]] as const;
 
 type SaveState = { kind: 'clean' } | { kind: 'dirty' } | { kind: 'saving' } | { kind: 'failed'; error: unknown } | { kind: 'invalid'; message: string };
 
@@ -49,10 +58,30 @@ function Editor({ initial, matches }: { initial: Sheet | null; matches: Match[] 
     return d;
   });
   const [conflict, setConflict] = useState<Sheet | null>(null);
+  const toast = useToast();
+  const [seen, setSeen] = useState(() => readSeen(project.id, userId));
+  const [drawer, setDrawer] = useState<Evidence | null>(null);
+  const [nonce, setNonce] = useState(0);
+  const opener = useRef<HTMLElement | null>(null);
+  function openEvidence(e: Evidence, from: HTMLElement) {
+    if (!drawer) opener.current = from;
+    setDrawer(e); setNonce(n => n + 1);
+    setSeen(old => {
+      const next = new Set(old).add(seenKey(e));
+      try { sessionStorage.setItem(seenStore(project.id, userId), JSON.stringify([...next])); } catch { /* 저장소를 못 써도 화면은 동작 */ }
+      return next;
+    });
+  }
+  function closeEvidence() { setDrawer(null); const el = opener.current; opener.current = null; setTimeout(() => el?.focus(), 0); }
+  const chip = (e: Evidence, text: string) => <button key={e.block_id} type="button" aria-haspopup="dialog"
+    className={`chip ${e.physical_page === null ? 'warn' : ''} ${seen.has(seenKey(e)) ? 'seen' : ''}`}
+    onClick={ev => openEvidence(e, ev.currentTarget)}>{text}</button>;
   const locked = sheet?.status === 'submitted';
   const dirty = state.kind !== 'clean' && state.kind !== 'saving';
   const crit = project.criteria;
   const idx = Math.min(Math.max(Number(params.get('c') ?? 0), 0), crit.length - 1);
+  // 기준 항목이나 보기가 바뀌면 근거 서랍을 닫아요.
+  useEffect(() => { if (drawer) closeEvidence(); }, [idx, view]);
 
   // 칸별 검증 (서버도 같은 규칙으로 검증합니다: EVAL-01)
   const errors = useMemo(() => {
@@ -97,7 +126,7 @@ function Editor({ initial, matches }: { initial: Sheet | null; matches: Match[] 
     try {
       const saved = unwrap(await api.PUT('/api/v1/projects/{project_id}/evaluations/me', {
         params: { path: { project_id: project.id } }, body: { scores, opinion, expected_version: expected } }));
-      setSheet(saved); setSavedAt(new Date().toISOString()); clearDraft(project.id, userId); setState({ kind: 'clean' });
+      setSheet(saved); setSavedAt(new Date().toISOString()); clearDraft(project.id, userId); setState({ kind: 'clean' }); toast('저장했어요');
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
         try {
@@ -120,7 +149,7 @@ function Editor({ initial, matches }: { initial: Sheet | null; matches: Match[] 
   const detail = criteria.items.find(x => x.id === c?.id);
   const done = Object.keys(cells).filter(k => filled(...(k.split(':') as [string, string]))).length;
 
-  return <div className="evaluate">
+  return <div className={`evaluate${drawer ? ' has-drawer' : ''}`}>
     {restore && <Notice tone="warning" role="alert" title={`저장하지 않은 입력이 있어요 (${formatDateTime(restore.saved_at)} 임시보관)`}>
       {restore.base_version !== (sheet?.version ?? 0) && <p>그 사이 서버 내용이 바뀌었어요. 복원한 뒤 저장하면 충돌 확인 화면이 열립니다.</p>}
       <div className="row">
@@ -139,6 +168,21 @@ function Editor({ initial, matches }: { initial: Sheet | null; matches: Match[] 
     </div>
 
     {view === 'criterion' && c ? <div className="eval-grid">
+      <div className="crit-side">
+        <div className="mini-matrix" role="group" aria-label="입력 현황 (제안사별 · 평가항목별)" style={{ '--cols': project.vendor_ids.length } as CSSProperties}>
+          <span aria-hidden="true" />{project.vendor_ids.map(v => <span key={v} className="mm-head"><VendorDot id={v} /></span>)}
+          {crit.map((x, i) => <Fragment key={x.id}>
+            <span className={`mm-row ${i === idx ? 'cur' : ''}`} aria-hidden="true">{i + 1}</span>
+            {project.vendor_ids.map(v => {
+              const k = cellKey(v, x.id);
+              const st = errors[k] ? 'error' : filled(v, x.id) ? 'ok' : 'empty';
+              return <button key={v} type="button" className={`mm-cell ${st} ${i === idx ? 'cur' : ''}`} aria-current={i === idx ? 'step' : undefined}
+                aria-label={`${vendorName(v)} · ${x.name}: ${st === 'ok' ? '입력됨' : st === 'error' ? '값 오류' : '비어 있음'}`}
+                onClick={() => setParams({ c: String(i) }, { replace: true })}><span aria-hidden="true">{st === 'ok' ? '✓' : st === 'error' ? '!' : ''}</span></button>;
+            })}
+          </Fragment>)}
+        </div>
+        <p className="mm-legend" aria-hidden="true">✓ 입력됨 · ! 값 오류 · 빈칸 미입력</p>
       <nav className="crit-nav" aria-label="평가항목">{crit.map((x, i) => {
         const n = project.vendor_ids.filter(v => filled(v, x.id)).length;
         return <button key={x.id} className={i === idx ? 'active' : ''} aria-current={i === idx ? 'step' : undefined}
@@ -147,28 +191,42 @@ function Editor({ initial, matches }: { initial: Sheet | null; matches: Match[] 
           <span className="crit-name">{x.name}<small>{x.max_score}점 · {n}/{project.vendor_ids.length}</small></span>
         </button>;
       })}</nav>
+      </div>
       <section className="crit-panel" aria-labelledby="crit-title">
         <Card>
           <div className="eyebrow">{detail?.area} · 평가항목 {idx + 1}/{crit.length}</div>
           <h2 id="crit-title">{c.name} <span className="muted">배점 {c.max_score}점</span></h2>
           {detail && <div className="rfp-criterion"><strong>평가 기준 (제안요청서)</strong><p>{detail.description}</p>
-            <div className="chips">{detail.evidence.map(e => <Link key={e.block_id} className={`chip ${e.physical_page === null ? 'warn' : ''}`}
-              to={`../docs?doc=rfp&block=${e.block_id}`}>제안요청서 {pageLabel(e.physical_page, e.printed_page)}</Link>)}</div></div>}
+            <div className="chips">{detail.evidence.map(e => chip(e, `제안요청서 ${pageLabel(e.physical_page, e.printed_page)}`))}</div></div>}
         </Card>
         <div className="vendor-cols">{project.vendor_ids.map(v => {
           const m = matches.find(x => x.vendor_id === v && x.criterion_id === c.id);
           const k = cellKey(v, c.id);
+          const unseen = filled(v, c.id) && !!m?.evidence.length && !m.evidence.some(e => seen.has(seenKey(e)));
           return <Card key={v} className="vendor-col">
-            <label className="field score-field"><span className="vendor-name">{vendorName(v)}</span>
-              <span className="score-wrap"><input type="number" inputMode="decimal" min={0} max={c.max_score} step="0.5" value={cells[k] ?? ''}
-                disabled={locked} aria-invalid={!!errors[k]} aria-describedby={errors[k] ? `${k}-err` : undefined}
-                onChange={e => edit(v, c.id, e.target.value)} /><span>/ {c.max_score}</span></span>
-              {errors[k] && <span id={`${k}-err`} className="field-error">✕ {errors[k]}</span>}
-            </label>
+            <div className="score-block">
+              <label className="field score-field"><span className="vendor-name"><VendorLabel id={v} /></span>
+                <span className="score-wrap"><input type="number" inputMode="decimal" min={0} max={c.max_score} step="0.5" value={cells[k] ?? ''}
+                  disabled={locked} aria-invalid={!!errors[k]} aria-describedby={errors[k] ? `${k}-err` : undefined}
+                  onChange={e => edit(v, c.id, e.target.value)} /><span>/ {c.max_score}</span></span>
+                {errors[k] && <span id={`${k}-err`} className="field-error">✕ {errors[k]}</span>}
+              </label>
+              {unseen && <span className="unseen-hint" title="근거를 열어 보지 않고 점수를 입력했어요. 이 표시는 이 브라우저에만 있고 서버에 저장되지 않아요.">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 3l18 18M10.6 6.2A9.8 9.8 0 0 1 12 6c5 0 9 6 9 6a15 15 0 0 1-3.2 3.7M6.5 7.5C4 9.2 3 12 3 12s4 6 9 6c1.4 0 2.7-.4 3.8-1M9.9 9.9a3 3 0 0 0 4.2 4.2" /></svg>
+                근거 미열람</span>}
+              {import.meta.env.VITE_USE_MOCK === '1' && <div className="grade-quick" role="group" aria-label={`${vendorName(v)} 빠른 입력`}>
+                <div className="grade-btns">{GRADES.map(([label, p]) => {
+                  const pts = Math.round(c.max_score * p * 100) / 100;
+                  return <button key={label} type="button" disabled={locked} aria-pressed={cells[k] !== undefined && cells[k] !== '' && Number(cells[k]) === pts}
+                    onClick={() => edit(v, c.id, String(pts))}>{label}<small>{pts}</small></button>;
+                })}</div>
+                <span className="grade-caption">빠른 입력 · 정책 미확정(mock 가정)</span>
+              </div>}
+            </div>
             <div className="match">
               <strong className="small">제안서에서 찾은 내용</strong>
-              {m?.summary ? <><p>{m.summary}</p><div className="chips">{m.evidence.map(e => <Link key={e.block_id} className={`chip ${e.physical_page === null ? 'warn' : ''}`}
-                to={`../docs?doc=${v}&block=${e.block_id}`}>{pageLabel(e.physical_page, e.printed_page)}</Link>)}</div></>
+              {m?.summary ? <><p>{m.summary}</p><div className="chips">{m.evidence.map(e => chip(e, pageLabel(e.physical_page, e.printed_page)))}</div></>
                 : <Badge tone="warning">근거 확인 필요 — 관련 내용을 찾지 못했어요. 원문을 직접 확인해 주세요.</Badge>}
             </div>
           </Card>;
@@ -180,7 +238,7 @@ function Editor({ initial, matches }: { initial: Sheet | null; matches: Match[] 
       </section>
     </div> : <Card title="전체 점수표">
       <div className="table-wrap"><table className="table score-table">
-        <thead><tr><th>평가항목</th><th className="num">배점</th>{project.vendor_ids.map(v => <th key={v} className="num">{vendorName(v)}</th>)}</tr></thead>
+        <thead><tr><th>평가항목</th><th className="num">배점</th>{project.vendor_ids.map(v => <th key={v} className="num"><VendorLabel id={v} /></th>)}</tr></thead>
         <tbody>{crit.map(x => <tr key={x.id}><td>{x.name}</td><td className="num">{x.max_score}</td>
           {project.vendor_ids.map(v => { const k = cellKey(v, x.id); return <td key={v} className="num">
             <input className="score-input" type="number" min={0} max={x.max_score} step="0.5" value={cells[k] ?? ''} disabled={locked}
@@ -199,6 +257,8 @@ function Editor({ initial, matches }: { initial: Sheet | null; matches: Match[] 
 
     <SaveBar state={state} locked={locked} savedAt={savedAt}
       changed={dirty} onSave={() => void save()} />
+
+    {drawer && <EvidenceDrawer projectId={project.id} evidence={drawer} nonce={nonce} onClose={closeEvidence} />}
 
     <Dialog open={!!conflict} onClose={() => setConflict(null)} title="다른 곳에서 먼저 저장된 내용이 있어요" actions={conflict && <>
       <button className="btn" onClick={() => applyServer(conflict)}>서버 값 사용 (내 입력 버림)</button>
@@ -222,10 +282,11 @@ function SaveBar({ state, locked, savedAt, changed, onSave }: { state: SaveState
         : state.kind === 'invalid' ? { tone: 'danger', msg: state.message }
           : changed ? { tone: 'warning', msg: '저장하지 않은 변경이 있어요 (임시보관 중)' }
             : { tone: 'success', msg: savedAt ? `서버에 저장됨 · ${formatTime(savedAt)}` : '아직 저장한 내용이 없어요' };
+  const off = state.kind === 'saving' || (!changed && state.kind !== 'failed');
   return <div className={`save-bar tone-${text.tone}`}>
     <span role="status" aria-live="polite" className="save-msg">{text.msg}</span>
     {!locked && <div className="row">
-      <button className="btn primary" disabled={state.kind === 'saving' || (!changed && state.kind !== 'failed')} onClick={onSave}>
+      <button className="btn primary" aria-disabled={off} onClick={() => { if (!off) onSave(); }}>
         {state.kind === 'failed' ? '다시 시도' : '저장'}</button>
       <Link className="btn" to="../submit">제출 전 확인 ›</Link>
     </div>}
@@ -241,7 +302,7 @@ function ConflictDiff({ mine, server }: { mine: { cells: Cells; opinion: string 
     <p>서버에 저장된 평가표(v{server.version})와 지금 입력이 다른 칸입니다. 어느 쪽을 쓸지 고르세요.</p>
     {rows.length ? <div className="table-wrap small-table"><table className="table">
       <thead><tr><th>항목</th><th>제안사</th><th className="num">내 입력</th><th className="num">서버 값</th></tr></thead>
-      <tbody>{rows.map(r => <tr key={r.k}><td>{r.c.name}</td><td>{vendorName(r.v)}</td>
+      <tbody>{rows.map(r => <tr key={r.k}><td>{r.c.name}</td><td><VendorLabel id={r.v} /></td>
         <td className="num"><strong>{mine.cells[r.k] || '-'}</strong></td><td className="num">{theirs[r.k] ?? '-'}</td></tr>)}</tbody>
     </table></div> : <p className="muted">점수는 같습니다.</p>}
     {mine.opinion !== server.opinion && <p className="muted">평가 의견도 서로 다릅니다.</p>}

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { api, describeError, unwrap } from '../../api/client';
+import { api, describeError, request, unwrap } from '../../api/client';
 import { clearDraft, readDraft } from '../../lib/draft';
 import { useSession } from '../../lib/session';
 import { useLoad } from '../../lib/useLoad';
-import { formatDateTime, formatScore, vendorName } from '../../lib/format';
+import { formatDateTime, formatScore } from '../../lib/format';
 import { Async } from '../../ui/states';
-import { Card, Dialog, Notice } from '../../ui/ui';
+import { Card, Dialog, Notice, VendorLabel, useToast } from '../../ui/ui';
+import type { Match } from '../../api/contract';
+import { readSeen, seenKey } from './Evaluate';
 import { useEval } from './EvalProject';
 
 export function SubmitPage() {
@@ -14,10 +16,18 @@ export function SubmitPage() {
   const { session } = useSession();
   const params = { path: { project_id: project.id } };
   const load = useLoad(async () => unwrap(await api.GET('/api/v1/projects/{project_id}/evaluations/me', { params })), [project.id]);
+  // 근거 열람 참고 줄: 실패하면 숨기고, 제출 가능 여부에는 쓰지 않아요.
+  const matches = useLoad(() => request<Match[]>('GET', `/api/v1/projects/${project.id}/matches`), [project.id]);
+  const unseen = matches.data ? (() => {
+    const seen = readSeen(project.id, session!.user_id);
+    const withEv = matches.data.filter(m => m.evidence.length);
+    return { total: withEv.length, n: withEv.filter(m => !m.evidence.some(e => seen.has(seenKey(e)))).length };
+  })() : null;
   const [attested, setAttested] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
   const unsaved = readDraft(project.id, session!.user_id);
 
   return <Async load={load} loadingLabel="평가표를 확인하는 중">
@@ -32,14 +42,14 @@ export function SubmitPage() {
         setBusy(true); setError(null);
         try {
           unwrap(await api.POST('/api/v1/projects/{project_id}/evaluations/me/submit', { params, body: { expected_version: sheet.version, attested: true } }));
-          clearDraft(project.id, session!.user_id); setConfirming(false); await load.reload(); await reload();
+          clearDraft(project.id, session!.user_id); setConfirming(false); await load.reload(); await reload(); toast('제출을 마쳤어요.');
         } catch (e) { setError(e); setConfirming(false); } finally { setBusy(false); }
       }
 
       return <>
         {submitted ? <Notice tone="success" title={`제출 완료 · ${formatDateTime(sheet!.submitted_at)}`}>
-          평가표가 잠겼습니다. 결과는 모든 위원이 제출한 뒤 집계됩니다. 수정이 필요하면 간사에게 요청해 주세요.</Notice>
-          : <Notice tone="warning" title="제출하면 수정할 수 없어요">아래 점검 항목을 모두 통과해야 제출할 수 있습니다.</Notice>}
+          평가표가 잠겼어요. 결과는 전원 제출 후 집계되며, 수정은 간사에게 요청하세요.</Notice>
+          : <Notice tone="warning" title="제출하면 수정할 수 없어요">점검 항목을 모두 통과해야 제출할 수 있어요.</Notice>}
         <Card title="제출 전 점검">
           <ul className="checklist">
             <li className={sheet ? 'ok' : 'bad'}><span aria-hidden="true">{sheet ? '✓' : '✕'}</span>
@@ -48,14 +58,16 @@ export function SubmitPage() {
               {unsaved && !submitted ? <>저장하지 않은 입력이 있어요 · <Link to="../evaluate">평가하기에서 저장</Link></> : '저장하지 않은 입력이 없어요'}</li>
             <li className={missing.length ? 'bad' : 'ok'}><span aria-hidden="true">{missing.length ? '✕' : '✓'}</span>
               {missing.length ? `입력하지 않은 항목 ${missing.length}개` : `모든 항목(${project.criteria.length * project.vendor_ids.length}개) 입력 완료`}</li>
+            {unseen && <li className="info"><span aria-hidden="true">ⓘ</span>
+              {unseen.n ? `근거를 열어 보지 않은 칸 ${unseen.n}개 · 이 브라우저 기준, 제출에는 영향 없어요` : '모든 근거를 열어 봤어요'}</li>}
           </ul>
           {missing.length > 0 && <ul className="missing-list">{missing.slice(0, 12).map(m => <li key={`${m.v}${m.c.id}`}>
-            <Link to={`../evaluate?c=${m.i}`}>{vendorName(m.v)} · {m.c.name}</Link></li>)}
+            <Link to={`../evaluate?c=${m.i}`}><VendorLabel id={m.v} /> · {m.c.name}</Link></li>)}
             {missing.length > 12 && <li className="muted">외 {missing.length - 12}개</li>}</ul>}
         </Card>
         {sheet && <Card title="제안사별 기술 점수 합계">
           <div className="stats">{project.vendor_ids.map(v => <div key={v} className="stat">
-            <div className="stat-label">{vendorName(v)}</div>
+            <div className="stat-label"><VendorLabel id={v} /></div>
             <div className="stat-value">{formatScore(sheet.scores.filter(s => s.vendor_id === v).reduce((a, s) => a + s.score, 0))}
               <small> / {project.criteria.reduce((a, c) => a + c.max_score, 0)}</small></div>
           </div>)}</div>

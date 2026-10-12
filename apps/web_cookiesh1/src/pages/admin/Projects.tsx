@@ -30,7 +30,7 @@ export function ProjectsPage() {
   }
 
   return <>
-    <PageHeader eyebrow="사업 관리" title="평가 사업" description="평가 사업의 준비부터 결과 확인까지 관리합니다."
+    <PageHeader eyebrow="사업 관리" title="평가 사업"
       actions={<button className="btn primary" onClick={() => setParams({ new: '1' })}>＋ 새 사업</button>} />
     <Card>
       <div className="filters">
@@ -66,7 +66,7 @@ export function ProjectsPage() {
     </Card>
     <Dialog open={creating} onClose={() => setParams({})} title="새 사업 등록">
       <form onSubmit={create} className="form">
-        <p className="muted">등록 후 제안요청서를 올리면 평가기준 초안이 만들어집니다. 제안사는 mock에서 3개사로 고정됩니다.</p>
+        <p className="muted">등록 후 제안요청서를 올려 주세요. (mock: 제안사 3개사 고정)</p>
         <label className="field">사업명<input name="name" required maxLength={200} placeholder="예: 정보시스템 구축 사업" autoFocus /></label>
         <label className="field">담당 부서<input name="department" required maxLength={100} placeholder="예: 정보화사업팀" /></label>
         {error !== null && <Notice tone="danger" role="alert" title={describeError(error).title}>{describeError(error).detail}</Notice>}
