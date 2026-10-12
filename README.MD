@@ -48,6 +48,56 @@ AI가 추출·생성한 요구사항과 평가기준은 사람이 검토·확정
 
 완료 여부는 코드 존재만으로 판단하지 않습니다. [인수검증표](docs/testing/ACCEPTANCE.md)의 해당 시나리오를 실행하고 명령·결과·남은 제한을 개인 문서와 PR에 남깁니다.
 
+## 시작하기: 포크·내려받기·웹 화면 실행
+
+### 1. 개인 포크와 내려받기
+
+1. GitHub에서 [팀 저장소](https://github.com/DaeUng79/5topilot_team) 오른쪽 위 **Fork**를 눌러 내 계정으로 복사합니다.
+2. 내 포크를 PC로 내려받고, 팀 저장소를 `upstream`으로 연결합니다.
+
+```bash
+git clone https://github.com/<내 GitHub 계정>/5topilot_team.git
+cd 5topilot_team
+git remote add upstream https://github.com/DaeUng79/5topilot_team.git
+```
+
+3. 작업 전에는 팀 저장소의 최신 내용을 받아 내 브랜치를 만듭니다. PR은 내 포크의 브랜치 → 팀 저장소 `main`으로 올립니다.
+
+```bash
+git fetch upstream
+git switch -c feat/<작업 이름> upstream/main
+```
+
+### 2. 웹 화면 실행 (`apps/web_cookiesh1`)
+
+준비물은 **Node.js 22.12 이상**과 Git입니다. 아래 명령은 저장소 루트 기준입니다.
+
+```bash
+cd apps/web_cookiesh1
+npm install
+```
+
+서버 없이 화면만 확인할 때는 **mock 모드**(합성 데이터)로 실행합니다.
+
+| 환경 | 명령 |
+| --- | --- |
+| macOS·Linux·Git Bash | `VITE_USE_MOCK=1 npm run dev` |
+| Windows PowerShell | `$env:VITE_USE_MOCK='1'; npm run dev` |
+
+- 브라우저에서 http://localhost:5173 을 엽니다. 상단에 "MOCK · 실제 서버 아님" 띠가 보이면 mock 모드입니다.
+- 로그인(`feat/web-interview-track` 기준): [평가위원] 탭에서 화면의 가상 위원을 누르면 인증까지 자동으로 진행됩니다. [관리자] 탭은 데모 계정이 미리 채워져 있어 [로그인]만 누르면 됩니다.
+- 실제 API에 연결할 때는 `VITE_USE_MOCK` 없이 `npm run dev`로 실행합니다. API 주소는 `127.0.0.1:8000`이며, 공동 API(`apps/api`)가 통합된 뒤 사용할 수 있습니다.
+- 확인 명령: `npm run typecheck`, `npm test`, `npm run build`
+
+> **최신 화면 확인**: 아직 `main`에 병합되지 않은 웹 화면은 팀 저장소의 `feat/web-interview-track` 브랜치에 있습니다.
+>
+> ```bash
+> git fetch upstream feat/web-interview-track
+> git switch -c web-preview upstream/feat/web-interview-track
+> ```
+>
+> 이 브랜치를 받은 뒤 위 실행 순서를 그대로 따르면 됩니다. 화면 구성·mock 규칙·검증 기록은 [웹 화면 README](apps/web_cookiesh1/README.md)를 참고합니다.
+
 ## 현재 폴더 구조
 
 아래는 실제 존재하는 주요 경로입니다. 가상환경·캐시 등 로컬 전용 파일은 생략했습니다.
