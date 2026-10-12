@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | [step1_parser_hwpx.py](../../apps/documents_daeung/step1_parser_hwpx.py) | HWPX XML·표·이미지·원문 위치 파싱, HWP 렌더 트리 처리 | 중첩 표·셀 관계, 블록 순서, 물리 페이지와 인쇄 쪽번호 구분 |
 | [step2_hwpx_storage.py](../../apps/documents_daeung/step2_hwpx_storage.py) | 청크 생성, MongoDB/GridFS 저장 | 파일 해시 검증, 버전별 upsert, 저장 건수 확인 후 활성 버전 공개 |
-| [step3_ai_requirements.py](../../apps/documents_daeung/step3_ai_requirements.py) | 모델로 원문 블록 ID를 선택하고 요구사항 복사 | 모델이 원문을 재작성하지 않고 참조만 선택, 저장 전후 버전 검사 |
+| [step3_ai_requirements_SQLite.py](../../apps/documents_daeung/step3_ai_requirements_SQLite.py) | 모델로 원문 블록 ID를 선택하고 요구사항 복사 | 모델이 원문을 재작성하지 않고 참조만 선택, 저장 전후 버전 검사 |
 | [step4_ai_criteria.py](../../apps/documents_daeung/step4_ai_criteria.py) | 요구사항을 평가기준 초안으로 변환 | 원문 기준표 우선, 항목·배점 유지, 서식과 요구사항 버전 연결 |
 | [streamlit_main.py](../../apps/documents_daeung/streamlit_main.py) | 업로드·이력·문서·요구사항·기준 확인 | 실패 시 파싱 결과 보존, 재저장, 명시적인 추출 버튼 |
 | [streamlit_main.py --page-preview](../../apps/documents_daeung/streamlit_main.py) | 별도 프로세스의 SVG 미리보기 | 원본 해시 확인, 렌더러 종료, 미리보기 캐시 |

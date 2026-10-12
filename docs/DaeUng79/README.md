@@ -30,7 +30,7 @@
 | --- | --- | --- |
 | HWPX/HWP 파싱 | [step1_parser_hwpx.py](../../apps/documents_daeung/step1_parser_hwpx.py) | 소스 존재. HWPX 중심이며 HWP 경로는 일부 구조·이미지 기능 제한 |
 | 저장·검색 청크 | [step2_hwpx_storage.py](../../apps/documents_daeung/step2_hwpx_storage.py) | MongoDB/GridFS·버전별 레코드·청크 생성. 임베딩 미생성 |
-| 요구사항 추출 | [step3_ai_requirements.py](../../apps/documents_daeung/step3_ai_requirements.py) | 모델이 고른 블록을 원문에서 복사·검증. 조기 종료에 대한 완전성 검증 필요 |
+| 요구사항 추출 | [step3_ai_requirements_SQLite.py](../../apps/documents_daeung/step3_ai_requirements_SQLite.py) | 모델이 고른 블록을 원문에서 복사·검증하고 SQLite에 저장 |
 | 평가기준 초안 | [step4_ai_criteria.py](../../apps/documents_daeung/step4_ai_criteria.py) | 항목·배점 유지. 행별 근거·사람의 검토/확정 상태 보완 필요 |
 | 확인 화면·미리보기 | [streamlit_main.py](../../apps/documents_daeung/streamlit_main.py) | 업로드·조회·추출·SVG 미리보기 소스 존재 |
 | RAG·사업 권한·위원회 자동화 | [활용 설계안](CODE_REVIEW_AND_RAG.md) | 계획 단계 |

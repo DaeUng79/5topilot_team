@@ -1,6 +1,6 @@
-"""DB에 저장된 제안 요구사항과 붙임 6 참고 서식으로 정성적 평가기준표를 생성한다.
+"""SQLite 요구사항과 참고 서식으로 정성적 평가기준표를 생성·저장한다.
 
-실행 예: python step4_ai_criteria.py --document-id '<문서 ID>' --save
+실행 예: python -m apps.documents_daeung.step4_ai_criteria --document-id '<문서 ID>'
 """
 from __future__ import annotations
 
@@ -8,22 +8,21 @@ import hashlib
 import html
 import json
 import re
-from contextlib import contextmanager
+import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
 if __package__:
-    from . import step3_ai_requirements as requirements
+    from . import step3_ai_requirements_SQLite as requirements
 else:
-    import step3_ai_requirements as requirements
+    import step3_ai_requirements_SQLite as requirements
 
 ROOT = Path(__file__).resolve().parent
-ENV_PATH = requirements.ENV_PATH
 DEFAULT_MODEL = requirements.DEFAULT_MODEL
 CRITERIA_VERSION = "qualitative-criteria-v2"
-RESULT_COLLECTION = "RequestCriteria"
 FALLBACK_TEMPLATE_PATH = ROOT / "doc" / "ai_criteria.md"
-REQUEST_COLLECTION = "Request"
+DATABASE = ROOT / "documents.sqlite3"
 
 
 class CriteriaError(RuntimeError):
@@ -50,7 +49,7 @@ def _json(value):
 def _criteria_id(document, requirement_result, reference, model=DEFAULT_MODEL):
     """문서·요구사항 내용·기준 서식·생성기·모델 버전을 묶어 평가기준 캐시 ID를 만든다."""
     requirements_hash = hashlib.sha256(_json([
-        requirement_result.get("summary"), requirement_result.get("details")
+        requirement_result.get("requirement_list"), requirement_result.get("details")
     ]).encode("utf-8")).hexdigest()
     payload = [str(document.get("_id") or document.get("document_id")),
                document.get("active_revision"), requirement_result.get("_id"),
@@ -79,7 +78,7 @@ def _block_text(block):
 def requirements_text(result):
     """추출 결과의 총괄표와 상세 원문을 요약 없이 텍스트로 전달한다."""
     sections = []
-    for title, key in (("요구사항 총괄표", "summary"), ("요구사항 세부내역", "details")):
+    for title, key in (("요구사항 목록", "requirement_list"), ("요구사항 세부내역", "details")):
         blocks = result.get(key, {}).get("blocks", [])
         values = [_block_text(block) for block in blocks]
         values = [value for value in values if value]
@@ -364,60 +363,6 @@ def generate_criteria(document, requirement_result, *, client=None, model=DEFAUL
     }
 
 
-@contextmanager
-def criteria_database(env_path=ENV_PATH, database=None):
-    """평가기준용 DB 연결을 제공하고 종료 시 닫는다. 연결 상세가 없는 업무 오류로 변환한다."""
-    from pymongo import MongoClient
-
-    try:
-        uri, db_name = requirements.mongo_settings(Path(env_path), database)
-        with MongoClient(uri, serverSelectionTimeoutMS=10000, connectTimeoutMS=10000,
-                         socketTimeoutMS=60000, appname="rfp-criteria") as client:
-            yield client[db_name] if db_name else client.get_default_database(default="Request_for_Proposal")
-    except CriteriaError:
-        raise
-    except Exception as error:
-        raise CriteriaError(f"평가기준 DB 처리 실패 ({type(error).__name__}). 접속 설정과 권한을 확인해 주세요.") from None
-
-
-def _read_source(db, document_id):
-    """요구사항 모듈로 원문을 조회하고 실패를 평가기준용 오류로 변환한다."""
-    try:
-        return requirements.read_source(db, document_id, REQUEST_COLLECTION)
-    except requirements.RequirementsError as error:
-        raise CriteriaError(str(error)) from None
-
-
-def _load_requirements(db, document):
-    """현재 원문·모델에 연결된 요구사항 결과를 조회해 검증하고 없으면 선행 추출을 요구한다."""
-    try:
-        requirements._identity(document)
-        result_id = requirements._result_id(document, DEFAULT_MODEL)
-        result = db[requirements.RESULT_COLLECTION].find_one({"_id": result_id})
-        if not result:
-            raise CriteriaError("먼저 제안 요구사항을 추출하고 저장해 주세요.")
-        requirements.validate_result(document, result)
-        return result
-    except requirements.RequirementsError as error:
-        raise CriteriaError(str(error)) from None
-
-
-def load_saved_criteria(document, *, env_path=ENV_PATH, database=None):
-    """현재 문서·요구사항·서식에 맞는 저장 평가기준을 조회·검증한다. 모델은 호출하지 않는다."""
-    if not document.get("active_revision"):
-        return None
-    with criteria_database(env_path, database) as db:
-        current = _read_source(db, str(document.get("_id") or document.get("document_id")))
-        if current.get("active_revision") != document.get("active_revision"):
-            raise CriteriaError("문서의 파싱 버전이 변경되었습니다. 문서를 다시 열어 주세요.")
-        requirement_result = _load_requirements(db, current)
-        template = _resolve_template(current)
-        result = db[RESULT_COLLECTION].find_one({"_id": _criteria_id(current, requirement_result, template)})
-        if result:
-            _validate_saved(current, requirement_result, template, result)
-        return result
-
-
 def _validate_saved(document, requirement_result, reference, result):
     """저장 결과의 출처·버전·항목 구성·배점·내용 유무를 검증하고 불일치하면 오류를 낸다."""
     expected_id = _criteria_id(document, requirement_result, reference)
@@ -452,78 +397,143 @@ def _validate_saved(document, requirement_result, reference, result):
         raise CriteriaError("저장된 평가기준표의 총 배점이 참고 서식과 다릅니다.")
 
 
-def save_criteria(db, document, requirement_result, reference, result,
-                  collection_name=REQUEST_COLLECTION):
-    """현재 원문과 서식을 다시 검증해 결과를 저장하고 문서 버전을 재확인한다. 승인 처리는 수행하지 않는다."""
-    from bson import BSON
+CRITERIA_SCHEMA = """
+CREATE TABLE IF NOT EXISTS criteria_results (
+    result_id TEXT PRIMARY KEY,
+    document_id TEXT NOT NULL,
+    source_revision TEXT NOT NULL,
+    source_requirements_id TEXT NOT NULL REFERENCES requirement_results(result_id),
+    reference_revision TEXT NOT NULL,
+    criteria_version TEXT NOT NULL,
+    model TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    result_json TEXT NOT NULL,
+    FOREIGN KEY (document_id, source_revision)
+        REFERENCES parse_snapshots(document_id, revision)
+);
+CREATE INDEX IF NOT EXISTS idx_criteria_source
+    ON criteria_results(document_id, source_revision);
+"""
 
+
+def _source_and_requirements(db_path, document_id):
+    try:
+        document = requirements.read_source(db_path, document_id)
+        requirement_result = requirements.load_saved_requirements(db_path, document_id)
+    except requirements.RequirementsError as error:
+        raise CriteriaError(str(error)) from None
+    if requirement_result is None:
+        raise CriteriaError("먼저 제안 요구사항을 추출하고 저장해 주세요.")
+    return document, requirement_result
+
+
+def load_saved_criteria(db_path, document_id):
+    """현재 파싱·요구사항 버전과 서식에 맞는 SQLite 결과만 읽는다."""
+    document, requirement_result = _source_and_requirements(db_path, document_id)
+    reference = _resolve_template(document)
+    result_id = _criteria_id(document, requirement_result, reference)
+    with closing(requirements._connect(db_path, readonly=True)) as connection:
+        exists = connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='criteria_results'"
+        ).fetchone()
+        if not exists:
+            return None
+        row = connection.execute(
+            "SELECT result_json FROM criteria_results WHERE result_id=? "
+            "AND document_id=? AND source_revision=?",
+            (result_id, document_id, document["active_revision"]),
+        ).fetchone()
+    if row is None:
+        return None
+    result = json.loads(row["result_json"])
     _validate_saved(document, requirement_result, reference, result)
-    current = _read_source(db, str(document.get("_id") or document.get("document_id")))
-    current_requirements = _load_requirements(db, current)
-    current_template = _resolve_template(current)
-    _validate_saved(current, current_requirements, current_template, result)
-    if len(BSON.encode(result)) >= 15 * 1024 * 1024:
-        raise CriteriaError("평가기준 결과가 15 MiB를 초과하여 저장할 수 없습니다.")
-    db[RESULT_COLLECTION].replace_one({"_id": result["_id"]}, result, upsert=True)
-    latest = db[collection_name].find_one({"_id": result["document_id"]}, {"active_revision": 1})
-    if not latest or latest.get("active_revision") != result["source_revision"]:
-        raise CriteriaError("생성 중 원본 문서가 변경되었습니다. 현재 문서를 다시 열어 주세요.")
-
-
-def extract_and_save_criteria(document_id, *, env_path=ENV_PATH, database=None,
-                              force=False, progress=None):
-    """유효한 기존 결과를 반환하거나 모델로 평가기준을 생성해 DB에 저장한다."""
-    with criteria_database(env_path, database) as db:
-        document = _read_source(db, str(document_id))
-        requirement_result = _load_requirements(db, document)
-        template = _resolve_template(document)
-        result_id = _criteria_id(document, requirement_result, template)
-        if not force:
-            previous = db[RESULT_COLLECTION].find_one({"_id": result_id})
-            if previous:
-                _validate_saved(document, requirement_result, template, previous)
-                return previous
-    if progress:
-        progress("평가기준 서식과 제안 요구사항을 반영해 평가기준표 생성 중")
-    result = generate_criteria(document, requirement_result)
-    result["_id"] = _criteria_id(document, requirement_result, template)
-    with criteria_database(env_path, database) as db:
-        save_criteria(db, document, requirement_result, template, result)
     return result
 
 
+def save_criteria(db_path, document, requirement_result, result):
+    """현재 문서·요구사항을 다시 확인하고 평가기준을 원자적으로 저장한다."""
+    reference = _resolve_template(document)
+    _validate_saved(document, requirement_result, reference, result)
+    def json_default(value):
+        if isinstance(value, datetime):
+            return value.isoformat()
+        raise TypeError(type(value).__name__)
+
+    payload = json.dumps(result, ensure_ascii=False, sort_keys=True, default=json_default)
+    with closing(requirements._connect(db_path)) as connection:
+        connection.executescript(CRITERIA_SCHEMA)
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            current = requirements._read_source(connection, result["document_id"])
+            requirements.validate_result(current, requirement_result)
+            saved_requirement = connection.execute(
+                "SELECT result_json FROM requirement_results WHERE result_id=? AND document_id=? "
+                "AND source_revision=?",
+                (requirement_result["_id"], result["document_id"], result["source_revision"]),
+            ).fetchone()
+            if not saved_requirement:
+                raise CriteriaError("저장된 요구사항 결과가 변경되었습니다. 다시 열어 주세요.")
+            current_requirements = json.loads(saved_requirement["result_json"])
+            if any(current_requirements.get(key) != requirement_result.get(key)
+                   for key in ("requirement_list", "details")):
+                raise CriteriaError("평가기준 생성 중 요구사항 내용이 변경되었습니다. 다시 생성해 주세요.")
+            current_reference = _resolve_template(current)
+            _validate_saved(current, requirement_result, current_reference, result)
+            connection.execute(
+                "INSERT INTO criteria_results "
+                "(result_id, document_id, source_revision, source_requirements_id, "
+                "reference_revision, criteria_version, model, created_at, result_json) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(result_id) DO UPDATE SET "
+                "created_at=excluded.created_at, result_json=excluded.result_json",
+                (result["_id"], result["document_id"], result["source_revision"],
+                 result["source_requirements_id"], result["reference_revision"],
+                 result["criteria_version"], result["model"],
+                 str(result["created_at"]), payload),
+            )
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+    return json.loads(payload)
+
+
+def extract_and_save_criteria(document_id, *, db_path=DATABASE, force=False,
+                              progress=None, client=None):
+    """저장 결과를 재사용하거나 평가기준을 생성해 SQLite에 저장한다."""
+    document, requirement_result = _source_and_requirements(db_path, document_id)
+    if not force:
+        previous = load_saved_criteria(db_path, document_id)
+        if previous is not None:
+            return previous
+    if progress:
+        progress("요구사항과 평가 서식을 반영해 기준표 생성 중")
+    result = generate_criteria(document, requirement_result, client=client)
+    result["_id"] = _criteria_id(document, requirement_result, _resolve_template(document))
+    return save_criteria(db_path, document, requirement_result, result)
+
+
 def main():
-    """문서 ID와 CLI 옵션으로 기준을 생성하고 선택적으로 DB·JSON 파일에 저장한다."""
     import argparse
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--document-id", required=True)
-    parser.add_argument("--env", type=Path, default=ENV_PATH)
-    parser.add_argument("--database", default="Request_for_Proposal")
-    parser.add_argument("--save", action="store_true", help="RequestCriteria에 결과 저장")
-    parser.add_argument("--force", action="store_true", help="저장 결과가 있어도 API로 다시 생성")
+    parser.add_argument("--database", type=Path, default=DATABASE)
+    parser.add_argument("--force", action="store_true", help="저장 결과가 있어도 다시 생성")
     parser.add_argument("--output", type=Path, help="결과 JSON 파일")
     args = parser.parse_args()
     try:
-        if args.save:
-            result = extract_and_save_criteria(args.document_id, env_path=args.env,
-                                               database=args.database, force=args.force,
-                                               progress=print)
-        else:
-            with criteria_database(args.env, args.database) as db:
-                document = _read_source(db, args.document_id)
-                requirement_result = _load_requirements(db, document)
-            result = generate_criteria(document, requirement_result)
-            result["_id"] = _criteria_id(document, requirement_result, _resolve_template(document))
+        result = extract_and_save_criteria(args.document_id, db_path=args.database,
+                                           force=args.force, progress=print)
         if args.output:
-            from bson import json_util
             args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(json_util.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-        print(json.dumps({"document_id": result["document_id"], "status": "complete",
-                          "criteria_rows": len(result["rows"]), "total_score": result["total_score"],
-                          "usage": result["usage"], "saved": args.save}, ensure_ascii=False))
-    except CriteriaError as error:
-        parser.exit(1, str(error) + "\n")
+            args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(json.dumps({"document_id": result["document_id"],
+                          "criteria_rows": len(result["rows"]),
+                          "total_score": result["total_score"],
+                          "usage": result["usage"]}, ensure_ascii=False))
+    except (CriteriaError, requirements.RequirementsError, sqlite3.Error, OSError, ValueError) as error:
+        parser.exit(1, f"평가기준 처리 실패: {error}\n")
 
 
 if __name__ == "__main__":

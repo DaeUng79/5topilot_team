@@ -8,6 +8,7 @@ import os
 import sys
 import hashlib
 import mimetypes
+import sqlite3
 from collections import Counter
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -883,12 +884,9 @@ if __name__ == "__main__":
         default=None,
         help="파싱 결과 JSON 경로",
     )
-    env_path = base_dir / ".env" if (base_dir / ".env").is_file() else base_dir.parents[1] / ".env"
-    parser.add_argument("--env-file", type=Path, default=env_path, help="MongoDB 설정 파일")
-    parser.add_argument("--database", help="MongoDB 데이터베이스명 (설정/URI보다 우선)")
-    parser.add_argument("--collection", default="Request", help="추출 문서 컬렉션명 (기본: Request)")
-    parser.add_argument("--no-mongo", action="store_true", help="MongoDB 저장 없이 로컬 결과만 생성")
-    parser.add_argument("--store-source", action="store_true", help="원본 HWP/HWPX 파일도 GridFS에 저장")
+    parser.add_argument("--database", type=Path, default=base_dir / "documents.sqlite3",
+                        help="SQLite 파일 경로 (기본: documents.sqlite3)")
+    parser.add_argument("--no-save", action="store_true", help="SQLite에 저장하지 않고 JSON만 생성")
     parser.add_argument("--no-pagination", action="store_true", help="HWPX 페이지 렌더링 생략")
     parser.add_argument("--strict-pagination", action=argparse.BooleanOptionalAction, default=True,
                         help="페이지 매핑 실패 시 중단 (기본값). --no-strict-pagination으로 부분 추출 허용")
@@ -957,18 +955,13 @@ if __name__ == "__main__":
     )
     print("블록 개수:", len(result["blocks"]), "이미지 개수:", len(result["images"]))
     print("파싱 경고:", len(result.get("warnings", [])))
-    if not args.no_mongo:
+    if not args.no_save:
         if __package__:
-            from .step2_hwpx_storage import MongoStorageError, save_to_mongodb
+            from .step2_hwpx_save_to_SQLite import save_to_sqlite
         else:
-            from step2_hwpx_storage import MongoStorageError, save_to_mongodb
+            from step2_hwpx_save_to_SQLite import save_to_sqlite
         try:
-            saved = save_to_mongodb(result, input_path, env_path=args.env_file, database=args.database,
-                                    store_source=args.store_source, collection_name=args.collection)
-        except MongoStorageError as error:
-            parser.exit(1, f"{error}\n로컬 JSON은 보존되었습니다.\n")
-        except Exception as error:
-            # 접속 값이나 드라이버 예외 원문을 출력하지 않는다.
-            parser.exit(1, f"MongoDB 저장 실패 ({type(error).__name__}). 로컬 JSON은 보존되었습니다.\n"
-                          ".env의 URI, 네트워크 연결, 데이터베이스 쓰기 권한을 확인하세요.\n")
-        print("MongoDB 저장 완료:", json.dumps(saved, ensure_ascii=False))
+            saved = save_to_sqlite(result, args.database, source_path=input_path)
+        except (OSError, ValueError, KeyError, TypeError, sqlite3.Error) as error:
+            parser.exit(1, f"SQLite 저장 실패: {error}\n로컬 JSON은 보존되었습니다.\n")
+        print("SQLite 저장 완료:", json.dumps(saved, ensure_ascii=False))
