@@ -92,6 +92,82 @@ describe('mock API', () => {
     expect(ok.body.citations.length).toBeGreaterThan(0);
   });
 
+  it('제안사 등록: 코드 부여·중복 422·평가 시작 후 409·평가위원 403', async () => {
+    const put = (vendors: unknown[], pid = 'p2') => call('PUT', `/api/v1/projects/${pid}/vendors`, admin, { vendors });
+    expect((await call('GET', '/api/v1/projects/p2/vendors', admin)).body).toEqual([]);
+    const ok = await put([{ name: '(가상) 갑' }, { name: '(가상) 을' }]);
+    expect(ok.status).toBe(200);
+    expect(ok.body.map((v: { vendor_id: string; code: string }) => [v.vendor_id, v.code])).toEqual([['vendor-a', 'A'], ['vendor-b', 'B']]);
+    expect((await call('GET', '/api/v1/projects', admin)).body.find((p: { id: string }) => p.id === 'p2').vendor_ids).toEqual(['vendor-a', 'vendor-b']);
+    expect((await put([{ name: '같음' }, { name: ' 같음 ' }])).status).toBe(422);
+    expect((await put([{ name: '' }])).status).toBe(422);
+    expect((await put(Array.from({ length: 6 }, (_, i) => ({ name: `업체${i}` })))).status).toBe(422);
+    expect((await put([{ name: '(가상) 갑' }], 'p1')).status).toBe(409);
+    expect((await call('GET', '/api/v1/projects/p2/vendors', ev('cand-1'))).status).toBe(403);
+    expect((await call('GET', '/api/v1/projects/p1/vendors', ev('cand-1'))).status).toBe(403);
+    expect((await put([])).status).toBe(200);
+  });
+
+  it('미등록 업체 제안서 업로드 422, 제안서 있는 업체 삭제 409', async () => {
+    await call('PUT', '/api/v1/projects/p2/vendors', admin, { vendors: [{ name: '(가상) 갑' }] });
+    const up = (vendor_id: string) => call('POST', '/api/v1/projects/p2/documents', admin, { kind: 'proposal', vendor_id, filename: 'a.hwpx', size: 10 });
+    expect((await up('vendor-b')).status).toBe(422);
+    expect((await up('vendor-a')).status).toBe(201);
+    expect((await call('PUT', '/api/v1/projects/p2/vendors', admin, { vendors: [] })).status).toBe(409);
+    const renamed = await call('PUT', '/api/v1/projects/p2/vendors', admin, { vendors: [{ vendor_id: 'vendor-a', name: '(가상) 병' }] });
+    expect(renamed.body[0]).toMatchObject({ vendor_id: 'vendor-a', name: '(가상) 병' });
+  });
+
+  it('새 사업은 제안사 없이 시작하고 평가일을 받는다', async () => {
+    const r = await call('POST', '/api/v1/projects', admin, { name: '신규', department: '팀', evaluation_date: '2026-11-03' });
+    expect(r.status).toBe(201);
+    expect(r.body.vendor_ids).toEqual([]);
+    expect((await call('GET', `/api/v1/projects/${r.body.id}/schedule`, admin)).body.evaluation_date).toBe('2026-11-03');
+  });
+
+  it('일정: 발표 순서 순열 검증 422·진행 현황과 일치·평가위원 403', async () => {
+    const sc = await call('GET', '/api/v1/projects/p1/schedule', admin);
+    expect(sc.body).toMatchObject({ presentation_minutes: 20, qa_minutes: 10 });
+    expect(sc.body.attendance.find((a: { evaluator_id: string }) => a.evaluator_id === 'cand-5').status).toBe('unknown');
+    const put = (b: unknown) => call('PUT', '/api/v1/projects/p1/schedule', admin, b);
+    expect((await put({ presentation_order: ['vendor-a', 'vendor-b'] })).status).toBe(422);
+    expect((await put({ presentation_order: ['vendor-a', 'vendor-a', 'vendor-b'] })).status).toBe(422);
+    expect((await put({ presentation_minutes: 0 })).status).toBe(422);
+    expect((await put({ qa_minutes: 121 })).status).toBe(422);
+    expect((await put({ attendance: [{ evaluator_id: 'cand-9', status: 'present' }] })).status).toBe(422);
+    const ok = await put({ presentation_order: ['vendor-c', 'vendor-a', 'vendor-b'], evaluation_date: '2026-10-20', attendance: [{ evaluator_id: 'cand-5', status: 'absent' }] });
+    expect(ok.status).toBe(200);
+    const prog = (await call('GET', '/api/v1/projects/p1/progress', admin)).body;
+    expect(prog.presentation_order).toEqual(['vendor-c', 'vendor-a', 'vendor-b']);
+    expect(prog.evaluation_date).toBe('2026-10-20');
+    expect((await call('GET', '/api/v1/projects/p1/schedule', ev('cand-1'))).status).toBe(403);
+  });
+
+  it('사업 완료: 위원장 확인 전 409, 완료 후 변경 409·조회 허용', async () => {
+    const close = () => call('POST', '/api/v1/projects/p1/close', admin, { attested: true });
+    resetDb(true);
+    expect((await close()).status).toBe(409);
+    expect((await call('GET', '/api/v1/projects/p1/close', admin)).body).toEqual({ closed_at: null, closed_by: null });
+    await call('POST', '/api/v1/projects/p1/results/confirm', ev('cand-1'), { attested: true });
+    expect((await call('POST', '/api/v1/projects/p1/close', ev('cand-1'), { attested: true })).status).toBe(403);
+    const done = await close();
+    expect(done.status).toBe(200);
+    expect(done.body.closed_by).toBe('이간사');
+    expect((await close()).status).toBe(409);
+    expect((await call('GET', '/api/v1/projects/p1/progress', admin)).body.stage).toBe('closed');
+    expect((await call('GET', '/api/v1/projects/p1/results/detail', admin)).status).toBe(200);
+    const blocked = [
+      call('POST', '/api/v1/projects/p1/documents', admin, { kind: 'proposal', vendor_id: 'vendor-a', filename: 'a.hwpx', size: 10 }),
+      call('PUT', '/api/v1/projects/p1/vendors', admin, { vendors: [] }),
+      call('PUT', '/api/v1/projects/p1/schedule', admin, { qa_minutes: 5 }),
+      call('POST', '/api/v1/projects/p1/criteria/confirm', admin, { expected_version: 2, items: [] }),
+      call('POST', '/api/v1/projects/p1/committee/draw', admin, { candidate_ids: [], seats: 1 }),
+      call('PUT', '/api/v1/projects/p1/committee/chair', admin, { evaluator_id: 'cand-2' }),
+      call('PUT', '/api/v1/projects/p1/evaluations/me', ev('cand-2'), { expected_version: 0, opinion: '', scores: [] }),
+    ];
+    for (const r of await Promise.all(blocked)) expect(r.status).toBe(409);
+  });
+
   it('시연 도구: 서버 오류는 500, 저장 실패는 네트워크 오류', async () => {
     setFlags({ slow: false, serverError: true, saveFail: false, empty: false });
     expect((await call('GET', '/api/v1/projects', admin)).status).toBe(500);

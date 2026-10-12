@@ -1,66 +1,33 @@
-import { Link, useParams } from 'react-router';
-import { request } from '../../api/client';
-import type { DocumentRead } from '../../api/contract';
-import { useLoad } from '../../lib/useLoad';
-import { formatDate } from '../../lib/format';
-import { Async } from '../../ui/states';
-import { Badge, Card, PageHeader, Steps, Tabs, useTab } from '../../ui/ui';
-import { loadProject, loadSummary, stageInfo, stepsFor, todoOf, type ProjectSummary } from './common';
-import { emitAdminChange } from './sync';
-import { PrepChecklist } from './PrepChecklist';
-import { DocumentsTab } from './tabs/DocumentsTab';
-import { CommitteeTab } from './tabs/CommitteeTab';
-import { ProgressTab } from './tabs/ProgressTab';
-import { ResultsTab } from './tabs/ResultsTab';
+import { Navigate, NavLink, Outlet, useLocation, useSearchParams } from 'react-router';
+import { Loading, ErrorState } from '../../ui/states';
+import { projectPath, STEPS, type StepKey } from './common';
+import { useProject } from './ProjectContext';
 
+/** 사업 화면 틀. 데이터는 AdminLayout이 한 번만 불러와 컨텍스트로 나눠 줍니다. */
 export function ProjectDetail() {
-  const { projectId = '' } = useParams();
-  const load = useLoad(async () => loadSummary(await loadProject(projectId)), [projectId]);
-  const docs = useLoad(() => request<DocumentRead[]>('GET', `/api/v1/projects/${projectId}/documents`), [projectId]);
-  const tab = useTab('overview');
-  const refresh = async () => { await Promise.all([load.reload(), docs.reload()]); emitAdminChange(); };
-  return <Async load={load} loadingLabel="사업 정보를 불러오는 중">
-    {summary => <>
-      <PageHeader eyebrow={<Link to="/admin/projects">‹ 사업 관리</Link>} title={summary.project.name}
-        description={`${summary.project.department} · 평가일 ${formatDate(summary.progress.evaluation_date)}`}
-        actions={<Badge tone={stageInfo[summary.progress.stage].tone}>{stageInfo[summary.progress.stage].label}</Badge>} />
-      <PrepChecklist summary={summary} docs={docs.data} />
-      {summary.progress.stage !== 'preparing' && summary.progress.stage !== 'committee' &&
-        <Steps steps={stepsFor(summary.progress.stage)} current={stageInfo[summary.progress.stage].current} />}
-      <Tabs tabs={[
-        { key: 'overview', label: '개요' }, { key: 'documents', label: '문서·평가기준' }, { key: 'committee', label: '평가위원' },
-        { key: 'progress', label: '진행 현황' }, { key: 'results', label: '결과' },
-      ]} />
-      <div className="tab-body">
-        {tab === 'overview' && <Overview summary={summary} />}
-        {tab === 'documents' && <DocumentsTab summary={summary} onChanged={refresh} onDocsChanged={docs.reload} />}
-        {tab === 'committee' && <CommitteeTab summary={summary} onChanged={refresh} />}
-        {tab === 'progress' && <ProgressTab project={summary.project} />}
-        {tab === 'results' && <ResultsTab project={summary.project} />}
-      </div>
-    </>}
-  </Async>;
-}
+  const { data, state, error, refresh, pid = '' } = useProject();
+  const [params] = useSearchParams();
+  const { pathname } = useLocation();
+  const base = projectPath(pid);
 
-function Overview({ summary }: { summary: ProjectSummary }) {
-  const { project, progress, criteria } = summary;
-  const todo = todoOf(summary);
-  const members = progress.members.filter(m => m.role !== 'reserve');
-  const chair = progress.members.find(m => m.role === 'chair');
-  return <div className="grid-2">
-    <Card title="다음 할 일">
-      {todo ? <><p className="lead">{todo.text}</p><Link className="btn primary" to={`?tab=${todo.tab}`}>바로 진행하기 ›</Link></>
-        : <p className="lead">모든 단계를 마쳤습니다. 결과 탭에서 보고서를 확인하세요.</p>}
-    </Card>
-    <Card title="사업 요약">
-      <dl className="dl">
-        <dt>평가기준</dt><dd>{criteria.status === 'confirmed' ? `확정 v${criteria.version} · ${criteria.items.length}개 항목 · 기술 ${criteria.technical_total}점`
-          : criteria.status === 'draft' ? '초안 검토 중' : '제안요청서 대기'}</dd>
-        <dt>제안사</dt><dd>{project.vendor_ids.length}개사</dd>
-        <dt>평가위원</dt><dd>{members.length ? `본위원 ${members.length}명 · 예비 ${progress.members.length - members.length}명` : '추첨 전'}</dd>
-        <dt>위원장</dt><dd>{chair ? chair.name : '미지정'}</dd>
-        <dt>제출</dt><dd>{members.length ? `${members.filter(m => m.sheet_status === 'submitted').length} / ${members.length}` : '-'}</dd>
-      </dl>
-    </Card>
-  </div>;
+  // 예전 ?tab= 주소는 새 단계 주소로 옮깁니다.
+  const tab = params.get('tab');
+  if (tab && pathname.replace(/\/$/, '') === base) {
+    const focus = params.get('focus');
+    const to: StepKey | '' = tab === 'documents' ? (focus === 'criteria' ? 'criteria' : focus && focus !== 'rfp' ? 'proposals' : 'rfp')
+      : tab === 'committee' || tab === 'progress' || tab === 'results' ? tab : '';
+    return <Navigate to={to ? projectPath(pid, to) : base} replace />;
+  }
+  if (!data) return state === 'error' ? <ErrorState error={error} onRetry={() => void refresh()} /> : <Loading label="사업 정보를 불러오는 중" />;
+
+  return <>
+    <nav className="step-chips no-print" aria-label="사업 단계">
+      {STEPS.map((s, i) => {
+        const mark = data.steps.done[s.key] ? '✓' : data.steps.current === s.key ? '●' : String(i + 1);
+        return <NavLink key={s.key} to={projectPath(pid, s.key)} className={data.steps.current === s.key ? 'now' : ''}>
+          <span aria-hidden="true">{mark}</span> {s.label}</NavLink>;
+      })}
+    </nav>
+    <Outlet />
+  </>;
 }

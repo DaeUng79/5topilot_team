@@ -104,7 +104,7 @@ export interface DrawExclusion { candidate_id: string; reason: string }
 /** PUT /api/v1/projects/{id}/committee/chair */
 export interface ChairSet { evaluator_id: string }
 
-export type Stage = 'preparing' | 'committee' | 'evaluating' | 'collecting_done' | 'confirmed';
+export type Stage = 'preparing' | 'committee' | 'evaluating' | 'collecting_done' | 'confirmed' | 'closed';
 
 /** GET /api/v1/projects/{id}/progress */
 export interface ProgressRead {
@@ -131,3 +131,33 @@ export interface ResultsDetail {
 }
 /** POST /api/v1/projects/{id}/results/confirm — 위원장 확인 기록(전자서명 아님) */
 export interface ResultsConfirm { attested: true }
+
+/* ── 관리자 7단계 보강 (2026-10-12 제안, 담당 합의 전 mock 가정) ── */
+
+/** GET·PUT /api/v1/projects/{id}/vendors — 제안사 등록. 실제 업체명은 관리자만 조회(평가위원은 A·B·C 코드만). (DaeUng79·u-jing 합의 필요) */
+export interface VendorRead { vendor_id: string; code: string; name: string; registered_at: string }
+/** PUT 본문: 순서대로 A·B·C… 코드 부여. vendor_id가 있으면 이름만 변경. 평가 시작 후 409 */
+export interface VendorsSet { vendors: { vendor_id?: string; name: string }[] }
+
+/** GET·PUT /api/v1/projects/{id}/schedule — 평가 일정·발표 순서·참석 (PROG-01, Lex6won·u-jing 합의 필요) */
+export type Attendance = 'present' | 'absent' | 'unknown';
+export interface ScheduleRead {
+  evaluation_date: string | null;
+  presentation_order: string[];
+  presentation_minutes: number;
+  qa_minutes: number;
+  attendance: { evaluator_id: string; status: Attendance }[];
+}
+/** PUT 본문: 보낸 필드만 변경. 발표 순서는 등록된 제안사의 순열이어야 함(422) */
+export interface ScheduleSet {
+  evaluation_date?: string | null;
+  presentation_order?: string[];
+  presentation_minutes?: number;
+  qa_minutes?: number;
+  attendance?: { evaluator_id: string; status: Attendance }[];
+}
+
+/** POST /api/v1/projects/{id}/close — 사업 완료 처리(CLOSE-01, u-jing 합의 필요). 위원장 확인 전 409, 완료 후 문서·기준·위원·평가 변경 409 */
+export interface ProjectClose { attested: true }
+/** GET /api/v1/projects/{id}/close */
+export interface ProjectClosed { closed_at: string | null; closed_by: string | null }

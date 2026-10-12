@@ -1,13 +1,11 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
 import { describeError, request } from '../../../api/client';
 import type { CriteriaConfirm, CriteriaRead, CriterionDraft, DocumentRead, DocumentUpload, JobStatus } from '../../../api/contract';
-import { useLoad } from '../../../lib/useLoad';
 import { formatDateTime, pageLabel } from '../../../lib/format';
-import { emitAdminChange } from '../sync';
-import { Async, Empty } from '../../../ui/states';
-import { Badge, Card, Dialog, Notice, VendorLabel, useToast, type Tone } from '../../../ui/ui';
-import type { ProjectSummary } from '../common';
+import { Empty } from '../../../ui/states';
+import { Badge, Card, Dialog, Notice, useToast, type Tone } from '../../../ui/ui';
+import type { VendorRead } from '../../../api/contract';
+import { VendorTag } from '../VendorTag';
 
 export const jobInfo: Record<JobStatus, { label: string; tone: Tone }> = {
   queued: { label: '대기 중', tone: 'neutral' }, parsing: { label: '읽는 중', tone: 'info' },
@@ -29,51 +27,9 @@ export function usePendingPoll(pending: boolean, data: unknown, reload: () => Pr
 }
 export const isPending = (docs?: DocumentRead[]) => !!docs?.some(d => d.job.status === 'queued' || d.job.status === 'parsing');
 
-export function DocumentsTab({ summary, onChanged, onDocsChanged }: { summary: ProjectSummary; onChanged: () => Promise<void>; onDocsChanged?: () => Promise<void> }) {
-  const pid = summary.project.id;
-  const focus = useSearchParams()[0].get('focus');
-  const docs = useLoad(() => request<DocumentRead[]>('GET', `/api/v1/projects/${pid}/documents`), [pid]);
-  const criteria = useLoad(() => request<CriteriaRead>('GET', `/api/v1/projects/${pid}/criteria`), [pid]);
-  // 파싱 작업이 끝날 때까지 상태를 다시 조회합니다.
-  usePendingPoll(isPending(docs.data), docs.data, docs.reload, () => { void criteria.reload(); void onChanged(); emitAdminChange(); });
-
-  const slots: { kind: 'rfp' | 'proposal'; vendor: string | null; label: string }[] = [
-    { kind: 'rfp', vendor: null, label: '제안요청서' },
-    ...summary.project.vendor_ids.map(v => ({ kind: 'proposal' as const, vendor: v, label: `${v} 제안서` })),
-  ];
-
-  return <>
-    <Async load={docs} loadingLabel="문서 목록을 불러오는 중">
-      {list => {
-        const firstEmpty = slots.find(sl => !list.some(d => d.kind === sl.kind && d.vendor_id === sl.vendor));
-        const row = (slot: typeof slots[number]) => <DocRow key={slot.label} pid={pid} slot={slot}
-          doc={list.find(d => d.kind === slot.kind && d.vendor_id === slot.vendor)} locked={slot.kind === 'rfp' && !!criteria.data?.locked}
-          highlight={slot === firstEmpty} focused={focus === (slot.vendor ?? 'rfp')}
-          onUploaded={() => { void docs.reload(); void onDocsChanged?.(); emitAdminChange(); }} />;
-        return <>
-          <Card title="제안요청서 등록" actions={<span className="muted">HWPX만 처리 · 50MB 이하</span>}>
-            <ul className="doc-list">{slots.filter(sl => sl.kind === 'rfp').map(row)}</ul>
-          </Card>
-          <Card title="제안서 등록" actions={<span className="muted">업체별 1개 · HWPX만 처리</span>}>
-            {slots.some(sl => sl.kind === 'proposal') ? <ul className="doc-list">{slots.filter(sl => sl.kind === 'proposal').map(row)}</ul>
-              : <p className="muted">이 사업에 등록된 제안사가 없어요.</p>}
-          </Card>
-        </>;
-      }}
-    </Async>
-    <div id="criteria-section" tabIndex={-1} ref={el => { if (el && focus !== 'criteria') delete el.dataset.done; if (el && focus === 'criteria' && !el.dataset.done) { el.dataset.done = '1'; el.scrollIntoView({ block: 'start' }); el.focus({ preventScroll: true }); } }}>
-    <Async load={criteria} loadingLabel="평가기준을 불러오는 중">
-      {c => <CriteriaReview pid={pid} criteria={c} onConfirmed={async () => { await criteria.reload(); await onChanged(); }} />}
-    </Async>
-    </div>
-  </>;
-}
-
-export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded, lockedNote }: {
-  pid: string; slot: { kind: 'rfp' | 'proposal'; vendor: string | null; label: string }; doc?: DocumentRead; locked: boolean;
+export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded }: {
+  pid: string; slot: { kind: 'rfp' | 'proposal'; vendor: string | null; label: string; info?: VendorRead }; doc?: DocumentRead; locked: boolean;
   highlight: boolean; focused: boolean; onUploaded: () => void;
-  /** 잠겼을 때 버튼 대신 보여 줄 안내(문서 등록 화면용). */
-  lockedNote?: ReactNode;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -94,7 +50,7 @@ export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded,
   const empty = !doc;
   return <li ref={row} className={`doc-row ${empty ? 'empty' : ''} ${focused ? 'focused' : ''}`}>
     <div className="doc-main">
-      <strong>{slot.vendor ? <><VendorLabel id={slot.vendor} /> 제안서</> : slot.label}</strong>
+      <strong>{slot.info ? <><VendorTag vendor={slot.info} /> 제안서</> : slot.label}</strong>
       {doc ? <span className="muted">{doc.filename} · v{doc.revision} · {formatDateTime(doc.uploaded_at)}</span>
         : <span className="doc-empty">{slot.vendor ? '제안서를 올려 주세요' : '제안요청서를 올려 주세요'}<small className="muted">아직 올리지 않았어요 · HWPX 파일</small></span>}
       {doc && (doc.job.status === 'queued' || doc.job.status === 'parsing') && <ol className="job-steps" aria-label="처리 단계">
@@ -106,8 +62,8 @@ export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded,
     <div className="doc-side" aria-live="polite">
       {job && <Badge tone={job.tone}>{job.label}</Badge>}
       <input ref={input} type="file" accept=".hwpx" hidden onChange={e => { const f = e.target.files?.[0]; if (f) void upload(f); }} />
-      {locked && lockedNote ? lockedNote : <button ref={button} className={`btn ${empty && highlight ? 'primary' : 'sm'}`} disabled={busy || locked} title={locked ? '평가가 시작되어 교체할 수 없습니다' : undefined}
-        onClick={() => input.current?.click()}>{busy ? '올리는 중…' : doc ? '새 버전 올리기' : '파일 올리기'}</button>}
+      <button ref={button} className={`btn ${empty && highlight ? 'primary' : 'sm'}`} disabled={busy || locked} title={locked ? '지금은 바꿀 수 없어요' : undefined}
+        onClick={() => input.current?.click()}>{busy ? '올리는 중…' : doc ? '새 버전 올리기' : '파일 올리기'}</button>
     </div>
   </li>;
 }
@@ -120,7 +76,7 @@ function EvidenceChips({ item }: { item: CriterionDraft }) {
   </details>)}</div>;
 }
 
-function CriteriaReview({ pid, criteria, onConfirmed }: { pid: string; criteria: CriteriaRead; onConfirmed: () => Promise<void> }) {
+export function CriteriaReview({ pid, criteria, onConfirmed }: { pid: string; criteria: CriteriaRead; onConfirmed: () => Promise<void> }) {
   const [items, setItems] = useState(criteria.items);
   const [reviewed, setReviewed] = useState<string[]>([]);
   const [confirming, setConfirming] = useState(false);

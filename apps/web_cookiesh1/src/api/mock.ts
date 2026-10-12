@@ -4,10 +4,10 @@
 import type { components } from './schema';
 import type {
   AskAnswer, Assignment, Citation, CriteriaConfirm, CriteriaRead, DocumentContent, DocumentRead, DocumentUpload,
-  ProgressRead, ResultsDetail, Session, Stage,
+  ProgressRead, ProjectClose, ProjectClosed, ResultsDetail, ScheduleRead, ScheduleSet, Session, Stage, VendorRead, VendorsSet,
 } from './contract';
 import { getFlags } from './demo';
-import { type Db, SEED_VERSION, TECH_TOTAL, VENDORS, criteriaDraft, matches, proposalBlocks, rfpBlocks, seed, vendorLabel } from './mockSeed';
+import { type Db, SEED_VERSION, TECH_TOTAL, criteriaDraft, defaultSchedule, matches, proposalBlocks, rfpBlocks, seed, vendorLabel } from './mockSeed';
 
 type S = components['schemas'];
 const DB_KEY = 'simsa-mock-db';
@@ -80,7 +80,30 @@ function results(db: Db, pid: string): S['ResultsRead'] {
   };
 }
 
+const CLOSED_MSG = '완료된 사업은 바꿀 수 없어요';
+const MAX_VENDORS = 5;
+const ADMIN_NAME = '이간사';
+const isClosed = (db: Db, pid: string) => !!db.closes[pid];
+const evaluationStarted = (db: Db, pid: string) => criteriaLocked(db, pid) || !['preparing', 'committee'].includes(stageOf(db, pid));
+const vendorsOf = (db: Db, pid: string) => db.vendors[pid] ?? [];
+const validDate = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+/** 발표 순서는 등록 업체와 항상 일치: 삭제된 업체 제거, 새 업체는 뒤에 붙임 */
+function scheduleOf(db: Db, pid: string) {
+  const sc = db.schedules[pid] ?? (db.schedules[pid] = defaultSchedule());
+  const ids = vendorsOf(db, pid).map(v => v.vendor_id);
+  sc.presentation_order = [...sc.presentation_order.filter(id => ids.includes(id)), ...ids.filter(id => !sc.presentation_order.includes(id))];
+  return sc;
+}
+function scheduleRead(db: Db, pid: string): ScheduleRead {
+  const sc = scheduleOf(db, pid);
+  const draw = db.draws[pid];
+  return { evaluation_date: db.projects.find(p => p.id === pid)?.evaluation_date ?? null, presentation_order: sc.presentation_order,
+    presentation_minutes: sc.presentation_minutes, qa_minutes: sc.qa_minutes,
+    attendance: draw ? [...draw.selected_ids, ...draw.reserve_ids].map(evaluator_id => ({ evaluator_id, status: sc.attendance[evaluator_id] ?? 'unknown' })) : [] };
+}
+
 function stageOf(db: Db, pid: string): Stage {
+  if (db.closes[pid]) return 'closed';
   if (db.confirmations[pid]) return 'confirmed';
   if (allSubmitted(db, pid)) return 'collecting_done';
   if (db.draws[pid] && db.criteria[pid]?.status === 'confirmed') return 'evaluating';
@@ -190,9 +213,11 @@ async function handle(req: Request): Promise<Response> {
     if (!isAdmin) return fail(403, '관리자만 사업을 등록할 수 있습니다.');
     const name = String(body?.name ?? '').trim(), department = String(body?.department ?? '').trim();
     if (!name || !department) return fail(422, '사업명과 담당 부서를 입력해 주세요.');
-    const created = { id: `p${db.projects.length + 1}-${Date.now() % 10000}`, name, department, criteria: [], vendor_ids: VENDORS,
-      evaluation_date: null, created_at: now() };
-    db.projects.push(created); save(db);
+    const rawDate = body?.evaluation_date ?? null;
+    if (rawDate !== null && !validDate(rawDate)) return fail(422, '평가일은 YYYY-MM-DD 형식이어야 합니다.');
+    const created = { id: `p${db.projects.length + 1}-${Date.now() % 10000}`, name, department, criteria: [], vendor_ids: [] as string[],
+      evaluation_date: rawDate as string | null, created_at: now() };
+    db.projects.push(created); db.vendors[created.id] = []; db.schedules[created.id] = defaultSchedule(); save(db);
     return json(created, 201);
   }
   if (pathname === '/api/v1/committee/candidates') {
@@ -226,12 +251,86 @@ async function handle(req: Request): Promise<Response> {
         sheet_status: sheet ? sheet.status : 'not_started', last_saved_at: sheet?.updated_at ?? null, submitted_at: sheet?.submitted_at ?? null };
     }) : [];
     return json({ stage: stageOf(db, pid), evaluation_date: project.evaluation_date, chair_id: db.chairs[pid] ?? null,
-      presentation_order: project.vendor_ids, members } satisfies ProgressRead);
+      presentation_order: scheduleOf(db, pid).presentation_order, members } satisfies ProgressRead);
+  }
+
+  if (sub === '/vendors') {
+    if (!isAdmin) return fail(403, '제안사 정보는 관리자만 볼 수 있습니다.');
+    if (method === 'GET') return json(empty ? [] : vendorsOf(db, pid) satisfies VendorRead[]);
+    if (method !== 'PUT') return fail(405, '지원하지 않는 메서드입니다.');
+    if (isClosed(db, pid)) return fail(409, CLOSED_MSG);
+    if (evaluationStarted(db, pid)) return fail(409, '평가가 시작되어 제안사를 바꿀 수 없어요. (mock 가정)');
+    const list = (body as VendorsSet | undefined)?.vendors;
+    if (!Array.isArray(list)) return fail(422, '제안사 목록이 필요해요.');
+    if (list.length > MAX_VENDORS) return fail(422, '제안사는 5곳까지 등록할 수 있어요(mock 가정)');
+    const current = vendorsOf(db, pid);
+    const names = list.map(v => String(v?.name ?? '').trim());
+    if (names.some(n => !n)) return fail(422, '제안사 이름을 입력해 주세요.');
+    if (new Set(names.map(n => n.toLowerCase())).size !== names.length) return fail(422, '같은 이름의 제안사가 있어요.');
+    const given = list.map(v => v.vendor_id).filter((x): x is string => !!x);
+    if (given.some(id => !current.some(v => v.vendor_id === id)) || new Set(given).size !== given.length) return fail(422, '등록되지 않은 제안사 번호가 있어요.');
+    const removed = current.filter(v => !given.includes(v.vendor_id));
+    if (removed.some(v => db.documents.some(d => d.project_id === pid && d.kind === 'proposal' && d.vendor_id === v.vendor_id)))
+      return fail(409, '제안서가 올라간 업체는 삭제할 수 없어요');
+    const free = ['a', 'b', 'c', 'd', 'e'].map(l => `vendor-${l}`).filter(id => !given.includes(id));
+    const next: VendorRead[] = list.map((v, i) => {
+      const prev = current.find(x => x.vendor_id === v.vendor_id);
+      return { vendor_id: prev?.vendor_id ?? free.shift()!, code: String.fromCharCode(65 + i), name: names[i], registered_at: prev?.registered_at ?? now() };
+    });
+    db.vendors[pid] = next;
+    project.vendor_ids = next.map(v => v.vendor_id);
+    scheduleOf(db, pid);
+    save(db);
+    return json(next);
+  }
+
+  if (sub === '/schedule') {
+    if (!isAdmin) return fail(403, '평가 일정은 관리자만 볼 수 있습니다.');
+    if (method === 'GET') return json(scheduleRead(db, pid));
+    if (method !== 'PUT') return fail(405, '지원하지 않는 메서드입니다.');
+    if (isClosed(db, pid)) return fail(409, CLOSED_MSG);
+    const input = (body ?? {}) as ScheduleSet;
+    const sc = scheduleOf(db, pid);
+    if (input.evaluation_date !== undefined && input.evaluation_date !== null && !validDate(input.evaluation_date)) return fail(422, '평가일은 YYYY-MM-DD 형식이어야 합니다.');
+    for (const k of ['presentation_minutes', 'qa_minutes'] as const) {
+      const v = input[k];
+      if (v !== undefined && (!Number.isInteger(v) || v < 1 || v > 120)) return fail(422, '시간은 1~120분 사이여야 합니다.');
+    }
+    if (input.presentation_order !== undefined) {
+      const ids = vendorsOf(db, pid).map(v => v.vendor_id), o = input.presentation_order;
+      if (!Array.isArray(o) || o.length !== ids.length || new Set(o).size !== o.length || o.some(id => !ids.includes(id)))
+        return fail(422, '발표 순서는 등록된 제안사를 한 번씩 모두 포함해야 해요.');
+    }
+    if (input.attendance !== undefined) {
+      const drawn = [...(db.draws[pid]?.selected_ids ?? []), ...(db.draws[pid]?.reserve_ids ?? [])];
+      if (!Array.isArray(input.attendance) || input.attendance.some(a => !drawn.includes(a?.evaluator_id) || !['present', 'absent', 'unknown'].includes(a.status)))
+        return fail(422, '추첨된 평가위원의 참석 상태만 바꿀 수 있어요.');
+    }
+    if (input.evaluation_date !== undefined) project.evaluation_date = input.evaluation_date;
+    if (input.presentation_order !== undefined) sc.presentation_order = [...input.presentation_order];
+    if (input.presentation_minutes !== undefined) sc.presentation_minutes = input.presentation_minutes;
+    if (input.qa_minutes !== undefined) sc.qa_minutes = input.qa_minutes;
+    input.attendance?.forEach(a => { sc.attendance[a.evaluator_id] = a.status; });
+    save(db);
+    return json(scheduleRead(db, pid));
+  }
+
+  if (sub === '/close') {
+    if (!isAdmin) return fail(403, '사업 완료는 관리자만 할 수 있어요.');
+    const c = db.closes[pid];
+    if (method === 'GET') return json({ closed_at: c?.closed_at ?? null, closed_by: c?.closed_by ?? null } satisfies ProjectClosed);
+    if (method !== 'POST') return fail(405, '지원하지 않는 메서드입니다.');
+    if (c) return fail(409, '이미 완료된 사업이에요');
+    if (!db.confirmations[pid]) return fail(409, '위원장 확인 후 완료할 수 있어요');
+    if ((body as ProjectClose | undefined)?.attested !== true) return fail(422, '완료 내용에 동의해 주세요.');
+    db.closes[pid] = { closed_at: now(), closed_by: ADMIN_NAME }; save(db);
+    return json({ closed_at: db.closes[pid].closed_at, closed_by: ADMIN_NAME } satisfies ProjectClosed);
   }
 
   if (sub === '/committee/draw') {
     if (!isAdmin) return fail(403, '관리자만 추첨 정보를 볼 수 있습니다.');
     if (method === 'GET') return json(db.draws[pid] ?? null);
+    if (isClosed(db, pid)) return fail(409, CLOSED_MSG);
     if (db.draws[pid]) return fail(409, '이미 추첨이 확정되었습니다. 재선정은 합의된 절차가 필요합니다.');
     const { candidate_ids = [], seats = 0, reserves = 0, exclusions = [] } = (body ?? {}) as S['DrawCreate'] & { exclusions?: Db['exclusions'][string] };
     if (seats < 1 || reserves < 0) return fail(422, '본위원은 1명 이상, 예비위원은 0명 이상이어야 합니다.');
@@ -255,6 +354,7 @@ async function handle(req: Request): Promise<Response> {
   }
   if (sub === '/committee/chair' && method === 'PUT') {
     if (!isAdmin) return fail(403, '관리자만 위원장을 지정할 수 있습니다.');
+    if (isClosed(db, pid)) return fail(409, CLOSED_MSG);
     if (!isMember(db, pid, body?.evaluator_id)) return fail(422, '위원장은 본위원 중에서만 지정할 수 있습니다.');
     if (db.confirmations[pid]) return fail(409, '결과가 확인된 뒤에는 위원장을 바꿀 수 없습니다.');
     db.chairs[pid] = body.evaluator_id; save(db);
@@ -271,11 +371,12 @@ async function handle(req: Request): Promise<Response> {
     if (!isAdmin && !member) return fail(403, '이 사업의 문서를 볼 권한이 없습니다.');
     if (method === 'GET') return json(empty ? [] : db.documents.filter(d => d.project_id === pid).map(({ started_at: _s, corrupt: _c, ...d }) => d));
     if (!isAdmin) return fail(403, '관리자만 문서를 올릴 수 있습니다.');
+    if (isClosed(db, pid)) return fail(409, CLOSED_MSG);
     const up = body as DocumentUpload;
     if (!/\.hwpx$/i.test(up.filename ?? '')) return fail(422, '지원하지 않는 형식입니다. 현재는 HWPX 파일만 처리할 수 있습니다.');
     if (up.size > MAX_UPLOAD) return fail(422, '파일이 너무 큽니다. 50MB 이하로 올려 주세요.');
     if (up.size === 0) return fail(422, '빈 파일입니다.');
-    if (up.kind === 'proposal' && !project.vendor_ids.includes(up.vendor_id ?? '')) return fail(422, '제안사를 선택해 주세요.');
+    if (up.kind === 'proposal' && !project.vendor_ids.includes(up.vendor_id ?? '')) return fail(422, up.vendor_id ? '등록되지 않은 제안사의 제안서는 올릴 수 없어요.' : '제안사를 선택해 주세요.');
     if (up.kind === 'rfp' && criteriaLocked(db, pid)) return fail(409, '평가가 시작되어 제안요청서를 교체할 수 없습니다. (변경 규칙 담당자 합의 필요)');
     const prev = db.documents.filter(d => d.project_id === pid && d.kind === up.kind && d.vendor_id === (up.vendor_id ?? null));
     const id = `${pid}-${up.vendor_id ?? 'rfp'}-r${prev.length + 1}`;
@@ -308,6 +409,7 @@ async function handle(req: Request): Promise<Response> {
     if (!isAdmin) return fail(403, '관리자만 평가기준을 확정할 수 있습니다.');
     const c = db.criteria[pid];
     const input = body as CriteriaConfirm;
+    if (isClosed(db, pid)) return fail(409, CLOSED_MSG);
     if (!c) return fail(409, '제안요청서 처리 후 확정할 수 있습니다.');
     if (criteriaLocked(db, pid)) return fail(409, '평가가 시작되어 평가기준을 바꿀 수 없습니다. (mock 가정 · 담당자 합의 필요)');
     if (input.expected_version !== c.version) return fail(409, '다른 곳에서 평가기준이 바뀌었습니다. 다시 불러와 주세요.');
@@ -357,6 +459,7 @@ async function handle(req: Request): Promise<Response> {
     const key = `${pid}:${me}`;
     const sheet = db.sheets[key];
     if (method === 'GET') return json(sheet ?? null);
+    if (isClosed(db, pid)) return fail(409, CLOSED_MSG);
     if (flags.saveFail) throw new TypeError('Failed to fetch (시연 도구: 저장 실패)');
     if (db.criteria[pid]?.status !== 'confirmed') return fail(409, '평가기준이 확정되지 않았습니다.');
     if (!db.pledges[key]) return fail(403, '청렴서약 후 평가할 수 있습니다.');

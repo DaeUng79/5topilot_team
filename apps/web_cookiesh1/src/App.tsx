@@ -9,7 +9,14 @@ import { Dashboard } from './pages/admin/Dashboard';
 import { ProjectsPage } from './pages/admin/Projects';
 import { ProjectDetail } from './pages/admin/ProjectDetail';
 import { EvaluatorsPage } from './pages/admin/Evaluators';
-import { DocumentRegistry } from './pages/admin/DocumentRegistry';
+import { Overview } from './pages/admin/steps/Overview';
+import { RfpStep } from './pages/admin/steps/Rfp';
+import { CriteriaStep } from './pages/admin/steps/Criteria';
+import { ProposalsStep } from './pages/admin/steps/Proposals';
+import { CommitteeStep } from './pages/admin/steps/Committee';
+import { ProgressStep } from './pages/admin/steps/Progress';
+import { ResultsStep } from './pages/admin/steps/Results';
+import { CloseStep } from './pages/admin/steps/Close';
 import { AssignedPage } from './pages/eval/Assigned';
 import { EvalProject } from './pages/eval/EvalProject';
 import { EvalHome } from './pages/eval/EvalHome';
@@ -65,9 +72,21 @@ const router = createBrowserRouter([{
       children: [
         { index: true, element: <Dashboard /> },
         { path: 'projects', element: <ProjectsPage /> },
-        { path: 'projects/:projectId', element: <ProjectDetail /> },
+        {
+          path: 'projects/:projectId', element: <ProjectDetail />,
+          children: [
+            { index: true, element: <Overview /> },
+            { path: 'rfp', element: <RfpStep /> },
+            { path: 'criteria', element: <CriteriaStep /> },
+            { path: 'proposals', element: <ProposalsStep /> },
+            { path: 'committee', element: <CommitteeStep /> },
+            { path: 'progress', element: <ProgressStep /> },
+            { path: 'results', element: <ResultsStep /> },
+            { path: 'close', element: <CloseStep /> },
+          ],
+        },
         { path: 'evaluators', element: <EvaluatorsPage /> },
-        { path: 'documents', element: <DocumentRegistry /> },
+        { path: 'documents', element: <Navigate to="/admin/projects" replace /> },
       ],
     },
     {

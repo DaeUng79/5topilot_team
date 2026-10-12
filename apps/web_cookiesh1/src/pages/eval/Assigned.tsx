@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { request } from '../../api/client';
-import type { Assignment } from '../../api/contract';
+import type { Assignment, Stage } from '../../api/contract';
 import { useSession } from '../../lib/session';
 import { useLoad } from '../../lib/useLoad';
 import { formatDate } from '../../lib/format';
@@ -20,7 +20,9 @@ export function AssignedPage() {
       empty={list => !list.length && <Empty title="배정된 평가가 없어요">선정되면 이곳에 표시돼요. 문의는 간사에게 해 주세요.</Empty>}>
       {list => <div className="assign-list">{list.map(a => {
         const reserve = a.role === 'reserve';
-        const status = reserve ? <Badge>예비위원</Badge> : <Badge tone={sheetLabel[a.sheet_status].tone}>{sheetLabel[a.sheet_status].label}</Badge>;
+        // 서버가 사업 단계(stage)를 내려 주면 완료된 사업을 표시합니다. 평가위원 기능은 그대로입니다.
+        const closed = (a as Assignment & { stage?: Stage }).stage === 'closed';
+        const status = closed ? <Badge tone="success">완료</Badge> : reserve ? <Badge>예비위원</Badge> : <Badge tone={sheetLabel[a.sheet_status].tone}>{sheetLabel[a.sheet_status].label}</Badge>;
         const hint = reserve ? '예비위원은 결원 시에만 평가표가 열려요. 지금은 접근할 수 없어요.'
           : !a.criteria_confirmed ? '평가기준이 확정되면 평가를 시작할 수 있어요.'
             : a.sheet_status === 'submitted' ? '제출 내용 보기' : a.sheet_status === 'draft' ? '평가 이어하기' : '평가 시작하기';

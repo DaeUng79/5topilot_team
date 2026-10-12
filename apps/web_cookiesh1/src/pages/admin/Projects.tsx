@@ -1,13 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { api, unwrap } from '../../api/client';
+import { api, request, unwrap } from '../../api/client';
 import type { Stage } from '../../api/contract';
 import { useLoad } from '../../lib/useLoad';
 import { formatDate } from '../../lib/format';
 import { Async, Empty } from '../../ui/states';
 import { Badge, Card, Dialog, Notice, PageHeader, useToast } from '../../ui/ui';
 import { describeError } from '../../api/client';
-import { loadProjects, loadSummary, stageInfo } from './common';
+import { loadProjects, loadSummary, projectPath, stageInfo } from './common';
 
 export function ProjectsPage() {
   const [params, setParams] = useSearchParams();
@@ -26,8 +26,11 @@ export function ProjectsPage() {
     setBusy(true); setError(null);
     try {
       const created = unwrap(await api.POST('/api/v1/projects', { body: { name: String(data.get('name')).trim(), department: String(data.get('department')).trim() } }));
-      toast('사업을 등록했어요. 다음: 제안요청서 올리기');
-      navigate(`/admin/projects/${created.id}?tab=documents&focus=rfp`);
+      const date = String(data.get('date') ?? '');
+      let dateSaved = true;
+      if (date) { try { await request('PUT', `/api/v1/projects/${created.id}/schedule`, { evaluation_date: date }); } catch { dateSaved = false; } }
+      toast(dateSaved ? '사업을 등록했어요. 다음: 제안요청서 올리기' : '사업을 등록했어요. 평가일은 저장하지 못했으니 5단계에서 다시 정해 주세요.');
+      navigate(projectPath(created.id, 'rfp'));
     } catch (err) { setError(err); } finally { setBusy(false); }
   }
 
@@ -68,9 +71,10 @@ export function ProjectsPage() {
     </Card>
     <Dialog open={creating} onClose={() => setParams({})} title="새 사업 등록">
       <form onSubmit={create} className="form">
-        <p className="muted">등록하면 바로 제안요청서를 올리는 화면으로 가요. (mock: 제안사 3개사 고정)</p>
+        <p className="muted">등록하면 바로 제안요청서를 올리는 화면으로 가요.</p>
         <label className="field">사업명<input name="name" required maxLength={200} placeholder="예: 정보시스템 구축 사업" autoFocus /></label>
         <label className="field">담당 부서<input name="department" required maxLength={100} placeholder="예: 정보화사업팀" /></label>
+        <label className="field">평가일 (선택)<input name="date" type="date" /></label>
         {error !== null && <Notice tone="danger" role="alert" title={describeError(error).title}>{describeError(error).detail}</Notice>}
         <div className="dialog-actions">
           <button type="button" className="btn" onClick={() => setParams({})}>취소</button>

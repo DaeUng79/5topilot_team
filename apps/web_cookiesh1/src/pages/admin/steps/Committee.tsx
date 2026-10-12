@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
 import { api, describeError, request, unwrap, type Candidate, type Draw } from '../../../api/client';
 import type { ChairSet, DrawExclusion } from '../../../api/contract';
 import { useLoad } from '../../../lib/useLoad';
 import { formatDateTime } from '../../../lib/format';
 import { Async, Empty } from '../../../ui/states';
 import { Badge, Card, Dialog, Notice, useToast } from '../../../ui/ui';
-import type { ProjectSummary } from '../common';
+import { useProjectData } from '../ProjectContext';
+import { NeedFirst, StepFrame } from '../StepFrame';
+import { AddDialog, BulkDialog } from '../Evaluators';
 
-export function CommitteeTab({ summary, onChanged }: { summary: ProjectSummary; onChanged: () => Promise<void> }) {
+export function CommitteeStep() {
+  const { summary, closed, refresh } = useProjectData();
   const pid = summary.project.id;
   const load = useLoad(async () => {
     const [candidates, draw, exclusions] = await Promise.all([
@@ -18,16 +20,26 @@ export function CommitteeTab({ summary, onChanged }: { summary: ProjectSummary; 
     ]);
     return { candidates, draw, exclusions };
   }, [pid]);
-  return <Async load={load} loadingLabel="평가위원 정보를 불러오는 중">
-    {({ candidates, draw, exclusions }) => draw
-      ? <DrawResult pid={pid} draw={draw} exclusions={exclusions} candidates={candidates} chairId={summary.progress.chair_id}
-        onChanged={async () => { await load.reload(); await onChanged(); }} />
-      : <DrawSetup pid={pid} candidates={candidates} criteriaConfirmed={summary.criteria.status === 'confirmed'}
-        onDrawn={async () => { await load.reload(); await onChanged(); }} />}
-  </Async>;
+  const [adding, setAdding] = useState(false);
+  const [bulk, setBulk] = useState(false);
+  const drawn = summary.progress.members.length > 0;
+  const sub = drawn ? (summary.progress.chair_id ? '평가위원과 위원장이 정해졌어요' : '위원은 뽑았어요. 위원장을 지정해 주세요') : '후보를 검토하고 추첨해서 평가위원을 정해요';
+  // 분야별 정원은 정책 미확정이라 넣지 않았습니다.
+  return <StepFrame step="committee" sub={sub}>
+    {summary.criteria.status !== 'confirmed' && !drawn && <NeedFirst pid={pid} step="criteria">평가기준이 아직 확정되지 않았어요. 추첨은 할 수 있지만, 위원은 기준 확정 후에 평가를 시작할 수 있어요.</NeedFirst>}
+    <Async load={load} loadingLabel="평가위원 정보를 불러오는 중">
+      {({ candidates, draw, exclusions }) => draw
+        ? <DrawResult pid={pid} draw={draw} exclusions={exclusions} candidates={candidates} chairId={summary.progress.chair_id} closed={closed}
+          onChanged={async () => { await load.reload(); await refresh(); }} />
+        : <DrawSetup pid={pid} candidates={candidates} closed={closed} onAdd={() => setAdding(true)} onBulk={() => setBulk(true)}
+          onDrawn={async () => { await load.reload(); await refresh(); }} />}
+    </Async>
+    <AddDialog open={adding} onClose={() => setAdding(false)} onAdded={() => void load.reload()} />
+    <BulkDialog open={bulk} existing={load.data?.candidates ?? []} onClose={() => setBulk(false)} onDone={() => void load.reload()} />
+  </StepFrame>;
 }
 
-function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: string; candidates: Candidate[]; criteriaConfirmed: boolean; onDrawn: () => Promise<void> }) {
+function DrawSetup({ pid, candidates, closed, onAdd, onBulk, onDrawn }: { pid: string; candidates: Candidate[]; closed: boolean; onAdd: () => void; onBulk: () => void; onDrawn: () => Promise<void> }) {
   const [pool, setPool] = useState<string[]>(() => candidates.filter(c => c.active).map(c => c.id));
   const [excluded, setExcluded] = useState<Record<string, string>>({});
   const [seats, setSeats] = useState(5);
@@ -37,13 +49,21 @@ function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: strin
   const toast = useToast();
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  // 후보를 새로 등록하면 추첨 대상에 바로 넣습니다.
+  const known = useRef(new Set(candidates.map(c => c.id)));
+  useEffect(() => {
+    const fresh = candidates.filter(c => !known.current.has(c.id));
+    fresh.forEach(c => known.current.add(c.id));
+    if (fresh.length) setPool(p => [...p, ...fresh.filter(c => c.active).map(c => c.id)]);
+  }, [candidates]);
+  const addButtons = <><button className="btn sm" onClick={onAdd}>후보 등록</button><button className="btn sm" onClick={onBulk}>CSV 일괄 등록</button></>;
 
-  if (!candidates.length) return <Card><Empty title="등록된 평가위원 후보가 없어요" action={<Link className="btn primary" to="/admin/evaluators">후보 등록하러 가기</Link>} /></Card>;
+  if (!candidates.length) return <Card><Empty title="등록된 평가위원 후보가 없어요" action={<div className="row center">{addButtons}</div>}>후보를 등록하면 이 화면에서 바로 추첨할 수 있어요.</Empty></Card>;
 
   const eligible = pool.filter(id => !(id in excluded));
   const missingReason = Object.values(excluded).some(r => !r.trim());
   const shortage = eligible.length < seats + reserves;
-  const blockReason = seats < 1 ? '본위원은 1명 이상이어야 해요.' : shortage ? '추첨 대상이 모자라서 아직 할 수 없어요.'
+  const blockReason = closed ? '완료된 사업은 바꿀 수 없어요.' : seats < 1 ? '본위원은 1명 이상이어야 해요.' : shortage ? '추첨 대상이 모자라서 아직 할 수 없어요.'
     : missingReason ? '제척 사유를 먼저 적어 주세요.' : !reviewed ? '위 확인란에 체크하면 추첨할 수 있어요.' : '';
 
   async function draw() {
@@ -58,9 +78,8 @@ function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: strin
   }
 
   return <>
-    {!criteriaConfirmed && <Notice tone="warning" title="평가기준이 아직 확정되지 않았어요">추첨은 할 수 있지만, 위원은 기준 확정 후에 평가를 시작할 수 있습니다.</Notice>}
     <Card title={<>후보 검토 <span className="count">{eligible.length}명 추첨 대상</span></>}
-      actions={<Link to="/admin/evaluators">후보 관리 ›</Link>}>
+      actions={addButtons}>
       <p className="muted">이해관계가 있는 후보는 제척 사유를 적으세요. (제척 기준은 담당자 Lex6won 합의 전 임시)</p>
       <div className="table-wrap"><table className="table">
         <thead><tr><th>포함</th><th>이름</th><th>소속</th><th>전문분야</th><th>제척</th></tr></thead>
@@ -103,8 +122,8 @@ function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: strin
   </>;
 }
 
-function DrawResult({ pid, draw, exclusions, candidates, chairId, onChanged }: {
-  pid: string; draw: Draw; exclusions: DrawExclusion[]; candidates: Candidate[]; chairId: string | null; onChanged: () => Promise<void>;
+function DrawResult({ pid, draw, exclusions, candidates, chairId, closed, onChanged }: {
+  pid: string; draw: Draw; exclusions: DrawExclusion[]; candidates: Candidate[]; chairId: string | null; closed: boolean; onChanged: () => Promise<void>;
 }) {
   const [chair, setChair] = useState(chairId ?? '');
   const [error, setError] = useState<unknown>(null);
@@ -142,7 +161,7 @@ function DrawResult({ pid, draw, exclusions, candidates, chairId, onChanged }: {
           <option value="">선택하세요</option>
           {draw.selected_ids.map(id => <option key={id} value={id}>{nameOf(id)}</option>)}
         </select></label>
-        <button className="btn primary" disabled={!chair || chair === chairId || busy} onClick={() => void saveChair()}>{busy ? '저장 중…' : '지정'}</button>
+        <button className="btn primary" disabled={!chair || chair === chairId || busy || closed} onClick={() => void saveChair()}>{busy ? '저장 중…' : '지정'}</button>
       </div>
       {saved && <Notice tone="success" role="status" title={`${nameOf(chair)} 위원을 위원장으로 지정했습니다.`} />}
       {error !== null && <Notice tone="danger" role="alert" title={describeError(error).title}>{describeError(error).detail}</Notice>}

@@ -5,7 +5,7 @@ import { useLoad } from '../../lib/useLoad';
 import { ResultsReport } from '../../ui/ResultsReport';
 import { Async, Forbidden } from '../../ui/states';
 import { Card, Dialog, Notice, useToast } from '../../ui/ui';
-import { Locked } from '../admin/tabs/ResultsTab';
+import { Locked } from '../admin/steps/Results';
 import { useEval } from './EvalProject';
 
 /** 위원장 확인: 전원 제출 후 집계 결과를 보고 확인 기록을 남깁니다(전자서명 아님). 권한 범위는 mock 가정. */

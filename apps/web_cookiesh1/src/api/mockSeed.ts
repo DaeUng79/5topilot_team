@@ -1,10 +1,10 @@
 // 합성 시드 데이터(mock 전용). 실제 기관·인물·제안서가 아닙니다. 전화번호는 010-0000-xxxx 가짜 형식만 씁니다.
 import type { components } from './schema';
-import type { Block, CriteriaRead, CriterionDraft, DocumentRead, Match } from './contract';
+import type { Attendance, Block, CriteriaRead, CriterionDraft, DocumentRead, Match, VendorRead } from './contract';
 
 type S = components['schemas'];
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 export const VENDORS = ['vendor-a', 'vendor-b', 'vendor-c'];
 export const TECH_TOTAL = 80;
 
@@ -21,7 +21,18 @@ export interface Db {
   pledges: Record<string, string>;
   confirmations: Record<string, { confirmed_by: string; confirmed_at: string }>;
   otp: Record<string, { candidate_id: string; code: string; expires: number }>;
+  /** 사업별 제안사 등록(관리자만 조회). project.vendor_ids와 항상 같은 순서·내용 */
+  vendors: Record<string, VendorRead[]>;
+  schedules: Record<string, Schedule>;
+  closes: Record<string, { closed_at: string; closed_by: string }>;
 }
+export interface Schedule {
+  presentation_order: string[];
+  presentation_minutes: number;
+  qa_minutes: number;
+  attendance: Record<string, Attendance>;
+}
+export const defaultSchedule = (): Schedule => ({ presentation_order: [], presentation_minutes: 20, qa_minutes: 10, attendance: {} });
 
 const people: [string, string, string][] = [
   ['김가상', '가상대학교', '정보시스템'], ['이예시', '예시연구원', '보안'], ['박샘플', '샘플기술(주)', '데이터·AI'],
@@ -84,7 +95,7 @@ const proposalText: Record<string, [string, string][]> = {
 
 export function proposalBlocks(vendor: string): Block[] {
   return [{ block_id: `${vendor}-00`, physical_page: 1, printed_page: null, heading: '제안서', text: `${vendorLabel(vendor)} 제안서(합성 자료)` },
-    ...proposalText[vendor].map(([heading, text], i) => ({
+    ...(proposalText[vendor] ?? proposalText['vendor-a']).map(([heading, text], i) => ({
       block_id: `${vendor}-${String(i + 1).padStart(2, '0')}`, physical_page: 12 + i * 7, printed_page: String(10 + i * 7), heading, text,
     }))];
 }
@@ -108,7 +119,7 @@ export function criteriaDraft(rfpDocId: string): CriterionDraft[] {
 }
 
 export function matches(docIds: Record<string, string>): Match[] {
-  return VENDORS.flatMap(vendor => criteriaSpec.map(([criterion_id]) => {
+  return Object.keys(docIds).flatMap(vendor => criteriaSpec.map(([criterion_id]) => {
     const block = proposalBlocks(vendor).find(b => b.heading === criterionTopic[criterion_id]);
     return {
       vendor_id: vendor, criterion_id, summary: block ? block.text : null,
@@ -118,6 +129,7 @@ export function matches(docIds: Record<string, string>): Match[] {
   }));
 }
 
+const vendorNames = ['(가상) 가람정보기술', '(가상) 누리시스템', '(가상) 다온소프트'];
 const iso = (offsetMin: number) => new Date(Date.UTC(2026, 9, 12, 1, 0) + offsetMin * 60000).toISOString();
 
 function doc(project_id: string, kind: 'rfp' | 'proposal', vendor_id: string | null, filename: string): Db['documents'][number] {
@@ -140,9 +152,9 @@ export function seed(allSubmitted = false): Db {
   const db: Db = {
     version: SEED_VERSION,
     projects: [
-      { id: 'p1', name: '(가상) 정보시스템 구축 사업', department: '정보화사업팀', vendor_ids: VENDORS, evaluation_date: '2026-10-12',
+      { id: 'p1', name: '(가상) 정보시스템 구축 사업', department: '정보화사업팀', vendor_ids: [...VENDORS], evaluation_date: '2026-10-12',
         created_at: iso(-9000), criteria: p1Criteria.map(({ id, name, max_score }) => ({ id, name, max_score })) },
-      { id: 'p2', name: '(가상) 민원상담 시스템 고도화', department: '민원혁신팀', vendor_ids: VENDORS, evaluation_date: '2026-10-27',
+      { id: 'p2', name: '(가상) 민원상담 시스템 고도화', department: '민원혁신팀', vendor_ids: [], evaluation_date: '2026-10-27',
         created_at: iso(-1000), criteria: [] },
     ],
     candidates,
@@ -164,6 +176,16 @@ export function seed(allSubmitted = false): Db {
     pledges: {},
     confirmations: {},
     otp: {},
+    vendors: {
+      p1: VENDORS.map((vendor_id, i) => ({ vendor_id, code: 'ABC'[i], name: vendorNames[i], registered_at: iso(-8000) })),
+      p2: [],
+    },
+    schedules: {
+      p1: { ...defaultSchedule(), presentation_order: ['vendor-b', 'vendor-a', 'vendor-c'],
+        attendance: { 'cand-1': 'present', 'cand-2': 'present', 'cand-3': 'present', 'cand-4': 'present', 'cand-6': 'absent' } },
+      p2: defaultSchedule(),
+    },
+    closes: {},
   };
   const submitted = allSubmitted ? ['cand-1', 'cand-2', 'cand-3', 'cand-4', 'cand-5'] : ['cand-2', 'cand-3'];
   submitted.forEach((id, i) => {

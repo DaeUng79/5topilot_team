@@ -37,7 +37,7 @@ export function EvaluatorsPage() {
   </>;
 }
 
-function AddDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => void; onAdded: () => void }) {
+export function AddDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => void; onAdded: () => void }) {
   const toast = useToast();
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
@@ -64,7 +64,7 @@ function AddDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => v
   </Dialog>;
 }
 
-function BulkDialog({ open, existing, onClose, onDone }: { open: boolean; existing: Candidate[]; onClose: () => void; onDone: () => void }) {
+export function BulkDialog({ open, existing, onClose, onDone }: { open: boolean; existing: Candidate[]; onClose: () => void; onDone: () => void }) {
   const toast = useToast();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [result, setResult] = useState<{ ok: number; failed: string[] } | null>(null);

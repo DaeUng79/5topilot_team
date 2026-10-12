@@ -4,7 +4,7 @@ import { useLoad } from '../../lib/useLoad';
 import { formatDate } from '../../lib/format';
 import { Async, Empty } from '../../ui/states';
 import { Badge, Card, PageHeader, Progress, StatCard } from '../../ui/ui';
-import { loadProjects, loadSummary, stageInfo, todoOf } from './common';
+import { loadProjects, loadSummary, projectPath, stageInfo, todoOf } from './common';
 
 export function Dashboard() {
   const { session } = useSession();
@@ -16,7 +16,7 @@ export function Dashboard() {
       empty={list => !list.length && <Card><Empty title="진행 중인 사업이 없어요" action={<Link className="btn primary" to="/admin/projects?new=1">첫 사업 등록하기</Link>}>
         새 사업을 등록하면 이곳에서 단계별 진행 상황을 볼 수 있습니다.</Empty></Card>}>
       {list => {
-        const urgency: Record<string, number> = { collecting_done: 0, evaluating: 1, committee: 2, preparing: 3 };
+        const urgency: Record<string, number> = { collecting_done: 0, confirmed: 0, evaluating: 1, committee: 2, preparing: 3 };
         const todos = list.map(s => ({ s, todo: todoOf(s) })).filter(x => x.todo)
           .sort((a, b) => urgency[a.s.progress.stage] - urgency[b.s.progress.stage]);
         const first = todos[0];
@@ -27,18 +27,18 @@ export function Dashboard() {
             <div>
               <h2 className="say-title">{todos.length ? `오늘 처리할 일이 ${todos.length}건 있어요` : '오늘은 처리할 일이 없어요'}</h2>
               {first && <p className="say-sub">가장 먼저 {first.s.project.name}: {first.todo!.text}</p>}
-              {first && <Link className="btn primary" to={`/admin/projects/${first.s.project.id}?tab=${first.todo!.tab}`}>지금 하러 가기</Link>}
+              {first && <Link className="btn primary" to={projectPath(first.s.project.id, first.todo!.step)}>지금 하러 가기</Link>}
             </div>
           </section>
           <div className="stats">
-            <StatCard label="진행 중 사업" value={`${list.filter(s => s.progress.stage !== 'confirmed').length}건`} />
+            <StatCard label="진행 중 사업" value={`${list.filter(s => s.progress.stage !== 'closed').length}건`} />
             <StatCard label="평가 진행" value={`${evaluating}건`} tone="primary" />
           </div>
           {todos.length > 0 && <Card title="처리할 일">
             <ul className="todo-list">{todos.map(({ s, todo }) => <li key={s.project.id}>
               <Badge tone={stageInfo[s.progress.stage].tone}>{stageInfo[s.progress.stage].label}</Badge>
               <div><strong>{s.project.name}</strong><p>{todo!.text}</p></div>
-              <Link className="btn ghost sm" to={`/admin/projects/${s.project.id}?tab=${todo!.tab}`}>바로 가기 ›</Link>
+              <Link className="btn ghost sm" to={projectPath(s.project.id, todo!.step)}>바로 가기 ›</Link>
             </li>)}</ul>
           </Card>}
           <Card title="진행 중 사업" actions={<Link to="/admin/projects">전체 보기 ›</Link>}>
