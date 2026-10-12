@@ -10,14 +10,14 @@
 
 | 파일                                                              | 역할                                                                                  |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| [step1_parser_hwpx.py](step1_parser_hwpx.py)                       | HWPX 중심 파싱 JSON 생성 및 CLI 실행 시 SQLite 저장                                 |
+| [step1_hwpx_parse_to_JSON.py](step1_hwpx_parse_to_JSON.py)                       | HWPX 중심 파싱 JSON 생성 및 CLI 실행 시 SQLite 저장                                 |
 | [step2_hwpx_save_to_SQLite.py](step2_hwpx_save_to_SQLite.py)       | 파싱 JSON·이미지를 SQLite에 저장하고 원본 JSON·이미지를 읽는 독립 실행 모듈         |
-| [step3_ai_requirements_SQLite.py](step3_ai_requirements_SQLite.py) | 원문 블록 처리, 사업 주요 정리·요구사항 전체 목록·세부내역 추출 및 SQLite 저장/조회 |
+| [step3_ai_requirements_extract_to_SQLite.py](step3_ai_requirements_extract_to_SQLite.py) | 원문 블록 처리, 사업 주요 정리·요구사항 전체 목록·세부내역 추출 및 SQLite 저장/조회 |
 | [step4_ai_criteria.py](step4_ai_criteria.py)                       | 추출 요구사항 및 요청서 평가기준표 또는 Markdown 기본 서식으로 JSON 기준표 생성·저장 |
 | [streamlit_parser_test_page.py](streamlit_parser_test_page.py)     | SQLite 문서 등록·삭제, 페이지 조회, 요구사항·평가기준 생성                          |
 | [requirements.txt](requirements.txt)                               | 앱·파서 실행에 필요한 Python 의존성                                                  |
 
-## 1. 파싱 구조 — `step1_parser_hwpx.py`
+## 1. 파싱 구조 — `step1_hwpx_parse_to_JSON.py`
 
 ### 처리 흐름
 
@@ -91,7 +91,7 @@ SQLite는 **파싱이 완료된 JSON과 후속 AI 분석 결과를 저장·조�
 CLI로 요구사항을 추출할 때는 문서 ID 또는 유일한 파일명 일부를 지정합니다. `.env` 또는 환경변수의 `OPENAI_API_KEY`를 사용하며, 저장된 결과가 있으면 API를 다시 호출하지 않습니다. `--force`를 주면 재추출합니다.
 
 ```sh
-.venv/bin/python -m apps.documents_daeung.step3_ai_requirements_SQLite --filename '특허 빅데이터'
+.venv/bin/python -m apps.documents_daeung.step3_ai_requirements_extract_to_SQLite --filename '특허 빅데이터'
 ```
 
 **구현 상태:** 파싱 JSON·이미지·원본 HWPX, 요구사항, 정성적 평가기준의 저장·조회·삭제는 SQLite로 연결했습니다. 기존 외부 DB 데이터의 자동 이전 기능은 포함하지 않습니다.
@@ -101,7 +101,7 @@ CLI로 요구사항을 추출할 때는 문서 ID 또는 유일한 파일명 일
 파서 CLI는 JSON을 출력하고 기본 SQLite 파일에 원본 HWPX와 파싱 결과를 저장합니다. `--no-save`를 주면 JSON만 생성합니다.
 
 ```sh
-.venv/bin/python apps/documents_daeung/step1_parser_hwpx.py "원본.hwpx"
+.venv/bin/python apps/documents_daeung/step1_hwpx_parse_to_JSON.py "원본.hwpx"
 .venv/bin/python -m streamlit run apps/documents_daeung/streamlit_parser_test_page.py
 ```
 
@@ -110,7 +110,7 @@ CLI로 요구사항을 추출할 때는 문서 ID 또는 유일한 파일명 일
 CLI에서도 문서 ID를 지정해 요구사항·평가기준을 생성할 수 있습니다.
 
 ```sh
-.venv/bin/python -m apps.documents_daeung.step3_ai_requirements_SQLite --document-id '<문서 ID>'
+.venv/bin/python -m apps.documents_daeung.step3_ai_requirements_extract_to_SQLite --document-id '<문서 ID>'
 .venv/bin/python -m apps.documents_daeung.step4_ai_criteria --document-id '<문서 ID>'
 ```
 
@@ -127,7 +127,7 @@ CLI에서도 문서 ID를 지정해 요구사항·평가기준을 생성할 수 
 - 원본 페이지는 `source_files`의 원본 BLOB에서 요청한 물리 쪽을 SVG로 렌더링합니다. 원본 BLOB이 없으면 원본 화면 대신 안내가 표시되므로 **추출 내용** 탭에서 저장된 JSON 블록을 확인합니다. 여러 쪽에 걸친 표의 행별 위치는 파싱 블록만으로 확정하지 않습니다.
 - 요구사항 결과는 `business_summary`, `requirement_list`, `details`로 구성합니다. 상세 항목의 출처 페이지가 파싱 결과에 있으면 쪽번호를 표시하고, 없으면 생략합니다. 짧은 제목·구절은 독립 항목에서 제외하되 한 줄짜리 요구사항 문장과 표 셀은 유지합니다.
 - `projects`와 `project_documents` 테이블은 프로젝트와 문서의 연결을 지원합니다. 현재 Streamlit 화면에는 프로젝트 관리 UI가 없으며, 프로젝트별 3~5개 제한·역할·순서·통합 분석 결과 저장도 구현되지 않았습니다.
-- `requirements_core.py`에 있던 공통 블록 처리 함수는 `step3_ai_requirements_SQLite.py`에 통합했습니다. 이전 `step3_ai_requirements.py`와 MongoDB 저장 모듈은 제거됐습니다. 평가기준은 요구사항 결과를 먼저 저장한 뒤 생성하며, `criteria_results` 테이블은 첫 평가기준 저장 때 만들어집니다.
+- `requirements_core.py`에 있던 공통 블록 처리 함수는 `step3_ai_requirements_extract_to_SQLite.py`에 통합했습니다. 이전 `step3_ai_requirements.py`와 MongoDB 저장 모듈은 제거됐습니다. 평가기준은 요구사항 결과를 먼저 저장한 뒤 생성하며, `criteria_results` 테이블은 첫 평가기준 저장 때 만들어집니다.
 
 저장소 루트에서 의존성을 설치하고 현재 앱을 실행하는 명령은 다음과 같습니다.
 
@@ -279,4 +279,6 @@ CLI에서는 다음과 같이 실행할 수 있습니다.
 
 ## 이후 변경 기록 (2026-10-12)
 
-`requirements_core.py`에 있던 원문 블록 압축·선택·검증 함수는 [step3_ai_requirements_SQLite.py](step3_ai_requirements_SQLite.py)에 통합했습니다. 공통 파일은 삭제했으며, 요구사항 추출과 평가기준 생성은 위의 현행 CLI와 Streamlit 경로를 사용합니다. 이전 Markdown 검토용 `step1_hwpx_parser2.py`와 Streamlit 실행 파일 `streamlit_parser_test.py`, `streamlit_parser_test2.py`도 현재 작업 트리에는 없습니다. 위 부록의 MongoDB 파일명과 명령은 당시 구현 기록으로 유지합니다.
+`requirements_core.py`에 있던 원문 블록 압축·선택·검증 함수는 [step3_ai_requirements_extract_to_SQLite.py](step3_ai_requirements_extract_to_SQLite.py)에 통합했습니다. 공통 파일은 삭제했으며, 요구사항 추출과 평가기준 생성은 위의 현행 CLI와 Streamlit 경로를 사용합니다. 이전 Markdown 검토용 `step1_hwpx_parser2.py`와 Streamlit 실행 파일 `streamlit_parser_test.py`, `streamlit_parser_test2.py`도 현재 작업 트리에는 없습니다. 위 부록의 MongoDB 파일명과 명령은 당시 구현 기록으로 유지합니다.
+
+이후 1단계 `step1_parser_hwpx.py`는 `step1_hwpx_parse_to_JSON.py`, 3단계 `step3_ai_requirements_SQLite.py`는 `step3_ai_requirements_extract_to_SQLite.py`로 이름을 바꿨습니다. 기존 파일명은 위 이력의 당시 경로를 설명하기 위해 이곳에 남깁니다.

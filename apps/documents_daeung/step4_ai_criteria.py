@@ -14,9 +14,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 if __package__:
-    from . import step3_ai_requirements_SQLite as requirements
+    from . import step3_ai_requirements_extract_to_SQLite as requirements
 else:
-    import step3_ai_requirements_SQLite as requirements
+    import step3_ai_requirements_extract_to_SQLite as requirements
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_MODEL = requirements.DEFAULT_MODEL

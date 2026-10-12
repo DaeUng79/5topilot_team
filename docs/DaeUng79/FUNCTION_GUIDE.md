@@ -48,7 +48,7 @@ PYTEST
 
 ### step1_parser_hwpx.py — 30개
 
-[소스 열기](../../apps/documents_daeung/step1_parser_hwpx.py)
+[현행 소스 열기: step1_hwpx_parse_to_JSON.py](../../apps/documents_daeung/step1_hwpx_parse_to_JSON.py) — 위 제목은 당시 파일명입니다.
 
 | 함수                                            | 줄  | 설명                                                                                                                                                                                               |
 | ----------------------------------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -97,7 +97,7 @@ PYTEST
 
 ### step3_ai_requirements.py — 25개
 
-이 목록은 2026-10-11 당시 함수 기록입니다. 이후 `requirements_core.py`의 공통 함수와 SQLite 추출 실행 코드는 [step3_ai_requirements_SQLite.py](../../apps/documents_daeung/step3_ai_requirements_SQLite.py)에 통합했습니다.
+이 목록은 2026-10-11 당시 함수 기록입니다. 이후 `requirements_core.py`의 공통 함수와 SQLite 추출 실행 코드는 [step3_ai_requirements_extract_to_SQLite.py](../../apps/documents_daeung/step3_ai_requirements_extract_to_SQLite.py)에 통합했습니다.
 
 | 함수                               | 줄  | 설명                                                                                                                                                                                                                           |
 | ---------------------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

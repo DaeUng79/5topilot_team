@@ -1,6 +1,6 @@
 """SQLite에 저장된 원본 페이지와 파싱 결과를 물리 페이지별로 조회하는 앱.
 
-실행: python -m streamlit run apps/documents_daeung/streamlit_parser_test2.py
+실행: python -m streamlit run apps/documents_daeung/streamlit_parser_test_page.py
 """
 
 from __future__ import annotations
@@ -35,10 +35,10 @@ def register_hwpx(db_path: Path, data: bytes, filename: str) -> dict:
         raise ValueError("올바른 HWPX 파일이 아닙니다.")
 
     if __package__:
-        from .step1_parser_hwpx import parse_hwpx
+        from .step1_hwpx_parse_to_JSON import parse_hwpx
         from .step2_hwpx_save_to_SQLite import save_to_sqlite
     else:
-        from step1_parser_hwpx import parse_hwpx
+        from step1_hwpx_parse_to_JSON import parse_hwpx
         from step2_hwpx_save_to_SQLite import save_to_sqlite
 
     with tempfile.TemporaryDirectory(prefix="hwpx_sqlite_upload_") as directory:
@@ -310,12 +310,12 @@ def render_requirements(db_path: Path, document_id: str, revision: str,
                         filename: str) -> None:
     """현재 문서의 SQLite 저장 결과를 표시하고 버튼 클릭 시에만 AI를 호출한다."""
     if __package__:
-        from .step3_ai_requirements_SQLite import (
+        from .step3_ai_requirements_extract_to_SQLite import (
             RequirementsError, extract_and_save_requirements,
             group_detail_items, load_saved_requirements, read_source,
         )
     else:
-        from step3_ai_requirements_SQLite import (
+        from step3_ai_requirements_extract_to_SQLite import (
             RequirementsError, extract_and_save_requirements,
             group_detail_items, load_saved_requirements, read_source,
         )
