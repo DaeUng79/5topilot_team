@@ -49,7 +49,11 @@ export function SubmitPage() {
       return <>
         {submitted ? <Notice tone="success" title={`제출 완료 · ${formatDateTime(sheet!.submitted_at)}`}>
           평가표가 잠겼어요. 결과는 전원 제출 후 집계되며, 수정은 간사에게 요청하세요.</Notice>
-          : <Notice tone="warning" title="제출하면 수정할 수 없어요">점검 항목을 모두 통과해야 제출할 수 있어요.</Notice>}
+          : <section className={`submit-verdict ${ready ? 'ready' : 'wait'}`} aria-label="제출 가능 여부">
+            <p className="say-title">{ready ? '제출할 준비가 됐어요' : missing.length ? `${missing.length}개를 마치면 제출할 수 있어요` : '저장하면 제출할 수 있어요'}</p>
+            <p className="say-sub">{ready ? '제출하면 점수와 의견이 잠겨서 다시 고칠 수 없어요.'
+              : !sheet ? '아직 저장한 평가표가 없어요.' : missing.length ? '입력하지 않은 항목이 남아 있어요.' : '저장하지 않은 입력이 있어요.'}</p>
+          </section>}
         <Card title="제출 전 점검">
           <ul className="checklist">
             <li className={sheet ? 'ok' : 'bad'}><span aria-hidden="true">{sheet ? '✓' : '✕'}</span>
@@ -73,12 +77,15 @@ export function SubmitPage() {
           </div>)}</div>
           {sheet.opinion ? <p><strong>의견</strong> {sheet.opinion}</p> : <p className="muted">작성한 의견이 없어요 (선택 사항)</p>}
         </Card>}
-        {!submitted && <Card>
+        {!submitted && <div className="submit-final">
           <label className="check big"><input type="checkbox" checked={attested} disabled={!ready} onChange={e => setAttested(e.target.checked)} />
             <span>본인의 독립적인 판단으로 작성했으며, 제출 후에는 수정할 수 없음을 확인합니다.</span></label>
           {error !== null && <Notice tone="danger" role="alert" title={describeError(error).title}>{describeError(error).detail}</Notice>}
-          <div className="row end"><button className="btn primary lg" disabled={!ready || !attested} onClick={() => setConfirming(true)}>최종 제출</button></div>
-        </Card>}
+          <div className="cta-bar">
+            {(!ready || !attested) && <p className="cta-hint" role="status">{!ready ? '위 점검을 모두 통과하면 제출할 수 있어요' : '확인에 체크하면 제출할 수 있어요'}</p>}
+            <button className="btn primary block lg" disabled={!ready || !attested} onClick={() => setConfirming(true)}>최종 제출</button>
+          </div>
+        </div>}
         <Dialog open={confirming} onClose={() => setConfirming(false)} title="평가표를 제출할까요?" actions={<>
           <button className="btn" onClick={() => setConfirming(false)}>다시 확인</button>
           <button className="btn primary" disabled={busy} onClick={() => void submit()}>{busy ? '제출 중…' : '제출'}</button></>}>

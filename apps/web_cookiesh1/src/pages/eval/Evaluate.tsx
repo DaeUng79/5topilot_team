@@ -285,10 +285,10 @@ function SaveBar({ state, locked, savedAt, changed, onSave }: { state: SaveState
   const off = state.kind === 'saving' || (!changed && state.kind !== 'failed');
   return <div className={`save-bar tone-${text.tone}`}>
     <span role="status" aria-live="polite" className="save-msg">{text.msg}</span>
-    {!locked && <div className="row">
-      <button className="btn primary" aria-disabled={off} onClick={() => { if (!off) onSave(); }}>
+    {!locked && <div className="row save-actions">
+      <Link className="btn ghost sm" to="../submit">제출 전 확인 ›</Link>
+      <button className="btn primary" aria-disabled={off} title={off && state.kind !== 'saving' ? '바뀐 내용이 없어요' : undefined} onClick={() => { if (!off) onSave(); }}>
         {state.kind === 'failed' ? '다시 시도' : '저장'}</button>
-      <Link className="btn" to="../submit">제출 전 확인 ›</Link>
     </div>}
   </div>;
 }

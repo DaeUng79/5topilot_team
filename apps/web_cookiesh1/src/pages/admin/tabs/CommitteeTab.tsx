@@ -43,6 +43,8 @@ function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: strin
   const eligible = pool.filter(id => !(id in excluded));
   const missingReason = Object.values(excluded).some(r => !r.trim());
   const shortage = eligible.length < seats + reserves;
+  const blockReason = seats < 1 ? '본위원은 1명 이상이어야 해요.' : shortage ? '추첨 대상이 모자라서 아직 할 수 없어요.'
+    : missingReason ? '제척 사유를 먼저 적어 주세요.' : !reviewed ? '위 확인란에 체크하면 추첨할 수 있어요.' : '';
 
   async function draw() {
     setBusy(true); setError(null);
@@ -88,8 +90,9 @@ function DrawSetup({ pid, candidates, criteriaConfirmed, onDrawn }: { pid: strin
       <label className="check"><input type="checkbox" checked={reviewed} onChange={e => setReviewed(e.target.checked)} />
         후보의 자격·이해관계를 검토했습니다. 추첨은 사업당 한 번만 할 수 있습니다.</label>
       {error !== null && <Notice tone="danger" role="alert" title={describeError(error).title}>{describeError(error).detail}</Notice>}
-      <div className="row end"><button className="btn primary" disabled={!reviewed || shortage || missingReason || seats < 1}
-        onClick={() => setConfirming(true)}>위원 추첨</button></div>
+      <div className="row end">{blockReason && <span className="muted" id="draw-reason">{blockReason}</span>}
+        <button className="btn primary" disabled={!!blockReason} aria-describedby={blockReason ? 'draw-reason' : undefined}
+          onClick={() => setConfirming(true)}>위원 추첨</button></div>
     </Card>
     <Dialog open={confirming} onClose={() => setConfirming(false)} title="추첨을 진행할까요?" actions={<>
       <button className="btn" onClick={() => setConfirming(false)}>취소</button>
@@ -133,7 +136,7 @@ function DrawResult({ pid, draw, exclusions, candidates, chairId, onChanged }: {
       </details>
     </Card>
     <Card title="위원장 지정">
-      <p className="muted">본위원 중 1명을 지정해요. (권한 범위는 담당자 합의 전 mock 가정)</p>
+      <p className="muted">본위원 중 1명을 골라 주세요. (권한 범위는 담당자 합의 전 mock 가정)</p>
       <div className="form-row">
         <label className="field">위원장<select value={chair} onChange={e => { setChair(e.target.value); setSaved(false); }}>
           <option value="">선택하세요</option>

@@ -25,15 +25,21 @@ export function ProgressTab({ project }: { project: Project }) {
     {p => {
       const members = p.members.filter(m => m.role !== 'reserve');
       const count = (s: string) => members.filter(m => m.sheet_status === s).length;
+      const all = members.length > 0 && count('submitted') === members.length;
       return <>
+        <div className="conclusion">
+          <span className="big-num">{count('submitted')}<small> / {members.length}</small></span>
+          <div><p className="say-title">{members.length}명 중 {count('submitted')}명이 제출했어요</p>
+            <p className="say-sub">{all ? '전원이 제출했어요. 결과 탭에서 확인할 수 있어요.' : `${members.length - count('submitted')}명이 아직 제출하지 않았어요.`}</p></div>
+        </div>
         <div className="row between">
           <p className="muted" aria-live="polite">서버 기준 {formatTime(refreshedAt)} 갱신 · {REFRESH_MS / 1000}초마다 자동 갱신</p>
           <button className="btn sm" onClick={() => void load.reload()} disabled={load.state === 'loading'}>{load.state === 'loading' ? '갱신 중…' : '새로고침'}</button>
         </div>
         <div className="stats">
-          <StatCard label="제출 완료" value={`${count('submitted')} / ${members.length}`} tone="success" />
           <StatCard label="작성 중" value={`${count('draft')}명`} tone="warning" />
           <StatCard label="미시작" value={`${count('not_started')}명`} />
+          <StatCard label="제출 완료" value={`${count('submitted')}명`} tone="success" />
         </div>
         <Card title="평가위원별 상태">
           <div className="table-wrap"><table className="table">

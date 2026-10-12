@@ -1,9 +1,13 @@
 import { Link, useParams } from 'react-router';
+import { request } from '../../api/client';
+import type { DocumentRead } from '../../api/contract';
 import { useLoad } from '../../lib/useLoad';
 import { formatDate } from '../../lib/format';
 import { Async } from '../../ui/states';
 import { Badge, Card, PageHeader, Steps, Tabs, useTab } from '../../ui/ui';
 import { loadProject, loadSummary, stageInfo, stepsFor, todoOf, type ProjectSummary } from './common';
+import { emitAdminChange } from './sync';
+import { PrepChecklist } from './PrepChecklist';
 import { DocumentsTab } from './tabs/DocumentsTab';
 import { CommitteeTab } from './tabs/CommitteeTab';
 import { ProgressTab } from './tabs/ProgressTab';
@@ -12,21 +16,25 @@ import { ResultsTab } from './tabs/ResultsTab';
 export function ProjectDetail() {
   const { projectId = '' } = useParams();
   const load = useLoad(async () => loadSummary(await loadProject(projectId)), [projectId]);
+  const docs = useLoad(() => request<DocumentRead[]>('GET', `/api/v1/projects/${projectId}/documents`), [projectId]);
   const tab = useTab('overview');
+  const refresh = async () => { await Promise.all([load.reload(), docs.reload()]); emitAdminChange(); };
   return <Async load={load} loadingLabel="사업 정보를 불러오는 중">
     {summary => <>
       <PageHeader eyebrow={<Link to="/admin/projects">‹ 사업 관리</Link>} title={summary.project.name}
         description={`${summary.project.department} · 평가일 ${formatDate(summary.progress.evaluation_date)}`}
         actions={<Badge tone={stageInfo[summary.progress.stage].tone}>{stageInfo[summary.progress.stage].label}</Badge>} />
-      <Steps steps={stepsFor(summary.progress.stage)} current={stageInfo[summary.progress.stage].current} />
+      <PrepChecklist summary={summary} docs={docs.data} />
+      {summary.progress.stage !== 'preparing' && summary.progress.stage !== 'committee' &&
+        <Steps steps={stepsFor(summary.progress.stage)} current={stageInfo[summary.progress.stage].current} />}
       <Tabs tabs={[
         { key: 'overview', label: '개요' }, { key: 'documents', label: '문서·평가기준' }, { key: 'committee', label: '평가위원' },
         { key: 'progress', label: '진행 현황' }, { key: 'results', label: '결과' },
       ]} />
       <div className="tab-body">
         {tab === 'overview' && <Overview summary={summary} />}
-        {tab === 'documents' && <DocumentsTab summary={summary} onChanged={load.reload} />}
-        {tab === 'committee' && <CommitteeTab summary={summary} onChanged={load.reload} />}
+        {tab === 'documents' && <DocumentsTab summary={summary} onChanged={refresh} onDocsChanged={docs.reload} />}
+        {tab === 'committee' && <CommitteeTab summary={summary} onChanged={refresh} />}
         {tab === 'progress' && <ProgressTab project={summary.project} />}
         {tab === 'results' && <ResultsTab project={summary.project} />}
       </div>

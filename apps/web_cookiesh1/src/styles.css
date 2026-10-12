@@ -411,3 +411,27 @@ a.assign-card:hover { border-color: var(--primary-50); }
 .toasts { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%); z-index: 80; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
 .toast { background: var(--gray-90); color: #fff; padding: 12px 20px; border-radius: 14px; font-weight: 600; font-size: 15px; box-shadow: var(--shadow-3); animation: toast-in .25s var(--spring); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(.96); } }
+
+/* ── Toss·Apple 설계 원칙 공통 패턴 (2026-10-12) ──
+   한 화면 한 질문 · 말하듯 쓴 제목 · 주 버튼 하나(하단) · 결론 먼저 · 움직임은 방향 안내용 */
+:root { --t-display: 34px; --t-title: 26px; --t-sub: 19px; --dur-1: .18s; --dur-2: .32s; --dur-3: .45s; }
+.say-title { font-size: var(--t-title); font-weight: 700; letter-spacing: -0.025em; line-height: 1.35; margin: 0 0 8px; }
+.say-sub { font-size: var(--t-sub); color: var(--gray-60); margin: 0 0 28px; }
+.big-num { font-size: var(--t-display); font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+/* 밑줄형 큰 입력칸: 질문 하나에 집중 */
+.uline { display: block; }
+.uline > span { display: block; font-size: 15px; font-weight: 600; color: var(--gray-60); margin-bottom: 4px; transition: color var(--dur-1); }
+.uline input { width: 100%; min-height: 0; border: 0; border-bottom: 2px solid var(--gray-20); border-radius: 0; background: transparent;
+  font-size: 24px; font-weight: 600; padding: 8px 0 10px; outline: none; transition: border-color var(--dur-1); }
+.uline:focus-within > span { color: var(--primary-50); }
+.uline input:focus { border-bottom-color: var(--primary-50); box-shadow: none; }
+/* 주 버튼 하나를 아래에 고정 (보조 동작은 글자 버튼) */
+.cta-bar { position: sticky; bottom: 0; display: flex; flex-direction: column; gap: 8px; padding: 16px 0 calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--gray-0) 70%, rgb(255 255 255 / 0)); }
+.cta-bar .btn.primary { min-height: 56px; font-size: 18px; border-radius: 14px; }
+/* 방향이 있는 단계 전환: 앞으로 = 오른쪽에서 들어옴 */
+.slide-stage { position: relative; overflow: hidden; }
+.slide-step { transition: opacity var(--dur-2) var(--ease), transform var(--dur-3) var(--ease); }
+.slide-step.is-next { position: absolute; inset: 0; opacity: 0; transform: translateX(40px); pointer-events: none; }
+.slide-step.is-prev { position: absolute; inset: 0; opacity: 0; transform: translateX(-40px); pointer-events: none; }
+.slide-step.is-on { opacity: 1; transform: none; }

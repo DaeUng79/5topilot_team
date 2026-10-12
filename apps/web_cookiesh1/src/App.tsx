@@ -9,6 +9,7 @@ import { Dashboard } from './pages/admin/Dashboard';
 import { ProjectsPage } from './pages/admin/Projects';
 import { ProjectDetail } from './pages/admin/ProjectDetail';
 import { EvaluatorsPage } from './pages/admin/Evaluators';
+import { DocumentRegistry } from './pages/admin/DocumentRegistry';
 import { AssignedPage } from './pages/eval/Assigned';
 import { EvalProject } from './pages/eval/EvalProject';
 import { EvalHome } from './pages/eval/EvalHome';
@@ -45,7 +46,8 @@ function RequireRole({ role, children }: { role: Role; children: ReactNode }) {
 
 function Home() {
   const { session } = useSession();
-  return <Navigate to={session ? homeOf(session.role) : '/login'} replace />;
+  // 로그인 전이면 첫 화면(랜딩), 로그인 상태면 역할 홈으로 갑니다.
+  return session ? <Navigate to={homeOf(session.role)} replace /> : <LoginPage intro />;
 }
 
 function NotFound() {
@@ -65,6 +67,7 @@ const router = createBrowserRouter([{
         { path: 'projects', element: <ProjectsPage /> },
         { path: 'projects/:projectId', element: <ProjectDetail /> },
         { path: 'evaluators', element: <EvaluatorsPage /> },
+        { path: 'documents', element: <DocumentRegistry /> },
       ],
     },
     {

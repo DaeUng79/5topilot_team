@@ -38,15 +38,6 @@
   .hero-note { display: none; }
 }
 
-/* ── 역할 선택 ── */
-.role-choice { grid-template-columns: auto 1fr auto; align-items: center; column-gap: 16px; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
-.role-choice:hover { box-shadow: var(--shadow-2); transform: translateY(-2px); }
-.role-choice:active { transform: scale(.985); }
-.role-choice .role-icon-wrap { grid-column: 1; grid-row: 1 / 3; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center;
-  background: var(--primary-5); color: var(--primary-60); }
-.role-choice > strong { grid-column: 2; } .role-choice > span:not(.role-icon-wrap):not(.chev) { grid-column: 2; }
-.role-choice .chev { grid-column: 3; }
-
 /* ── 평가위원 단계 ── */
 .step-bars { display: flex; gap: 6px; margin-top: 4px; }
 .step-bars i { flex: 1; height: 4px; border-radius: 99px; background: var(--gray-10); position: relative; overflow: hidden; }
@@ -55,10 +46,6 @@
 .step-bars i.done::after, .step-bars i.now::after { transform: scaleX(1); }
 .step-bars i.done::after { background: var(--primary-20); }
 
-.field.big input.otp-input { font-size: 34px; letter-spacing: .5em; font-variant-numeric: tabular-nums; text-align: left; }
-.field.big input.otp-input::placeholder { letter-spacing: .5em; color: var(--gray-20); }
-.field.big input.otp-input.shake { animation: otp-shake .4s; }
-@keyframes otp-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } 100% { transform: none; } }
 .otp-timer { font-size: 16px; color: var(--gray-60); }
 .otp-timer strong { color: var(--primary-60); font-size: 18px; }
 .otp-timer.expired { color: var(--danger-60); font-weight: 700; }
@@ -66,6 +53,123 @@
 @media (prefers-reduced-motion: reduce) {
   .cs-card { animation: none; }
   .cs-tilt { transition: none; transform: none !important; }
-  .step-bars i::after, .role-choice { transition: none; }
-  .role-choice:hover, .role-choice:active { transform: none; }
+  .step-bars i::after { transition: none; }
+}
+
+/* ── 카드 슬라이드 로그인 ── */
+.login-wrap { width: min(440px, 100%); display: flex; flex-direction: column; gap: 20px; }
+.login-wrap .login-card { width: 100%; gap: 10px; }
+.login-top { display: flex; justify-content: space-between; align-items: center; min-height: 40px; }
+.step-bars { transition: opacity var(--dur-2) var(--ease); }
+.step-bars.is-off { opacity: 0; }
+.login-stage { margin: 0 -4px; padding: 8px 4px 0; }
+.login-step { display: flex; flex-direction: column; gap: 14px; min-height: 480px; }
+.login-step.is-prev, .login-step.is-next { inset: 8px 4px 0; }
+.login-step .say-title { margin: 8px 0 0; }
+.login-step .say-sub { margin: 0 0 18px; }
+.login-fields { display: flex; flex-direction: column; gap: 22px; }
+.login-step .cta-bar { margin-top: auto; padding-bottom: 4px; position: static; background: transparent; }
+.cta-hint { font-size: 14px; margin: 0; }
+.otp-resend { align-self: flex-start; }
+.step-bars i::after { transition: transform var(--dur-3) var(--ease); }
+
+@media (prefers-reduced-motion: reduce) {
+  .login-step, .step-bars { transition: none; }
+}
+
+/* ── 첫 화면(랜딩) → 로그인 전환 ──
+   .is-intro: 파란 패널이 전체 폭. 클래스가 빠지면 패널이 로그인 폭으로 줄고 오른쪽 카드가 들어옵니다.
+   (flex-grow·padding·transform·opacity 위주로만 전환) */
+.login-page { display: flex; }
+.login-page .login-hero { display: flex; flex: 1.1 1 0; min-width: 0; transition: flex-grow .6s var(--ease), padding .6s var(--ease), opacity .4s var(--ease), visibility 0s; }
+.login-page .login-panel { flex: 1 1 0; min-width: 0; overflow: hidden; transition: flex-grow .6s var(--ease), padding .6s var(--ease); }
+.login-page .login-wrap { width: min(440px, calc(100vw - 64px)); flex: none; transition: transform .6s var(--ease), opacity .45s var(--ease) .1s; }
+.login-page.is-intro .login-hero { flex-grow: 1; }
+.login-page.is-intro .login-panel { flex-grow: 0; padding-left: 0; padding-right: 0; }
+.login-page.is-intro .login-wrap { opacity: 0; transform: translateX(120px); transition-delay: 0s; }
+
+.login-hero h1 { transition: font-size .6s var(--ease); }
+.is-intro .login-hero h1 { font-size: 52px; line-height: 1.3; }
+.is-intro .hero-note { display: block; font-size: 18px; max-width: 600px; text-wrap: balance; }
+.login-hero .hero-note, .login-hero .hero-stats { transition: font-size .6s var(--ease); }
+.cs-scene { transition: transform .6s var(--ease), height .6s var(--ease); }
+.is-intro .cs-scene { height: 40px; margin: 0; transform: translate(27vw, -70px) scale(1.4); }
+
+.hero-cta { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .6s var(--ease), opacity .3s var(--ease); }
+.hero-cta > div { overflow: hidden; min-height: 0; padding: 8px; margin: -8px; }
+.is-intro .hero-cta { grid-template-rows: 1fr; opacity: 1; }
+.hero-start { margin-top: 32px; min-height: 60px; padding: 0 40px; border: 0; border-radius: 16px; background: #fff; color: var(--secondary-90);
+  font: inherit; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 8px 24px rgb(0 0 0 / .22);
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease); }
+.hero-start:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgb(0 0 0 / .28); }
+.hero-start:active { transform: scale(.98); }
+.hero-start:focus-visible { outline: 3px solid #fff; outline-offset: 4px; box-shadow: none; }
+
+.is-intro .fade-up { animation: hero-fade-up .7s var(--ease) both; animation-delay: var(--d, 0ms); }
+@keyframes hero-fade-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+/* 좁은 화면: 랜딩은 세로 배치, 로그인 전환 시 파란 패널은 접히며 사라집니다(기존: 로그인 화면에서 숨김). */
+@media (max-width: 1100px) {
+  .login-page .login-hero { flex: 0 0 0; padding-left: 0; padding-right: 0; opacity: 0; visibility: hidden; overflow: hidden; max-height: 0; transition: flex-grow .5s var(--ease), padding .5s var(--ease), opacity .3s var(--ease), visibility 0s .5s; }
+  .login-page.is-intro .login-hero { flex: 1 1 0; padding-left: 56px; padding-right: 56px; opacity: 1; visibility: visible; max-height: none; transition: none; }
+  .login-page.is-intro .login-panel { padding: 0; }
+  .is-intro .cs-scene { height: 250px; transform: scale(.9); }
+  .is-intro .login-hero h1 { font-size: 44px; }
+}
+@media (max-width: 900px) {
+  .login-page.is-intro .login-hero { padding: 32px 24px; }
+  .is-intro .login-hero h1 { font-size: 36px; }
+  .is-intro .cs-scene { height: 220px; transform: scale(.75); margin: -10px 0; }
+  .hero-start { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-page .login-hero, .login-page .login-panel, .login-page .login-wrap, .login-hero h1, .cs-scene, .hero-cta, .hero-start { transition: none !important; }
+  .is-intro .fade-up { animation: none; }
+}
+
+/* ── 세그먼트 탭(평가위원 | 관리자) ── */
+.login-top { min-height: 48px; }
+.seg { display: flex; width: 100%; background: var(--gray-10); padding: 4px; border-radius: 14px; gap: 4px; }
+.seg button { flex: 1; min-height: 40px; border: 0; border-radius: 10px; background: none; font: inherit; font-size: 16px; font-weight: 700; color: var(--gray-60); cursor: pointer;
+  transition: background var(--dur-1) var(--ease), color var(--dur-1) var(--ease), box-shadow var(--dur-1) var(--ease); }
+.seg button.on { background: var(--gray-0); color: var(--gray-90); box-shadow: var(--shadow); }
+.seg button:disabled { cursor: default; }
+
+/* ── 가상 위원(mock 전용) ── */
+.demo-members { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.demo-members-label { margin: 0; font-size: 14px; font-weight: 700; color: var(--gray-60); }
+.demo-members ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.demo-members button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 1px solid var(--gray-20); border-radius: 12px;
+  background: var(--gray-0); font: inherit; font-size: 15px; font-weight: 700; color: var(--gray-90); cursor: pointer;
+  transition: background var(--dur-1), border-color var(--dur-1), transform .12s var(--ease); }
+.demo-members button:hover:not(:disabled) { background: var(--primary-5); border-color: var(--primary-50); }
+.demo-members button:active:not(:disabled) { transform: scale(.97); }
+.demo-members button:disabled { opacity: .55; cursor: default; }
+.role-badge { font-style: normal; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--gray-10); color: var(--gray-60); }
+.role-badge.r-위원장 { background: var(--primary-5); color: var(--primary-60); }
+
+/* ── 인증번호 6칸 (input 하나 위에 칸을 겹쳐 그림) ── */
+.uline > span.otp-boxes { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 6px 0 0; font-size: inherit; }
+.otp-boxes input.otp-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; z-index: 1; font-size: 24px; cursor: text; caret-color: transparent; }
+.otp-box { display: grid; place-items: center; height: 60px; border-radius: 14px; border: 2px solid var(--gray-10); background: var(--gray-0);
+  font-style: normal; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--gray-90);
+  transition: border-color var(--dur-1) var(--ease); }
+.otp-box.filled { border-color: var(--gray-20); animation: otp-pop .22s var(--spring); }
+.otp-boxes:focus-within .otp-box.cur { border-color: var(--primary-50); box-shadow: 0 0 0 3px var(--primary-10); }
+.otp-boxes.shake { animation: otp-shake .4s; }
+@keyframes otp-pop { from { transform: scale(.85); } to { transform: none; } }
+@keyframes otp-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } 100% { transform: none; } }
+
+/* ── 완료 화면 ── */
+.done-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding-top: 64px; }
+.done-check circle { stroke: var(--primary-50); stroke-width: 5; stroke-linecap: round; stroke-dasharray: 226; stroke-dashoffset: 226; transform: rotate(-90deg); transform-origin: 40px 40px; }
+.done-check path { stroke: var(--primary-50); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; }
+.is-on .done-check circle { animation: done-draw .55s var(--ease) forwards; }
+.is-on .done-check path { animation: done-draw .35s var(--ease) .45s forwards; }
+.done-wrap .say-title { margin-top: 20px; }
+@keyframes done-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .done-check circle, .done-check path { stroke-dashoffset: 0 !important; animation: none !important; }
+  .otp-box.filled, .otp-boxes.shake { animation: none; }
+  .seg button { transition: none; }
 }

@@ -46,18 +46,18 @@ export function CardStack({ heroRef }: { heroRef: RefObject<HTMLElement | null> 
 }
 
 /** 0에서 목표값까지 한 번만 올라갑니다. 움직임 줄이기에서는 바로 최종값을 보여 줍니다. */
-export function CountUp({ to, duration = 800 }: { to: number; duration?: number }) {
+export function CountUp({ to, duration = 800, delay = 0 }: { to: number; duration?: number; delay?: number }) {
   const [v, setV] = useState(() => (reduced() ? to : 0));
   useEffect(() => {
     if (reduced() || to === 0) { setV(to); return; }
-    let raf = 0; const t0 = performance.now();
+    let raf = 0, t0 = 0;
     const tick = (t: number) => {
       const p = Math.min(1, (t - t0) / duration);
       setV(Math.round(to * (1 - Math.pow(1 - p, 3))));
       if (p < 1) raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [to, duration]);
+    const id = window.setTimeout(() => { t0 = performance.now(); raf = requestAnimationFrame(tick); }, delay);
+    return () => { window.clearTimeout(id); cancelAnimationFrame(raf); };
+  }, [to, duration, delay]);
   return <>{v}</>;
 }

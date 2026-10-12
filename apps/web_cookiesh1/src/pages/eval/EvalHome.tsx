@@ -3,10 +3,10 @@ import { api, unwrap } from '../../api/client';
 import { useLoad } from '../../lib/useLoad';
 import { formatDate, formatDateTime, vendorName } from '../../lib/format';
 import { Async } from '../../ui/states';
-import { Badge, Card, Notice, Progress, VendorLabel } from '../../ui/ui';
-import { sheetLabel } from './Assigned';
+import { Card, Notice, Progress, VendorLabel } from '../../ui/ui';
 import { useEval } from './EvalProject';
 
+/** 결론 먼저: 남은 항목 수 → 다음 할 일 버튼 하나 → 제안사별 진행. */
 export function EvalHome() {
   const { project, assignment } = useEval();
   const load = useLoad(async () => unwrap(await api.GET('/api/v1/projects/{project_id}/evaluations/me', { params: { path: { project_id: project.id } } })), [project.id]);
@@ -14,32 +14,33 @@ export function EvalHome() {
   return <Async load={load} loadingLabel="내 평가표를 불러오는 중">
     {sheet => {
       const filled = (v: string) => sheet?.scores.filter(s => s.vendor_id === v).length ?? 0;
-      const total = project.vendor_ids.reduce((a, v) => a + filled(v), 0);
-      const status = sheet?.status === 'submitted' ? 'submitted' : sheet ? 'draft' : 'not_started';
-      return <>
-        <div className="stats">
-          <div className="stat"><div className="stat-label">평가일</div><div className="stat-value sm">{formatDate(assignment.evaluation_date)}</div></div>
-          <div className="stat"><div className="stat-label">제안서 · 평가항목</div><div className="stat-value sm">{project.vendor_ids.length}건 · {perVendor}개</div></div>
-          <div className="stat"><div className="stat-label">내 진행</div><div className="stat-value sm">{total} / {perVendor * project.vendor_ids.length}</div>
-            <Badge tone={sheetLabel[status].tone}>{sheetLabel[status].label}</Badge></div>
-        </div>
-        {sheet?.status === 'submitted' && <Notice tone="success" title={`${formatDateTime(sheet.submitted_at)}에 제출했습니다.`}>
-          제출 후에는 수정할 수 없어요. 수정은 간사에게 요청하세요.</Notice>}
+      const all = perVendor * project.vendor_ids.length;
+      const left = all - project.vendor_ids.reduce((a, v) => a + filled(v), 0);
+      const submitted = sheet?.status === 'submitted';
+      const next = submitted ? { to: 'evaluate', text: '제출한 평가 보기' } : left > 0 ? { to: 'evaluate', text: sheet ? '이어서 평가하기' : '평가 시작하기' } : { to: 'submit', text: '제출하러 가기' };
+      return <div className="eval-home">
+        <section className="home-hero" aria-label="요약">
+          {submitted ? <>
+            <p className="say-title">제출을 마쳤어요</p>
+            <p className="say-sub">{formatDateTime(sheet?.submitted_at)}에 제출했어요.</p></>
+            : left > 0 ? <>
+              <p className="home-line"><span className="big-num">{left}</span><span className="say-title">개 항목 남았어요</span></p>
+              <p className="say-sub">제안서 {project.vendor_ids.length}건 · 평가항목 {perVendor}개 · 평가일 {formatDate(assignment.evaluation_date)}</p></>
+              : <>
+                <p className="say-title">모든 항목을 입력했어요</p>
+                <p className="say-sub">제출 전 점검만 마치면 끝나요.</p></>}
+        </section>
+        {submitted && <Notice tone="success" title="제출 후에는 수정할 수 없어요">수정은 간사에게 요청하세요.</Notice>}
         <Card title="제안사별 진행">
           <ul className="vendor-progress">{project.vendor_ids.map(v => <li key={v}>
             <VendorLabel id={v} />
             <Progress value={filled(v)} max={perVendor} label={`${vendorName(v)} 작성 진행률`} />
             <span className="muted">{filled(v)} / {perVendor} 항목</span>
           </li>)}</ul>
-          <div className="row end"><Link className="btn primary" to="evaluate">{sheet?.status === 'submitted' ? '제출한 평가 보기' : sheet ? '평가 이어하기' : '평가 시작하기'} ›</Link></div>
         </Card>
-        <div className="tool-cards">
-          <Link to="docs?doc=rfp" className="tool-card"><strong>제안요청서 보기</strong><span>평가 기준 확인</span></Link>
-          <Link to="docs" className="tool-card"><strong>제안서 보기</strong><span>업체별 원문</span></Link>
-          <Link to="docs?ask=1" className="tool-card"><strong>문서에 질문하기</strong><span>답변에 출처 쪽 표시</span></Link>
-          {assignment.role === 'chair' && <Link to="chair" className="tool-card accent"><strong>위원장 확인</strong><span>전원 제출 후 집계 확인</span></Link>}
-        </div>
-      </>;
+        <div className="cta-bar"><Link className="btn primary lg" to={next.to}>{next.text} ›</Link></div>
+        <p className="home-links"><Link to="docs?ask=1">문서에 질문하기</Link><span className="muted"> · 답변에 출처 쪽이 표시돼요</span></p>
+      </div>;
     }}
   </Async>;
 }

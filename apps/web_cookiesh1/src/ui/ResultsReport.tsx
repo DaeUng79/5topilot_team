@@ -7,7 +7,13 @@ import { Badge, Card, Notice, VendorLabel } from './ui';
 export function ResultsReport({ project, results, detail }: { project: Project; results: Results; detail: ResultsDetail }) {
   const ranked = [...results.averages].sort((a, b) => b.technical_average - a.technical_average);
   const techMax = project.criteria.reduce((a, c) => a + c.max_score, 0);
+  const top = ranked[0];
   return <div className="report">
+    {top && <div className="conclusion no-print-gap">
+      <span className="big-num">{top.technical_average.toFixed(2)}<small>점</small></span>
+      <div><p className="say-title"><VendorLabel id={top.vendor_id} /> 제안서가 기술평가 1위예요</p>
+        <p className="say-sub">{detail.confirmation ? '위원장이 결과를 확인했어요.' : '위원장이 확인하면 마무리돼요.'}</p></div>
+    </div>}
     <Card title="기술평가 결과" actions={detail.confirmation
       ? <Badge tone="success">위원장 확인 완료</Badge> : <Badge tone="warning">위원장 확인 대기</Badge>}>
       <div className="print-only"><h1>제안서 기술평가 결과</h1><p>{project.name} · {project.department}</p></div>

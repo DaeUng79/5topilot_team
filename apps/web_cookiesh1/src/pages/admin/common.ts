@@ -1,5 +1,5 @@
 import { api, request, unwrap, type Project } from '../../api/client';
-import type { CriteriaRead, ProgressRead, Stage } from '../../api/contract';
+import type { CriteriaRead, DocumentRead, ProgressRead, Stage } from '../../api/contract';
 import type { Tone } from '../../ui/ui';
 
 export const STEP_LABELS = ['사업 등록', '문서·기준', '위원 선정', '평가', '취합', '결과 확인'];
@@ -32,6 +32,26 @@ export async function loadSummary(project: Project): Promise<ProjectSummary> {
     request<CriteriaRead>('GET', `/api/v1/projects/${project.id}/criteria`),
   ]);
   return { project, progress, criteria };
+}
+
+/** 사업의 문서 준비 현황(제안요청서·업체별 제안서). 사이드바·체크리스트·문서 등록 화면이 함께 씁니다. */
+export function docStatus({ project }: ProjectSummary, docs: DocumentRead[] | undefined) {
+  const done = (d: DocumentRead) => d.job.status === 'done';
+  const rfpDone = !!docs?.some(d => d.kind === 'rfp' && done(d));
+  const vendors = project.vendor_ids;
+  const proposalsDone = vendors.filter(v => docs?.some(d => d.kind === 'proposal' && d.vendor_id === v && done(d)));
+  const firstMissingVendor = vendors.find(v => !proposalsDone.includes(v));
+  /** 아직 파일 자체가 없는 슬롯 수(처리 중·실패는 올린 것으로 봅니다). */
+  const empty = docs ? (docs.some(d => d.kind === 'rfp') ? 0 : 1) + vendors.filter(v => !docs.some(d => d.kind === 'proposal' && d.vendor_id === v)).length : 0;
+  return { rfpDone, vendors, proposalsDone, firstMissingVendor, empty };
+}
+
+export interface Workspace { summary: ProjectSummary; docs: DocumentRead[] }
+export async function loadWorkspace(): Promise<Workspace[]> {
+  return Promise.all((await loadProjects()).map(async project => {
+    const [summary, docs] = await Promise.all([loadSummary(project), request<DocumentRead[]>('GET', `/api/v1/projects/${project.id}/documents`)]);
+    return { summary, docs };
+  }));
 }
 
 export function todoOf({ progress, criteria }: ProjectSummary): { text: string; tab: string } | null {
