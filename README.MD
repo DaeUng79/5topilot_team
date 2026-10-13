@@ -88,18 +88,16 @@ npm run build
 | 개인별 계획과 작업·검증 기록 | `docs/<GitHub 계정>/`        |
 | 팀 전체가 확인할 완료 조건    | `docs/testing/ACCEPTANCE.md` |
 | 기획서·발표 자료 원본        | `참고자료/`                  |
-| 프로그램이 읽는 HWPX 서식     | `apps/documents_daeung/doc/` |
 
 문서 구조나 API처럼 여러 기능에 영향을 주는 내용을 바꾸려면 관련 담당자와 먼저 상의합니다.
 
 ## 함께 개발하기
 
 1. GitHub에서 [팀 저장소](https://github.com/DaeUng79/5topilot_team)를 내 계정으로 Fork(복사)합니다.
-2. 내 복사본을 컴퓨터로 내려받고 팀 저장소 주소를 `upstream`으로 등록합니다.
-3. 작업을 시작하기 전에 팀 저장소의 최신 내용을 가져와 새 작업 브랜치를 만듭니다.
-4. 담당 폴더에서 작업하고 관련 테스트를 실행합니다.
-5. README와 작업 기록을 함께 고친 뒤 팀 저장소에 Pull Request(PR, 변경 검토 요청)를 보냅니다.
-6. 다른 팀원의 검토를 받은 뒤 병합합니다.
+2. 작업을 시작하기 전에 팀 저장소의 최신 내용을 가져와 새 작업 브랜치를 만듭니다.
+3. 담당 폴더에서 작업하고 관련 테스트를 실행합니다.
+4. 개별 폴더에 개인의 README에 작업 기록을 남기고 팀 저장소에 Pull Request(PR, 변경 검토 요청)를 보냅니다.
+5. 다른 팀원의 검토를 받은 뒤 병합합니다.
 
 ```bash
 git clone https://github.com/<내 GitHub 계정>/5topilot_team.git
@@ -115,9 +113,8 @@ git switch -c feat/<작업 이름> upstream/main
 ## 꼭 지켜 주세요
 
 - `.env` 파일, API 키, DB 비밀번호, 실제 제안서, 개인 정보는 GitHub에 올리지 않습니다.
-- 테스트에는 실제 사람이나 회사 자료 대신 가짜 또는 사용 허가를 받은 자료를 씁니다.
+- 테스트에는 실제 사람이나 회사 자료 대신 공개된 자료 또는 사용 허가를 받은 자료를 씁니다.
 - AI 결과는 초안일 수 있으니 원문을 확인합니다.
-- 웹 mock이 성공해도 실제 서버 연결이 성공한 것은 아닙니다.
 
 팀 저장소: [https://github.com/DaeUng79/5topilot_team](https://github.com/DaeUng79/5topilot_team) ·
 [목표 화면 예시](https://simsa-ai.lovable.app/admin/projects/p1?tab=progress)
