@@ -28,11 +28,11 @@
 
 | 기능 | 근거 | 현재 상태 |
 | --- | --- | --- |
-| HWPX/HWP 파싱 | [step1_parser_hwpx.py](../../apps/documents_daeung/step1_parser_hwpx.py) | 소스 존재. HWPX 중심이며 HWP 경로는 일부 구조·이미지 기능 제한 |
+| HWPX/HWP 파싱 | [step1_hwpx_parse_to_JSON.py](../../apps/documents_daeung/step1_hwpx_parse_to_JSON.py) | 소스 존재. HWPX 중심이며 HWP 경로는 일부 구조·이미지 기능 제한 |
 | 저장·검색 청크 | [step2_hwpx_storage.py](../../apps/documents_daeung/step2_hwpx_storage.py) | MongoDB/GridFS·버전별 레코드·청크 생성. 임베딩 미생성 |
-| 요구사항 추출 | [step3_ai_requirements.py](../../apps/documents_daeung/step3_ai_requirements.py) | 모델이 고른 블록을 원문에서 복사·검증. 조기 종료에 대한 완전성 검증 필요 |
+| 요구사항 추출 | [step3_ai_requirements_extract_to_SQLite.py](../../apps/documents_daeung/step3_ai_requirements_extract_to_SQLite.py) | 모델이 고른 블록을 원문에서 복사·검증하고 SQLite에 저장 |
 | 평가기준 초안 | [step4_ai_criteria.py](../../apps/documents_daeung/step4_ai_criteria.py) | 항목·배점 유지. 행별 근거·사람의 검토/확정 상태 보완 필요 |
-| 확인 화면·미리보기 | [streamlit_main.py](../../apps/documents_daeung/streamlit_main.py), [streamlit_page_preview.py](../../apps/documents_daeung/streamlit_page_preview.py) | 업로드·조회·추출·SVG 미리보기 소스 존재 |
+| 확인 화면·미리보기 | [streamlit_main.py](../../apps/documents_daeung/streamlit_main.py) | 업로드·조회·추출·SVG 미리보기 소스 존재 |
 | RAG·사업 권한·위원회 자동화 | [활용 설계안](CODE_REVIEW_AND_RAG.md) | 계획 단계 |
 | PostgreSQL+pgvector 전환 | [DB 검토안](DATABASE_REVIEW.md) | 추천안. DB 생성·이관·운영 전환 미실행 |
 
@@ -40,7 +40,7 @@
 
 ## 지금 진행할 추진계획
 
-1. **DAE-01 실행 복구:** 남아 있는 `apps.app.documents` import, `.env`·가상환경·작업자 경로, AppTest 진입점을 현재 폴더와 맞춥니다.
+1. **DAE-01 실행 복구:** `apps.app.documents` import, `.env`·가상환경·작업자 경로, AppTest 진입점을 현재 폴더와 맞췄습니다. 실제 MongoDB 연결과 문서 처리 흐름은 별도로 확인합니다.
 2. **DAE-02 기준선:** 현재 남아 있는 테스트를 재현하고 삭제 상태인 AI 테스트 4개의 관리 방침을 확인합니다. 문서 뒤쪽·부록·번호 없는 요구사항을 포함한 합성 검증 자료를 준비합니다.
 3. **DAE-03 계약:** 사업 문서 ID와 원본 해시를 분리하고 문서·버전·블록·셀·페이지·권한 계약을 팀과 합의합니다. 파일 경로에 영향받지 않는 revision 규칙을 정합니다.
 4. **DAE-04~05 저장·API:** 저장소 인터페이스 뒤에 현행 MongoDB를 두고 PostgreSQL+pgvector를 비교합니다. 업로드·처리 상태·실패/재시도·근거 열람을 웹과 연결합니다.
@@ -52,9 +52,9 @@
 
 ## 실행·검증 현황
 
-현재 테스트 5개 모듈은 `ModuleNotFoundError: No module named 'apps.app'`로 수집에 실패합니다. 기능 테스트 본문은 실행되지 않았습니다. 이전 문서의 루트 `requirements.txt`·`streamlit_main.py` 실행 명령은 현재 배치와 맞지 않으며 DAE-01에서 갱신해야 합니다.
+문서 앱의 테스트 5개 모듈, 40개 테스트가 통과했습니다. 실행 명령은 [문서 앱 안내](../../apps/documents_daeung/README.md)에 현재 폴더 구조에 맞게 갱신했습니다. 실제 MongoDB 연결과 외부 AI 호출은 테스트 범위에 포함하지 않았습니다.
 
-의존성 파일은 [apps/documents_daeung/requirements.txt](../../apps/documents_daeung/requirements.txt)에 있습니다. 문서 처리 코드는 모듈 폴더의 `.env` 또는 환경변수를 참조합니다. MongoDB 설정은 `MONGODB_URI`, AI 호출 설정은 `OPENAI_API_KEY`를 사용합니다. 설정값은 이 문서나 Git에 기록하지 않습니다. [함수·검증 안내](FUNCTION_GUIDE.md)에 이번 실행 조건과 재현 명령을 남겼습니다.
+의존성 파일은 [apps/documents_daeung/requirements.txt](../../apps/documents_daeung/requirements.txt)에 있습니다. 문서 처리 코드는 모듈 폴더의 `.env`를 우선 사용하고, 없으면 저장소 루트의 `.env`를 참조합니다. 환경변수는 파일 값보다 우선합니다. MongoDB 설정은 `MONGODB_URI`, AI 호출 설정은 `OPENAI_API_KEY`를 사용합니다. 설정값은 이 문서나 Git에 기록하지 않습니다.
 
 ## 완료 기준
 

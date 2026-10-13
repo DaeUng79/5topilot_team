@@ -1,4 +1,4 @@
-# 원준석 · Lex6won
+# 원준석 PM · Lex6won
 
 [프로젝트 소개](../../../README.MD) · [역할표](../../team/ROLES.md) · [GitHub](https://github.com/Lex6won)
 
