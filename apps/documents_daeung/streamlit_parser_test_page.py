@@ -10,6 +10,7 @@ import io
 import json
 import re
 import sqlite3
+import sys
 import tempfile
 import unicodedata
 import zipfile
@@ -201,12 +202,18 @@ def table_html(table: dict, max_rows: int | None = None) -> str:
     rows = table.get("cells", [])
     if max_rows is not None:
         rows = rows[:max_rows]
+    # 셀 너비가 있는 원본 JSON에서는 행 전체 너비 대비 비율을 반영한다.
+    total_width = max((sum(max(0, cell.get("width") or 0) for cell in row)
+                       for row in rows), default=0)
     rendered = []
     for row in rows:
         cells = []
         for cell in sorted(row, key=lambda item: item.get("col", 0)):
             color = str(cell.get("background_color") or "")
             style = "border:1px solid #aeb8c2;padding:6px 9px;vertical-align:top;white-space:pre-wrap"
+            width = max(0, cell.get("width") or 0)
+            if total_width and width:
+                style += f";width:{width / total_width * 100:.3f}%"
             if re.fullmatch(r"#[0-9a-fA-F]{3,8}", color):
                 style += f";background-color:{color}"
             row_span = max(1, int(cell.get("row_span", 1)))
@@ -599,8 +606,8 @@ def main() -> None:
     st.subheader(document["filename"] or document_id)
     printed = by_number[page]["page_number"]
     st.caption(f"물리 {page}쪽" + (f" · 인쇄 {printed}쪽" if printed is not None else " · 인쇄 쪽번호 없음"))
-    preview, extracted, requirements, criteria = st.tabs(
-        ["원본 페이지", "추출 내용", "제안 요구사항", "정성적 평가기준"]
+    preview, extracted, requirements, criteria, chatbot = st.tabs(
+        ["원본 페이지", "추출 내용", "제안 요구사항", "정성적 평가기준", "문서 챗봇"]
     )
     with preview:
         signature = (DATABASE.stat().st_mtime_ns, DATABASE.stat().st_size)
@@ -625,6 +632,14 @@ def main() -> None:
         render_requirements(DATABASE, document_id, revision, document["filename"] or document_id)
     with criteria:
         render_criteria(DATABASE, document_id, revision, document["filename"] or document_id)
+
+    with chatbot:
+        # streamlit run의 실행 위치와 무관하게 형제 앱 패키지를 찾는다.
+        root = str(Path(__file__).resolve().parents[2])
+        if root not in sys.path:
+            sys.path.insert(0, root)
+        from apps.ai_chatbot_daeung.streamlit_chat import render_chatbot
+        render_chatbot(DATABASE, documents, document_id)
 
 
 if __name__ == "__main__":
