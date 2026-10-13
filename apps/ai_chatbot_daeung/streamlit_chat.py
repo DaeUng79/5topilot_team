@@ -27,28 +27,45 @@ def render_answer(answer, source_tables):
         st.warning("답변이 지정한 일부 표를 현재 문서에서 찾을 수 없습니다. 표를 다시 요청해 주세요.")
 
 
-def render_chatbot(db_path, documents, selected_document_id):
-    st.subheader("추출 내용 문서 챗봇")
-    st.caption(f"{MODEL} · 선택한 문서의 모든 페이지에 질문합니다. 질문할 때 추출 텍스트와 대화가 OpenAI API로 전송됩니다.")
+def prepare_chatbot(db_path, documents, selected_document_id):
     by_id = {row["document_id"]: row for row in documents}
     try:
         projects = list_projects(db_path)
-        scope = st.radio("질문 범위", ["현재 문서", "문서 직접 선택", "등록된 사업"], horizontal=True)
+        with st.sidebar:
+            st.markdown("### 챗봇 설정")
+            st.caption(
+                f"{MODEL} · 선택한 문서의 모든 페이지에 질문합니다. "
+                "질문할 때 추출 텍스트와 대화가 OpenAI API로 전송됩니다."
+            )
+            scope = st.radio(
+                "질문 범위", ["현재 문서", "문서 직접 선택", "등록된 사업"],
+                key="document_chat_scope",
+            )
         if scope == "현재 문서":
             ids = [selected_document_id]
         elif scope == "문서 직접 선택":
-            ids = st.multiselect("함께 질문할 문서", list(by_id), default=[selected_document_id],
-                                 format_func=lambda key: by_id[key]["filename"])
+            with st.sidebar:
+                ids = st.multiselect(
+                    "함께 질문할 문서", list(by_id), default=[selected_document_id],
+                    format_func=lambda key: by_id[key]["filename"],
+                    key="document_chat_documents",
+                )
         else:
             names = {row["project_id"]: row["name"] for row in projects}
             if not names:
-                st.info("사업에 연결된 문서가 없습니다. ‘문서 직접 선택’으로 한 사업의 문서를 함께 선택할 수 있습니다.")
+                st.sidebar.info(
+                    "사업에 연결된 문서가 없습니다. ‘문서 직접 선택’으로 한 사업의 문서를 함께 선택할 수 있습니다."
+                )
                 return
-            project_id = st.selectbox("사업", list(names), format_func=names.get)
+            with st.sidebar:
+                project_id = st.selectbox(
+                    "사업", list(names), format_func=names.get,
+                    key="document_chat_project",
+                )
             ids = [row["document_id"] for row in projects if row["project_id"] == project_id]
         context = load_context(db_path, ids)
     except (sqlite3.Error, OSError, ValueError, KeyError) as error:
-        st.info(f"문서 자료를 준비하지 못했습니다: {error}")
+        st.sidebar.info(f"문서 자료를 준비하지 못했습니다: {error}")
         return
 
     fingerprint = context["fingerprint"]
@@ -58,21 +75,50 @@ def render_chatbot(db_path, documents, selected_document_id):
         st.session_state.document_chat_messages = []
     history = st.session_state.document_chat_messages
     tokens, method = count_tokens(context["content"])
-    st.caption(f"선택 문서 {len(ids)}개 · 자료 {tokens:,} ({method}) · 답변 최대 4,096토큰 예약")
     previous_tokens = context["previous_tokens"]
     reduction = (1 - tokens / previous_tokens) * 100 if previous_tokens else 0
-    st.caption(f"전송 최적화: 기존 {previous_tokens:,} → {tokens:,} ({reduction:.1f}% 절감) · 본문 요약·잘라내기 없음")
-    if context["image_count"]:
-        st.warning(f"그림 {context['image_count']}개는 포함하지 않습니다. 그림 속 글자와 도표에는 답할 수 없습니다.")
-    empty_names = [d["filename"] for d in context["documents"] if not d["text_available"]]
-    if empty_names:
-        st.warning("추출 텍스트가 없는 문서: " + ", ".join(empty_names))
-    with st.expander("챗봇에 전달하는 추출 자료 확인"):
-        st.json(context["content"], expanded=False)
-        st.download_button("전달 JSON 다운로드", context["content"], "chat_context.json", "application/json")
-    if st.button("대화 초기화", key="document_chat_clear"):
-        st.session_state.document_chat_messages = []
-        st.rerun()
+    with st.sidebar:
+        st.caption(
+            f"선택 문서 {len(ids)}개 · 자료 {tokens:,} ({method}) · "
+            "답변 최대 4,096토큰 예약"
+        )
+        st.caption(
+            f"전송 최적화: 기존 {previous_tokens:,} → {tokens:,} "
+            f"({reduction:.1f}% 절감) · 공백·장식선 정리 · 본문 요약 없음"
+        )
+        if context["image_count"]:
+            st.warning(
+                f"그림 {context['image_count']}개는 포함하지 않습니다. "
+                "그림 속 글자와 도표에는 답할 수 없습니다."
+            )
+        empty_names = [d["filename"] for d in context["documents"] if not d["text_available"]]
+        if empty_names:
+            st.warning("추출 텍스트가 없는 문서: " + ", ".join(empty_names))
+        with st.expander("챗봇에 전달하는 추출 자료 확인"):
+            st.json(context["content"], expanded=False)
+            st.download_button(
+                "전달 JSON 다운로드", context["content"], "chat_context.json",
+                "application/json",
+            )
+        if st.button("대화 초기화", key="document_chat_clear"):
+            st.session_state.document_chat_messages = []
+            st.rerun()
+
+    blocked_reason = None
+    try:
+        build_messages(context["content"], [], "문서 요약")
+    except ChatbotError as error:
+        blocked_reason = str(error)
+    return context, history, blocked_reason
+
+
+def render_chatbot(prepared, prompt):
+    if prepared is None:
+        return
+    context, history, blocked_reason = prepared
+    if blocked_reason:
+        st.warning(blocked_reason)
+
     for message in history:
         with st.chat_message(message["role"]):
             if message["role"] == "assistant":
@@ -80,14 +126,6 @@ def render_chatbot(db_path, documents, selected_document_id):
             else:
                 st.markdown(message["content"])
 
-    blocked = False
-    try:
-        build_messages(context["content"], [], "문서 요약")
-    except ChatbotError as error:
-        st.warning(str(error))
-        blocked = True
-    prompt = st.chat_input("예: 사업 범위와 필수 요구사항을 근거와 함께 정리해 주세요.",
-                           disabled=blocked, key="document_chat_prompt")
     if not prompt:
         return
     with st.chat_message("user"):
@@ -95,7 +133,10 @@ def render_chatbot(db_path, documents, selected_document_id):
     try:
         messages, removed, input_tokens = build_messages(context["content"], history, prompt)
         if removed:
-            st.info(f"입력 한도 때문에 오래된 대화 {removed // 2}쌍을 이번 요청에서 제외했습니다. 문서 전체는 포함합니다.")
+            st.info(
+                f"입력 한도 때문에 오래된 대화 {removed // 2}쌍을 이번 요청에서 제외했습니다. "
+                "문서 전체는 포함합니다."
+            )
         try:
             secret_key = st.secrets.get("OPENAI_API_KEY")
         except (FileNotFoundError, st.errors.StreamlitSecretNotFoundError):
@@ -114,7 +155,13 @@ def render_chatbot(db_path, documents, selected_document_id):
             raise ChatbotError("빈 답변을 받았습니다. 질문을 다시 입력해 주세요.")
     except (ChatbotError, OSError, ValueError) as error:
         st.error(str(error))
-        st.caption("실패하거나 중단된 답변은 대화 기록에 저장하지 않습니다. 같은 질문을 다시 입력할 수 있습니다.")
+        st.caption(
+            "실패하거나 중단된 답변은 대화 기록에 저장하지 않습니다. "
+            "같은 질문을 다시 입력할 수 있습니다."
+        )
         return
     history.extend([{"role": "user", "content": prompt}, {"role": "assistant", "content": answer}])
-    st.caption(f"이번 요청 입력 추정: {input_tokens:,}토큰 · 답변의 근거는 원본 페이지와 대조해 주세요.")
+    st.caption(
+        f"이번 요청 입력 추정: {input_tokens:,}토큰 · "
+        "답변의 근거는 원본 페이지와 대조해 주세요."
+    )

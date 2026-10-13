@@ -75,6 +75,22 @@ class ChatbotTests(unittest.TestCase):
         self.assertEqual(context['content'], updated['content'])
         self.assertNotEqual(before, updated['fingerprint'])
 
+    def test_text_cleanup_and_page_boundaries(self):
+        self.assertEqual(chatbot.clean_text(
+            '  CNR-004\t API  1,000원\n\n━━━\n① -3.5% / A+B ', paragraph=True),
+            'CNR-004 API 1,000원\n① -3.5% / A+B')
+        self.assertEqual(chatbot.clean_text('---'), '---')
+        units = [{"filename": "예시.hwpx", "blocks": [
+            {"block_id": str(i), "type": "paragraph", "pages": pages, "text": text}
+            for i, (pages, text) in enumerate([
+                ([1], '첫 문단'), ([1], '━━━'), ([1], '다음 문단'),
+                ([2], '다른 페이지'), ([2, 3], '여러 쪽')])]}]
+        packed = chatbot.compact_payload(units)['documents'][0]['blocks']
+        self.assertEqual(packed, [
+            {'p': [1], 'text': '첫 문단\n다음 문단'},
+            {'p': [2], 'text': '다른 페이지'}, {'p': [2, 3], 'text': '여러 쪽'}])
+        self.assertEqual(units[0]['blocks'][1]['text'], '━━━')
+
     def test_no_silent_document_truncation_and_history_pair_trimming(self):
         history = [{'role': 'user', 'content': 'x' * 1500},
                    {'role': 'assistant', 'content': 'y' * 1500}]
@@ -110,19 +126,33 @@ class ChatbotTests(unittest.TestCase):
         self.assertIn('width:100.000%', markup)
         self.assertIn('&lt;script&gt;', markup)
         self.assertNotIn('<script>', markup)
-        code = f"""from apps.ai_chatbot_daeung.streamlit_chat import render_chatbot
-render_chatbot({str(self.db)!r}, [{{"document_id": "a", "filename": "a.hwpx"}}], "a")"""
+        code = f"""import streamlit as st
+from apps.ai_chatbot_daeung.streamlit_chat import prepare_chatbot, render_chatbot
+tabs = st.tabs(["문서 챗봇"], key="document_page_tabs", on_change="rerun")
+chat_state = prepare_chatbot({str(self.db)!r}, [{{"document_id": "a", "filename": "a.hwpx"}}], "a")
+prompt = None
+if chat_state is not None:
+    prompt = st.chat_input("질문", disabled=bool(chat_state[2]), key="document_chat_prompt")
+with tabs[0]:
+    render_chatbot(chat_state, prompt)"""
         app = AppTest.from_string(code).run()
+        self.assertEqual(len(app.chat_input), 1)
+        self.assertEqual(len(app.sidebar.chat_input), 0)
         with patch('apps.ai_chatbot_daeung.streamlit_chat.get_client', return_value=MagicMock()), \
              patch('apps.ai_chatbot_daeung.streamlit_chat.stream_answer',
                    return_value=iter(['원본 표입니다. [[TAB', 'LE:T1]]'])):
             app.chat_input[0].set_value('표를 보여줘').run()
         self.assertFalse(app.exception)
         self.assertTrue(any('rowspan="2"' in element.value for element in app.markdown))
+        self.assertTrue(any('a.hwpx · 표 t1' in element.value for element in app.caption))
+        self.assertFalse(any('rowspan="2"' in element.value for element in app.sidebar.markdown))
+        self.assertTrue(any('rowspan="2"' in element.value for element in app.markdown))
         self.assertFalse(any('[[TABLE:' in element.value for element in app.markdown))
         app.run()
         self.assertFalse(app.exception)
         self.assertTrue(any('rowspan="2"' in element.value for element in app.markdown))
+        self.assertTrue(any('원본 표입니다.' in element.value for element in app.markdown))
+        self.assertFalse(any('원본 표입니다.' in element.value for element in app.sidebar.markdown))
         self.assertTrue(any('a.hwpx · 표 t1' in element.value for element in app.caption))
 
     def test_stream_failure_not_silently_successful(self):
@@ -137,11 +167,22 @@ render_chatbot({str(self.db)!r}, [{{"document_id": "a", "filename": "a.hwpx"}}],
 
     def test_streamlit_scope_and_missing_key(self):
         from streamlit.testing.v1 import AppTest
-        code = f'''from apps.ai_chatbot_daeung.streamlit_chat import render_chatbot
-render_chatbot({str(self.db)!r}, [{{"document_id": "a", "filename": "a.hwpx"}},
-                              {{"document_id": "b", "filename": "b.hwpx"}}], "a")'''
+        code = f'''import streamlit as st
+from apps.ai_chatbot_daeung.streamlit_chat import prepare_chatbot, render_chatbot
+tabs = st.tabs(["문서 챗봇"], key="document_page_tabs", on_change="rerun")
+chat_state = prepare_chatbot({str(self.db)!r}, [{{"document_id": "a", "filename": "a.hwpx"}},
+                                          {{"document_id": "b", "filename": "b.hwpx"}}], "a")
+prompt = None
+if chat_state is not None:
+    prompt = st.chat_input("질문", disabled=bool(chat_state[2]), key="document_chat_prompt")
+with tabs[0]:
+    render_chatbot(chat_state, prompt)'''
         app = AppTest.from_string(code).run()
         self.assertFalse(app.exception)
+        self.assertTrue(any(widget.label == '질문 범위' for widget in app.sidebar.radio))
+        self.assertTrue(any(button.label == '전달 JSON 다운로드'
+                            for button in app.sidebar.get('download_button')))
+        self.assertTrue(any(button.label == '대화 초기화' for button in app.sidebar.button))
         with patch.object(chatbot, 'get_client'):
             # UI imported its own name; fail without making any network request.
             with patch('apps.ai_chatbot_daeung.streamlit_chat.get_client',

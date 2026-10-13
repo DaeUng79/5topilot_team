@@ -606,9 +606,25 @@ def main() -> None:
     st.subheader(document["filename"] or document_id)
     printed = by_number[page]["page_number"]
     st.caption(f"물리 {page}쪽" + (f" · 인쇄 {printed}쪽" if printed is not None else " · 인쇄 쪽번호 없음"))
+    tab_labels = ["원본 페이지", "추출 내용", "제안 요구사항", "정성적 평가기준", "문서 챗봇"]
     preview, extracted, requirements, criteria, chatbot = st.tabs(
-        ["원본 페이지", "추출 내용", "제안 요구사항", "정성적 평가기준", "문서 챗봇"]
+        tab_labels, key="document_page_tabs", on_change="rerun",
     )
+    # streamlit run의 실행 위치와 무관하게 형제 앱 패키지를 찾는다.
+    root = str(Path(__file__).resolve().parents[2])
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    from apps.ai_chatbot_daeung.streamlit_chat import prepare_chatbot, render_chatbot
+
+    chat_state = prepare_chatbot(DATABASE, documents, document_id)
+    chat_prompt = None
+    if (st.session_state.get("document_page_tabs") == "문서 챗봇"
+            and chat_state is not None):
+        chat_prompt = st.chat_input(
+            "예: 사업 범위와 필수 요구사항을 근거와 함께 정리해 주세요.",
+            disabled=bool(chat_state[2]), key="document_chat_prompt",
+        )
+
     with preview:
         signature = (DATABASE.stat().st_mtime_ns, DATABASE.stat().st_size)
         try:
@@ -634,12 +650,11 @@ def main() -> None:
         render_criteria(DATABASE, document_id, revision, document["filename"] or document_id)
 
     with chatbot:
-        # streamlit run의 실행 위치와 무관하게 형제 앱 패키지를 찾는다.
-        root = str(Path(__file__).resolve().parents[2])
-        if root not in sys.path:
-            sys.path.insert(0, root)
-        from apps.ai_chatbot_daeung.streamlit_chat import render_chatbot
-        render_chatbot(DATABASE, documents, document_id)
+        st.subheader("추출 내용 문서 챗봇")
+        st.caption(
+            "질문 입력과 대화 내용은 중앙 화면에, 질문 범위와 전달 자료 관련 기능은 사이드바에 표시됩니다."
+        )
+        render_chatbot(chat_state, chat_prompt)
 
 
 if __name__ == "__main__":

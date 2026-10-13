@@ -50,39 +50,64 @@ def list_projects(db_path):
             "ORDER BY p.name, d.filename")]
 
 
+def clean_text(text, *, paragraph=False):
+    """의미 있는 문자·줄바꿈은 보존하고 공백과 명백한 장식선만 정리한다."""
+    lines = []
+    for line in text.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        line = re.sub(r"[ \t\u00a0\u3000]+", " ", line).strip()
+        # 표의 빈칸 표시(--- 등)와 본문의 숫자·연산자·목록 기호는 제거하지 않는다.
+        if paragraph and re.fullmatch(r"[─━═_*]{3,}", line):
+            continue
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
 def compact_payload(documents):
-    """본문을 요약하지 않고 반복 셀 속성을 배열로 바꾸는 전송 전용 형식."""
+    """페이지·본문·표만 전송하고 관리용 식별자는 로컬에 유지한다."""
     packed = []
     for document in documents:
         blocks = []
+        table_refs = {b["block_id"]: b["table_ref"] for b in document["blocks"]
+                      if b["type"] == "table"}
         for block in document["blocks"]:
-            unit = {"id": block["block_id"], "p": block["pages"]}
-            if block.get("parent_block_id"):
-                unit["parent"] = block["parent_block_id"]
+            unit = {"p": block["pages"]}
+            parent = block.get("parent_block_id")
+            if parent:
+                # 중첩 표 등의 연결은 유지한다. 일반 최상위 블록에는 ID가 필요 없다.
+                unit["parent"] = table_refs.get(parent, parent)
             if block["type"] == "table":
                 unit["table_ref"] = block["table_ref"]
                 cells = []
                 for row_index, row in enumerate(block["rows"]):
                     for col_index, cell in enumerate(row):
                         value = [cell.get("row", row_index), cell.get("col", col_index),
-                                 cell.get("text", "")]
+                                 clean_text(cell.get("text", ""))]
                         spans = [cell.get("row_span", 1), cell.get("col_span", 1)]
                         if spans != [1, 1]:
                             value.extend(spans)
                         cells.append(value)
                 unit["cells"] = cells
             else:
-                unit["text"] = block["text"]
+                text = clean_text(block["text"], paragraph=True)
+                if not text:
+                    continue
+                unit["text"] = text
+                # 연속한 동일 페이지의 문단만 합쳐 읽기 순서와 페이지 경계를 보존한다.
+                if (blocks and "text" in blocks[-1] and blocks[-1]["p"] == unit["p"]
+                        and blocks[-1].get("parent") == unit.get("parent")):
+                    blocks[-1]["text"] += "\n" + text
+                    continue
             blocks.append(unit)
         packed.append({"filename": document["filename"], "blocks": blocks})
     return {
-        "format": "compact-v1",
+        "format": "compact-v2",
         "schema": {
-            "id": "원문 block_id", "p": "물리 페이지 목록; 빈 목록은 미확인",
-            "parent": "부모 block_id; 없으면 최상위",
-            "text": "문단 원문", "table_ref": "원본 표 표시 마커에 사용할 참조",
-            "cells": "셀 배열: [row,col,text,row_span,col_span]. 마지막 두 값 생략 시 각각 1. "
-                     "행/열은 0부터 시작. 빈 text는 원문의 빈 셀이며 병합으로 덮인 위치는 별도 셀이 없을 수 있음.",
+            "p": "물리 페이지 목록; 빈 목록은 미확인",
+            "parent": "상위 표 참조 또는 블록 ID; 없으면 최상위",
+            "text": "본문", "table_ref": "원본 표 표시 마커 참조",
+            "cells": "[row,col,text,row_span,col_span]; 마지막 두 값 생략 시 각각 1. "
+                     "행/열은 0부터 시작. 빈 text는 빈 셀. 병합으로 덮인 위치에는 별도 셀이 없을 수 있음.",
         },
         "documents": packed,
     }
