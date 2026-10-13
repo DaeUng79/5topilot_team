@@ -311,17 +311,17 @@ def render_requirements(db_path: Path, document_id: str, revision: str,
     """현재 문서의 SQLite 저장 결과를 표시하고 버튼 클릭 시에만 AI를 호출한다."""
     if __package__:
         from .step3_ai_requirements_extract_to_SQLite import (
-            RequirementsError, extract_and_save_requirements,
+            BUSINESS_CATEGORIES, RequirementsError, extract_and_save_requirements,
             group_detail_items, load_saved_requirements, read_source,
         )
     else:
         from step3_ai_requirements_extract_to_SQLite import (
-            RequirementsError, extract_and_save_requirements,
+            BUSINESS_CATEGORIES, RequirementsError, extract_and_save_requirements,
             group_detail_items, load_saved_requirements, read_source,
         )
 
     st.subheader("제안 요구사항")
-    st.caption("사업 주요 정리, 요구사항 전체 목록, 세부내역을 분리합니다. 추출 버튼을 누를 때만 API를 호출합니다.")
+    st.caption("사업현황, 표 형식의 요구사항 총괄표, 요구사항 세부 내역을 표시합니다. 추출 버튼을 누를 때만 API를 호출합니다.")
     try:
         result = load_saved_requirements(db_path, document_id)
     except (RequirementsError, sqlite3.Error, OSError, ValueError) as error:
@@ -364,27 +364,32 @@ def render_requirements(db_path: Path, document_id: str, revision: str,
     except (RequirementsError, sqlite3.Error, OSError, ValueError) as error:
         st.error(f"요구사항 원문을 불러오지 못했습니다: {error}")
         return
-    st.markdown("### 1. 사업의 주요 정리")
-    points = result.get("business_summary", [])
-    if points:
-        source_by_id = {block["block_id"]: block for block in document.get("blocks", [])}
+    st.markdown("### 1. 사업현황")
+    source_by_id = {block["block_id"]: block for block in document.get("blocks", [])}
+    business_status = result.get("business_status") or {}
+    for key, label in BUSINESS_CATEGORIES.items():
+        st.markdown(f"#### {label}")
+        points = business_status.get(key) or []
+        if not points:
+            st.info("원문에서 확인된 내용이 없습니다.")
+            continue
         for point in points:
             pages = sorted({page for block_id in point["source_block_ids"]
-                            for page in source_by_id.get(block_id, {}).get("physical_page_numbers", [])})
+                            for page in (source_by_id.get(block_id, {}).get("physical_page_numbers")
+                                         or [source_by_id.get(block_id, {}).get("physical_page_number")])
+                            if isinstance(page, int) and page > 0})
             page_text = ", ".join(str(page) for page in pages)
             st.markdown(f"- {point['text']}" + (f"  *(원문 {page_text}쪽)*" if pages else ""))
-    else:
-        st.info("정리된 사업 주요 내용이 없습니다.")
 
-    st.markdown("### 2. 요구사항 목록 전체")
+    st.markdown("### 2. 요구사항 총괄표")
     requirement_list = result.get("requirement_list", {}).get("blocks", [])
     if requirement_list:
         render_requirement_blocks(db_path, document_id, revision, requirement_list,
                                   show_full_tables=True)
     else:
-        st.info("추출된 요구사항 목록이 없습니다.")
+        st.info("추출된 요구사항 총괄표가 없습니다.")
 
-    st.markdown("### 3. 요구사항 세부내역")
+    st.markdown("### 3. 요구사항 세부 내역")
     groups = group_detail_items(document, result.get("details", {}))
     if not groups:
         st.info("추출된 요구사항 세부내역이 없습니다.")
@@ -408,6 +413,52 @@ def render_requirements(db_path: Path, document_id: str, revision: str,
     st.caption(f"원문 페이지 {page_label}")
     render_requirement_blocks(db_path, document_id, revision, selected["blocks"],
                               show_full_tables=full_tables, show_table_pages=True)
+
+
+def criteria_table_html(result: dict) -> str:
+    """저장된 표 JSON을 그룹 병합 셀이 있는 HTML 표로 표시한다."""
+    table = result["table"]
+    groups = table["groups"]
+    row_count = sum(len(group["items"]) for group in groups)
+    parts = [
+        '<style>.criteria-table-wrap{overflow-x:auto;margin:1rem 0 1.5rem}'
+        '.criteria-table{border-collapse:collapse;width:100%;min-width:760px;table-layout:fixed;'
+        'font-size:.94rem;line-height:1.45;color:#1f2937}'
+        '.criteria-table th,.criteria-table td{border:1px solid #75808c;padding:.55rem .65rem;'
+        'vertical-align:middle;overflow-wrap:anywhere}'
+        '.criteria-table th{background:#f0f3f7;text-align:center;font-weight:700}'
+        '.criteria-table .criteria-center{text-align:center}'
+        '.criteria-table .criteria-section{background:#f7f9fc;font-weight:700}'
+        '.criteria-table .criteria-division{background:#fafbfc;font-weight:650}'
+        '.criteria-table ul{margin:0;padding-left:1.2rem}'
+        '.criteria-table li{margin:.08rem 0}'
+        '</style>',
+        '<div class="criteria-table-wrap"><table class="criteria-table">',
+        '<colgroup><col style="width:11%"><col style="width:17%">'
+        '<col style="width:22%"><col style="width:42%"><col style="width:8%"></colgroup>',
+        '<thead><tr>' + ''.join(f'<th>{html.escape(label)}</th>' for label in table["columns"])
+        + '</tr></thead><tbody>',
+    ]
+    first_row = True
+    for group in groups:
+        for item_index, item in enumerate(group["items"]):
+            parts.append('<tr>')
+            if first_row:
+                label = f'{table["evaluation_type"]} ({table["total_score"]})'
+                parts.append(f'<td class="criteria-center criteria-section" rowspan="{row_count}">'
+                             f'{html.escape(label)}</td>')
+                first_row = False
+            if item_index == 0:
+                label = f'{group["evaluation_division"]} ({group["division_score"]})'
+                parts.append(f'<td class="criteria-center criteria-division" '
+                             f'rowspan="{len(group["items"])}">{html.escape(label)}</td>')
+            parts.append(f'<td class="criteria-center">{html.escape(item["evaluation_item"])}</td>')
+            elements = ''.join(f'<li>{html.escape(element)}</li>'
+                               for element in item["evaluation_elements"])
+            parts.append(f'<td><ul>{elements}</ul></td>')
+            parts.append(f'<td class="criteria-center">{item["score"]}</td></tr>')
+    parts.append('</tbody></table></div>')
+    return ''.join(parts)
 
 
 def render_criteria(db_path: Path, document_id: str, revision: str,
@@ -448,17 +499,47 @@ def render_criteria(db_path: Path, document_id: str, revision: str,
         st.warning("현재 파싱 버전과 다른 평가기준은 표시하지 않습니다.")
         return
     st.caption(f"총 배점 {result['total_score']}점 · {len(result['rows'])}개 항목")
+    if result.get("template_source") == "generated_from_summary":
+        st.info("원문 정성적 평가표가 없어 요구사항 총괄표의 그룹별로 생성한 초안입니다. "
+                "그룹 배점은 균등 배분한 100점 초안이며 세부 평가항목과 항목별 배점은 AI가 작성했습니다.")
+    else:
+        st.caption("원문 정성적 평가표의 항목과 배점을 반영했습니다.")
+    rationale = result["selection_rationale"]
+    st.markdown("### 평가기준 설정 이유")
+    for key, label in (
+        ("current_status", "사업 관련 현황"),
+        ("background_and_need", "추진 배경 및 필요성"),
+        ("scope", "사업 범위"),
+    ):
+        st.markdown(f"**{label}**")
+        st.write(rationale[key])
+    st.markdown("**평가부문과의 연결**")
+    for link in rationale["evaluation_links"]:
+        st.write(f"• {link['evaluation_division']}: {link['reason']}")
     st.download_button(
         "정성적 평가기준 JSON 다운로드",
         json.dumps(result, ensure_ascii=False, indent=2).encode("utf-8"),
         file_name=Path(filename).stem + "_정성적평가기준.json", mime="application/json",
         key=f"criteria_download_{document_id}",
     )
-    for row in result["rows"]:
-        st.markdown(f"#### {row['evaluation_division']} · {row['evaluation_item']} ({row['score']}점)")
-        st.write(row["evaluation_criteria"])
-        for element in row["evaluation_elements"]:
-            st.markdown(f"- {element}")
+    st.markdown(criteria_table_html(result), unsafe_allow_html=True)
+    supplemental = result.get("supplemental_items", [])
+    st.markdown("### 요구사항 기반 보완 평가항목")
+    st.caption("원문 요구사항과 소프트웨어 기술성 평가기준 지침의 평가 관점을 대조한 검토 초안입니다. "
+               "원문 평가표의 항목·배점과 총점에는 포함되지 않습니다.")
+    if supplemental:
+        for item in supplemental:
+            st.markdown(f"**{item['guideline_area']} · {item['evaluation_item']}**")
+            st.write(item["evaluation_criteria"])
+            for element in item["evaluation_elements"]:
+                st.write(f"• {element}")
+            st.caption(f"원문 근거 ({item['source_id']}): {item['source_quote']}")
+    else:
+        st.info("추가로 제안된 보완 평가항목이 없습니다.")
+    with st.expander("평가기준 설명 보기"):
+        for row in result["rows"]:
+            st.markdown(f"**{row['evaluation_division']} · {row['evaluation_item']}**")
+            st.write(row["evaluation_criteria"])
 
 
 def main() -> None:
