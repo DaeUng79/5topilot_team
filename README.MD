@@ -1,457 +1,129 @@
-# 심사임당 · 4인 팀 개발 저장소
+# 심사임당: 제안평가 업무 지원 프로젝트
 
-기존 Python 에이전트를 유지하면서 프론트엔드, 평가·DB, 평가위원·추첨을 독립 모듈로 개발합니다.
+심사임당은 제안요청서 준비부터 평가와 결과 정리까지 돕는 팀 프로젝트입니다.
+4명이 각자 맡은 기능을 만들고, 마지막에는 기능들이 함께 잘 동작하는지 확인합니다.
 
-- [처음 실행하기](docs/QUICKSTART.md) — Windows setup, 웹/API/원본 디자인 실행
-- [4인 팀 작업 방법](docs/TEAM_WORKFLOW.md) — 역할, 브랜치, PR, API 계약, DB 변경, 통합 검증
-- [팀 공동 개발 가이드 HTML](docs/TEAM_GUIDE.html) — 내려받아 브라우저로 열기; 전체 세션 요약·작업 알림 양식·충돌 대응·클라우드/온프레미스 계획
-- [아키텍처와 현재 구현 범위](docs/ARCHITECTURE.md)
-- 프론트 소스: `apps/web` / 업무 API: `apps/api` / 원본 ZIP: `references/simsaimdang`
-- API 명세: `contracts/openapi.json` / 자동검증: `.github/workflows/ci.yml`
+## 어떤 일을 할 수 있나요?
 
-현재 실행 가능한 범위는 후보 등록 → 추첨 → 기술평가 임시저장 → 개인 제출·잠금 → 기술 평균 취합입니다.
-개발용 인증만 있으며, 실제 서명·가격평가·위원장 확정·문서 AI·전체 원본 화면 이식은 후속 작업입니다.
-원본 데모는 `npm run demo`, 새 웹은 `npm run dev`로 각각 실행합니다.
+팀이 만들려는 전체 과정은 다음과 같습니다.
 
-통합 담당: `DaeUng79`. 참여 계정: `u-jing`, `Lex6won`, 1명 미정.
-기능 역할과 계정 연결은 아직 미확정이며 모든 팀원은 협의 후 다른 영역도 수정할 수 있습니다.
-목표 개발 환경은 Supabase + Vercel, 최종 배포는 온프레미스입니다. 클라우드 배포는 아직 미구현입니다.
-main 보호 규칙 초안은 `docs/github-rulesets/`에 있습니다. 저장소에 파일이 있다고 활성화되지는 않습니다.
+```text
+제안요청서 등록 → 평가기준 확인 → 제안서 등록 → 평가위원 선정 → 평가·제출 → 결과 정리 → 결과 확정·보고
+```
 
----
+아직 모든 기능이 하나의 서버로 연결된 완성 서비스는 아닙니다.
+화면에서 보이는 데모와 실제 서버에서 자료가 저장되는 것은 다를 수 있습니다.
+기능마다 현재 상태와 확인 결과는 해당 폴더의 안내문과 [공동 인수검증표](docs/testing/ACCEPTANCE.md)에서 확인하세요.
 
-# Local Computer Use Agent with Gemma 4 E2B
+## 팀원과 담당 기능
 
-> 이 프로그램은 실제 마우스와 키보드를 제어합니다. 
-> 실행 중에는 마우스를 화면 왼쪽 위 모서리로 옮겨 PyAutoGUI failsafe를 발동할 수 있습니다.
+| 팀원                           | 주로 맡은 일                                             | 코드 폴더                                                          | 작업 기록                            |
+| ------------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------ |
+| **원준석 PM · Lex6won** | 기획과 일정 조율, 평가위원 등록·선정·배정              | [위원 관리](apps/committee_Lex6won/)                                | [작업 기록](docs/Lex6won/README.md)   |
+| **오대웅 · DaeUng79**   | HWPX 문서 읽기·저장, 요구사항·평가기준 분석, 문서 챗봇 | [문서 처리](apps/documents_daeung/), [챗봇](apps/ai_chatbot_daeung/) | [작업 기록](docs/DaeUng79/README.md)  |
+| **현수환 · cookiesh1**  | 사업·위원·평가·결과를 보여 주는 웹 화면               | [웹 화면](apps/web_cookiesh1/)                                      | [작업 기록](docs/cookiesh1/README.md) |
+| **김유진 · u-jing**     | 점수와 의견 저장, 평가 제출, 결과 정리·보고             | [평가·결과](apps/evaluations_u-jing/)                              | [작업 기록](docs/u-jing/README.md)    |
 
-## 1. 전제 조건
+각 담당 폴더는 기능별 작업 공간입니다. 다른 팀원도 담당자와 상의해 함께 수정할 수 있습니다.
 
-- 멀티모달 입력을 지원하도록 실행한 `llama-server`
-- macOS, Windows 또는 Linux의 Python 3 환경
-- 화면 캡처와 입력 제어 권한. macOS에서는 실행 주체(터미널 또는 VS Code)에 **화면 및 시스템 오디오 녹음** 및 **손쉬운 사용** 권한이 필요합니다.
+## 지금 저장소에서 확인할 수 있는 것
 
-## 2. 의존성 설치
+- **웹 화면**: React로 만든 화면입니다. API 서버 없이 합성 자료로 둘러보는 mock 모드를 사용할 수 있습니다. mock은 화면 시험용 가짜 자료이며 실제 문서를 저장하지 않습니다.
+- **문서 처리**: HWPX를 읽고 SQLite 파일에 저장하며, 페이지별 내용과 AI 분석 화면을 제공합니다.
+- **위원 관리와 평가·결과**: 담당 폴더와 설계 안내가 있습니다. 실제 동작 여부는 각 폴더의 README와 인수검증표에서 확인하세요.
+- **공동 API 서버**: 현재 저장소에 서버 코드가 준비되어 있지 않습니다. 따라서 웹 화면의 mock 동작을 실제 서버 연동 완료로 생각하면 안 됩니다.
+
+AI가 만든 요구사항이나 평가기준은 초안입니다. 사람이 원문과 비교하고 확인한 뒤 사용해야 합니다.
+문서에 개인 정보나 비밀 정보가 있으면 AI 서비스에 보내도 되는지 먼저 확인하세요.
+
+## 웹 화면 실행하기
+
+준비물은 Git과 Node.js 22.12 이상입니다. 저장소 맨 위에서 실행합니다.
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -U openai pyautogui pyperclip pillow fastapi uvicorn
+cd apps/web_cookiesh1
+npm install
 ```
 
-## 3. 전체 아키텍처
+API 서버 없이 화면을 보려면 mock 모드로 실행합니다.
 
-```mermaid
-flowchart LR
-    U[사용자 명령] --> A[computer_agent.py\nCLI 또는 run_agent]
-    A -->|OpenAI-compatible API\n127.0.0.1:8080/v1| L[llama-server\nGemma 4 E2B]
-    L -->|function call| A
-    A --> T{도구 실행}
-    T --> B[open_browser\nOS 브라우저 실행]
-    T --> P[PyAutoGUI\nclick, press_key, scroll]
-    T --> K[Pyperclip + 붙여넣기\ntype_text]
-    T --> S[PyAutoGUI screenshot]
-    S -->|JPEG Base64 이미지 + 화면 크기| A
-    A -->|tool result| L
-    L -->|완료 응답 또는 다음 도구| A
-```
+| 컴퓨터 환경            | 실행 명령                               |
+| ---------------------- | --------------------------------------- |
+| macOS·Linux·Git Bash | `VITE_USE_MOCK=1 npm run dev`         |
+| Windows PowerShell     | `$env:VITE_USE_MOCK='1'; npm run dev` |
 
-```text
-┌───────────────────────────────────────────────┐
-│                    사용자 PC                    │
-│                                               │
-│  사용자                                         │
-│   │                                           │
-│   │ 자연어 명령                                  │
-│   ▼                                           │
-│ ┌───────────────────────────────────────────┐ │
-│ │       Python Computer Use Agent           │ │
-│ │                                           │ │
-│ │  - 사용자 명령 수신                           │ │
-│ │  - Tool Call 처리                          │ │
-│ │  - 화면 캡처                                │ │
-│ │  - 마우스/키보드 제어                         │ │
-│ └──────────────────┬────────────────────────┘ │
-│                    │                          │
-│                    │ OpenAI-compatible API    │
-│                    ▼                          │
-│ ┌───────────────────────────────────────────┐ │
-│ │              llama-server                 │ │
-│ │               :8080                       │ │
-│ │                                           │ │
-│ │             Gemma 4 E2B                   │ │
-│ └──────────────────┬────────────────────────┘ │
-│                    │                          │
-│                    ▼                          │
-│               Tool Call                       │
-│                    │                          │
-│       ┌────────────┼────────────┐             │
-│       ▼            ▼            ▼             │
-│   screenshot     click      type_text         │
-│       │            │            │             │
-│       ▼            ▼            ▼             │
-│    화면 읽기       마우스         키보드            │
-│                                               │
-│                    │                          │
-│                    ▼                          │
-│                 현재 화면                       │
-│                    │                          │
-│                    └──────→ screenshot        │
-└───────────────────────────────────────────────┘
-```
+브라우저에서 [http://127.0.0.1:5173](http://127.0.0.1:5173)을 엽니다.
+화면에 **MOCK · 실제 서버 아님** 표시가 있으면 합성 자료로 실행 중입니다.
+새로고침하면 mock 자료가 처음 상태로 돌아갑니다.
 
-Gemma 4 E2B는 무엇을 해야 하는지 판단하고,
-
-Python Agent가 실제 마우스/키보드/브라우저 작업을 수행합니다.
-
----
-
-## 4. 실행 방법
-
-### llama.cpp 설치
-
-#### Windows PowerShell
-
-```powershell
-winget install llama.cpp
-llama-server.exe --version
-```
-
-WinGet을 사용할 수 없다면 [llama.cpp Releases](https://github.com/ggml-org/llama.cpp/releases)에서 Windows용 ZIP을 내려받아 압축을 풀고, `llama-server.exe`가 있는 폴더를 `PATH`에 추가합니다.
-
-#### macOS
+코드를 확인할 때는 `apps/web_cookiesh1` 폴더에서 다음 명령을 사용할 수 있습니다.
 
 ```bash
-brew install llama.cpp
-llama-server --version
+npm run typecheck
+npm run build
 ```
 
-Apple Silicon용 Homebrew 설치본은 Metal 가속을 기본으로 사용합니다.
+현재 `package.json`에는 `npm test` 명령이 없습니다.
+화면 실행 방법과 mock 자료 설명은 [웹 화면 README](apps/web_cookiesh1/README.md)를 참고하세요.
 
-최신 배포판에 `llama-server` 대신 통합 CLI만 포함된 경우 `llama version`으로 설치를 확인합니다. 아래의 `llama-server` 명령은 `llama serve`로 바꿔 실행합니다.
+## 문서 처리 도구 실행하기
 
-### 모델 서버 실행
-
-가장 간단한 방법은 `-hf` 옵션으로 모델을 자동 다운로드하는 것입니다. 처음 실행하면 모델 파일이 Hugging Face 캐시에 저장됩니다.
-
-터미널 1:
+저장소 맨 위 폴더에서 필요한 Python 프로그램을 설치하고 문서 확인 화면을 실행합니다.
 
 ```bash
-llama-server \
-  -hf ggml-org/gemma-4-E2B-it-GGUF \
-  --host 127.0.0.1 \
-  --port 8080 \
-  --jinja \
-  -c 32768
+.venv/bin/python -m pip install -r apps/documents_daeung/requirements.txt
+.venv/bin/python -m streamlit run apps/documents_daeung/streamlit_parser_test_page.py
 ```
 
-서버 주소:
+화면의 사이드바에서 HWPX를 등록하고 문서를 고릅니다. 문서는 50MB 이하여야 합니다.
+페이지 내용, 제안 요구사항, 정성적 평가기준, 문서 챗봇은 화면의 각 탭에서 확인합니다.
+더 자세한 사용법은 [문서 처리 README](apps/documents_daeung/README_documents.MD)를 읽어 주세요.
 
-```text
-http://127.0.0.1:8080/v1
-```
+## 일을 나누어 저장하는 방법
 
----
+| 무엇을 저장하나요?            | 어디에 저장하나요?             |
+| ----------------------------- | ------------------------------ |
+| 프로그램 코드와 기능별 테스트 | `apps/` 아래의 담당 폴더     |
+| 실행·설정 방법               | 해당 앱 폴더의 README          |
+| 개인별 계획과 작업·검증 기록 | `docs/<GitHub 계정>/`        |
+| 팀 전체가 확인할 완료 조건    | `docs/testing/ACCEPTANCE.md` |
+| 기획서·발표 자료 원본        | `참고자료/`                  |
 
-### Computer Use Agent 시작
+문서 구조나 API처럼 여러 기능에 영향을 주는 내용을 바꾸려면 관련 담당자와 먼저 상의합니다.
 
-터미널 2:
+## 함께 개발하기
+
+1. GitHub에서 [팀 저장소](https://github.com/DaeUng79/5topilot_team)를 내 계정으로 Fork(복사)합니다.
+2. 작업을 시작하기 전에 팀 저장소의 최신 내용을 가져와 새 작업 브랜치를 만듭니다.
+3. 담당 폴더에서 작업하고 관련 테스트를 실행합니다.
+4. 개별 폴더에 개인의 README에 작업 기록을 남기고 팀 저장소에 Pull Request(PR, 변경 검토 요청)를 보냅니다.
+5. 다른 팀원의 검토를 받은 뒤 병합합니다.
 
 ```bash
-python computer_agent.py
+git clone https://github.com/<내 GitHub 계정>/5topilot_team.git
+cd 5topilot_team
+git remote add upstream https://github.com/DaeUng79/5topilot_team.git
+git fetch upstream
+git switch -c feat/<작업 이름> upstream/main
 ```
 
-정상 실행 예:
+코드가 내 컴퓨터에서 동작함, PR을 보냄, 팀 저장소에 병합됨, 전체 인수검증을 통과함은 서로 다른 상태입니다.
+각 상태와 확인 결과를 [공동 인수검증표](docs/testing/ACCEPTANCE.md)에 맞게 기록합니다.
 
-```text
-============================================================
-Local Computer Use Agent
-============================================================
-LLAMA SERVER: http://127.0.0.1:8080/v1
-MODEL: gemma-4-E2B-it-GGUF
-OS: Darwin
-SCREEN: 2560 x 1600
-============================================================
-종료: exit / quit / 종료
+## 꼭 지켜 주세요
 
-명령 >
-```
+- `.env` 파일, API 키, DB 비밀번호, 실제 제안서, 개인 정보는 GitHub에 올리지 않습니다.
+- 테스트에는 실제 사람이나 회사 자료 대신 공개된 자료 또는 사용 허가를 받은 자료를 씁니다.
+- AI 결과는 초안일 수 있으니 원문을 확인합니다.
 
----
+팀 저장소: [https://github.com/DaeUng79/5topilot_team](https://github.com/DaeUng79/5topilot_team) ·
+[목표 화면 예시](https://simsa-ai.lovable.app/admin/projects/p1?tab=progress)
 
-## 5. 기본 사용 예
+## 기반 PR #1 구조 안내 (이 브랜치 한정)
 
-### Chrome으로 네이버 열기
+이 작업 브랜치에는 [PR #1](https://github.com/DaeUng79/5topilot_team/pull/1)의 공동 API·웹 기반이 함께 들어 있습니다.
+PR #1이 main에 병합되기 전까지는 아래 문서와 경로를 따릅니다.
 
-```text
-크롬으로 네이버 열어줘
-```
-
-모델이 다음 Tool을 호출합니다.
-
-```json
-{
-  "name": "open_browser",
-  "arguments": {
-    "browser": "chrome",
-    "url": "https://www.naver.com"
-  }
-}
-```
-
-### 연속 작업 예
-
-```text
-크롬으로 네이버 열고 양산시청 검색해줘
-```
-
-### 상세 검색 예
-
-```text
-크롬으로 네이버를 열고 검색창을 클릭한 다음 양산시청을 입력하고 검색 버튼을 눌러줘
-```
-
-### 화면 인식 예
-
-```text
-현재 화면에서 검색창의 위치를 찾아줘
-```
-
-### 스크롤 예
-
-```text
-현재 페이지를 아래로 스크롤해줘
-```
-
-## 6. 도구 상세
-
-### open_browser
-
-브라우저를 실행하고 URL을 엽니다.
-
-```text
-open_browser(
-    browser="chrome",
-    url="https://www.naver.com"
-)
-```
-
-지원 브라우저:
-
-```text
-chrome
-safari
-edge
-firefox
-ie
-```
-
-브라우저 별칭도 일부 처리합니다.
-
-```text
-크롬
-클롬
-사파리
-엣지
-파이어폭스
-익스플로러
-```
-
----
-
-### screenshot
-
-현재 PC 화면을 캡처합니다.
-
-```text
-screenshot()
-```
-
-캡처 결과는 Base64 JPEG 이미지로 변환되어
-Gemma 4 E2B에게 다시 전달됩니다.
-
-화면 판단이 필요한 경우:
-
-```text
-screenshot
-   ↓
-이미지 입력
-   ↓
-Gemma 판단
-   ↓
-다음 Tool 호출
-```
-
-의 구조입니다.
-
----
-
-### click
-
-화면을 클릭합니다.
-
-```text
-click(
-    x=500,
-    y=500
-)
-```
-
-### 좌표 체계
-
-Gemma가 사용하는 좌표는 0~1000 정규화 좌표를 사용합니다.
-
-```text
-왼쪽 위      (0, 0)
-
-중앙         (500, 500)
-
-오른쪽 아래  (1000, 1000)
-```
-
-Python에서 실제 macOS/Windows 화면 좌표로 변환합니다.
-
-예:
-
-```text
-모델 좌표
-(500, 500)
-
-      ↓
-
-실제 화면
-(1280, 800)
-```
-
-화면 크기에 따라 실제 좌표는 달라집니다.
-
----
-
-### type_text
-
-현재 포커스된 입력창에 텍스트를 입력합니다.
-
-한글 입력을 위해 `pyautogui.write()` 대신
-클립보드 + 붙여넣기 방식으로 구현합니다.
-
-```text
-type_text(
-    text="양산시청"
-)
-```
-
-macOS:
-
-```text
-Command + V
-```
-
-Windows/Linux:
-
-```text
-Ctrl + V
-```
-
----
-
-### press_key
-
-키보드 키를 입력합니다.
-
-예:
-
-```text
-press_key(
-    key="enter"
-)
-```
-
-지원 예:
-
-```text
-enter
-esc
-tab
-space
-backspace
-delete
-home
-end
-up
-down
-left
-right
-pageup
-pagedown
-f5
-```
-
----
-
-### scroll
-
-스크롤합니다.
-
-```text
-scroll(
-    amount=-5
-)
-```
-
-양수:
-
-```text
-위쪽
-```
-
-음수:
-
-```text
-아래쪽
-```
-
----
-
-### wait
-
-페이지 로딩 등을 위해 잠시 기다립니다.
-
-```text
-wait(
-    seconds=1
-)
-```
-
-현재 최대 5초까지 제한합니다.
-
----
-
----
-
-## 7. 화면 캡처 처리
-
-초기 테스트에서 다음 오류가 발생했습니다.
-
-```text
-OSError: cannot write mode RGBA as JPEG
-```
-
-원인은 macOS 캡처 이미지가 RGBA 모드였기 때문입니다.
-
-현재 코드에서는 다음처럼 해결합니다.
-
-```python
-if image.mode != "RGB":
-    image = image.convert("RGB")
-```
-
-그리고 JPEG로 변환합니다.
-
-```python
-image.save(
-  buffer,
-  format="JPEG",
-  quality=82,
-  optimize=True
-)
-```
+- [처음 실행하기](docs/QUICKSTART.md) · [4인 팀 작업 방법](docs/TEAM_WORKFLOW.md) · [아키텍처와 현재 구현 범위](docs/ARCHITECTURE.md)
+- 업무 API: `apps/api` / 프론트: `apps/web` / API 명세: `contracts/openapi.json` / 자동검증: `.github/workflows/ci.yml`
+- 원본 데모는 `npm run demo`, 새 웹은 `npm run dev`로 각각 실행합니다.
