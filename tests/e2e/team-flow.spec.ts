@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { loginAsAdmin } from './helpers';
 
 test('위원 등록 → 추첨 → 평가 → 잠금 → 취합이 화면에서 연결된다', async ({ page }) => {
-  await page.goto('/');
+  await loginAsAdmin(page);
   await page.getByLabel('사업명', { exact: true }).fill('브라우저 통합 사업');
   await page.getByLabel('담당 부서').fill('통합검증팀');
   await page.getByRole('button', { name: '사업 등록', exact: true }).click();
@@ -43,6 +44,8 @@ test('위원 등록 → 추첨 → 평가 → 잠금 → 취합이 화면에서 
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: 'artifacts/evaluations.png', fullPage: true });
   await page.reload();
+  // 새로고침 뒤 앱은 이름순 첫 사업을 고르므로, 다른 E2E가 만든 사업과 섞이지 않게 이 사업을 다시 고른다.
+  await page.locator('select').first().selectOption({ label: '브라우저 통합 사업' });
   await page.getByRole('button', { name: '평가·제출·취합', exact: true }).click();
   await expect(page.getByTestId('submission-count')).toHaveText('2 / 2');
   await expect(page.locator('input.score').first()).toBeDisabled();

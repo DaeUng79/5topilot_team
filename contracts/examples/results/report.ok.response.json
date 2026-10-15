@@ -16,7 +16,11 @@
     "confirmed_by": "demo-evaluator-1",
     "confirmed_at": "2026-10-11T06:00:00+00:00",
     "closed_by": null,
-    "closed_at": null
+    "closed_at": null,
+    "sign_method": "chair-handwritten-v1",
+    "signer_name": "테스트위원 1",
+    "signature_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "signature_image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
   },
   "generated_at": "2026-10-11T06:10:00+00:00",
   "policy_version": "trimmed_mean_v1",
@@ -146,8 +150,9 @@
   ],
   "document_revisions": [],
   "snapshot_intact": true,
+  "signature_intact": true,
   "notices": [
-    "제안사별 위원 총점에서 최고·최저 1개씩 제외한 평균(위원 3명 이상, 2명 이하는 전체 평균), 소수 둘째 자리 ROUND_HALF_UP. 가격·최종 순위 산식 미포함.",
+    "제안사별 위원 총점에서 최고·최저 1개씩 제외한 평균(위원 3명 이상, 2명 이하는 전체 평균), 소수 둘째 자리 반올림. 가격·최종 순위 산식 미포함.",
     "서명은 본인 확인 문구 동의와 평가표 내용 해시 기록이며 법적 전자서명이 아닙니다.",
     "가격점수·최종 순위 산식은 정책 승인 전입니다. 표시 순위는 기술 평균 기준입니다.",
     "문서 revision 참조는 문서 모듈(DaeUng79) 연결 뒤 채워집니다."

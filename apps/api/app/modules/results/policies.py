@@ -61,13 +61,13 @@ POLICIES: dict[str, Policy] = {
         "trimmed_mean_v1",
         True,
         "제안사별 위원 총점에서 최고·최저 1개씩 제외한 평균(위원 3명 이상, 2명 이하는 전체 평균), "
-        "소수 둘째 자리 ROUND_HALF_UP. 가격·최종 순위 산식 미포함.",
+        "소수 둘째 자리 반올림. 가격·최종 순위 산식 미포함.",
         trimmed_mean_v1,
     ),
     "technical_mean_v1": Policy(
         "technical_mean_v1",
         True,
-        "선정위원 전원 기술점수 단순평균, 소수 둘째 자리 ROUND_HALF_UP(PR #1 시작용, 비교·기록용).",
+        "선정위원 전원 기술점수 단순평균, 소수 둘째 자리 반올림(PR #1 시작용, 비교·기록용).",
         technical_mean_v1,
     ),
 }

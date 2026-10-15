@@ -1,7 +1,7 @@
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from app.core.auth import Actor, current_actor
@@ -49,6 +49,11 @@ class ConfirmationRead(BaseModel):
     confirmed_at: str
     closed_by: str | None
     closed_at: str | None
+    # 0007: 위원장 자필 서명. 서명 시각은 confirmed_at. 0007 이전 기록은 None.
+    sign_method: str | None = None
+    signer_name: str | None = None
+    signature_sha256: str | None = None
+    signature_image: str | None = None
 
 
 class ReportCriterion(BaseModel):
@@ -95,7 +100,22 @@ class ReportRead(BaseModel):
     sheets: list[ReportSheet]
     document_revisions: list[DocumentRevisionRef]
     snapshot_intact: bool
+    # 위원장 서명 이미지 해시 재검증. 서명 없는 기록(0007 이전)은 None.
+    signature_intact: bool | None
     notices: list[str]
+
+
+class ConfirmRequest(BaseModel):
+    """위원장 최종 서명·확정(RES-03). 확인 동의와 화면에서 작성한 자필 서명 이미지가 모두 있어야
+    봉인한다.
+
+    signature_image는 PNG data URL(data:image/png;base64,…)이며 서버가 형식·크기를 검증해 해시와
+    함께 저장한다. 법적 효력이 있는 전자서명이 아니며 로컬 시연용이다.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    reviewed: Literal[True]
+    signature_image: str = Field(min_length=30, max_length=400_000)
 
 
 class ResultsSummary(BaseModel):
@@ -139,9 +159,9 @@ def get_results_confirmation(project_id: str, db: DB, actor: User):
     status_code=201,
     operation_id="confirm_results",
 )
-def confirm(project_id: str, db: DB, actor: User):
+def confirm(project_id: str, body: ConfirmRequest, db: DB, actor: User):
     project = require_project_role(db, project_id, actor, {"chair"}, lock=True)
-    return confirm_results(db, project, actor.id)
+    return confirm_results(db, project, actor.id, body.signature_image)
 
 
 @router.get(

@@ -19,3 +19,7 @@
 | results/ | 취합 조회 (`/projects/{id}/results`), 결과 확인·리포트 | 취합은 현행, 확인·리포트는 draft |
 | evaluator-access/ | 평가위원 본인확인·세션 발급 | draft (2단계) |
 | criteria/ | 평가기준 확정 기록 | draft (2단계, DaeUng79·Lex6won 협의) |
+| project-setup/ | 사업별 평가 설정(평가항목·업체) 조회·편집 (`/projects/{id}/setup`) | 현행 |
+| committee/ | 평가위원장 지정·조회 (`/projects/{id}/committee/chair`, 관리자) | 현행 (0006, Lex6won 검토 대기) |
+| auth/ | 관리자 로컬 로그인 (`/auth/login`) | 현행 (로컬·CI 전용) |
+| ai/ | 제안요청서 평가기준 파싱 결과 조회 (`/projects/{id}/rfp-criteria`, DaeUng79 documents 연계) | 현행 (읽기 전용 어댑터) |

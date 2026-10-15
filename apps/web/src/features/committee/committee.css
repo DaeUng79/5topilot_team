@@ -1,0 +1,8 @@
+/* 위원장 지정: 추첨 결과의 본위원 목록에 라디오·배지를 붙인다. 패널·배지·버튼·안내문은 공통 스타일을 그대로 쓴다. */
+.chair-option{display:flex;flex-direction:row;align-items:center;gap:10px;font-weight:400;cursor:pointer}
+.chair-option input[type=radio]{width:18px;height:18px;accent-color:var(--blue);flex-shrink:0;margin:0}
+.chair-option .badge{margin-left:0}
+.chair-assign{margin-top:8px}
+.chair-assign label{max-width:480px;margin:8px 0}
+.chair-assign .actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.chair-assign .notices{margin-bottom:12px}

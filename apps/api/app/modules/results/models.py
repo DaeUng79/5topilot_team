@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from sqlalchemy import JSON, ForeignKey, Integer, String
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -27,3 +27,10 @@ class ResultConfirmation(Base):
     confirmed_at: Mapped[str] = mapped_column(String(40))
     closed_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
     closed_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # 0007: 위원장 자필 서명(PNG data URL)·이미지 해시·방식·서명 시점 이름. 서명 시각은
+    # confirmed_at, 대상 결과는 criteria_version·policy_version·result_sha256. 0007 이전 행은 NULL.
+    # 법적 전자서명이 아니며 로컬 시연용이다.
+    signature_image: Mapped[str | None] = mapped_column(Text, nullable=True)
+    signature_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    sign_method: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    signer_name: Mapped[str | None] = mapped_column(String(100), nullable=True)

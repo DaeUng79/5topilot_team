@@ -73,7 +73,7 @@ def test_sheet_pins_confirmed_criteria_version(client, admin, setup_project):
     )
     assert during_review.status_code == 409 and "재검토" in during_review.json()["detail"]
 
-    narrowed = [{"id": "understanding", "name": "사업 이해도", "max_score": 5}]
+    narrowed = [{"id": "understanding", "name": "사업 이해도", "max_score": 100}]
     reconfirm = client.post(
         base + "/criteria/confirm",
         headers=admin,
@@ -83,7 +83,7 @@ def test_sheet_pins_confirmed_criteria_version(client, admin, setup_project):
     too_high = client.put(
         sheet_url,
         headers=third,
-        json={"expected_version": 0, "scores": complete_scores(project, narrowed, value=10)},
+        json={"expected_version": 0, "scores": complete_scores(project, narrowed, value=101)},
     )
     assert too_high.status_code == 422
     fits = client.put(

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api, unwrap, type Project, type ResultsSummary } from '../../api/client';
-import { vendorName } from '../evaluations/EvaluationPage';
+import { maxTotal, vendorName } from '../evaluations/EvaluationPage';
 import { ReportView, type Report } from './ReportView';
+import { ChairSignatureRecord } from './ChairSignature';
 import './results.css';
 
 const STATUS_LABEL: Record<ResultsSummary['status'], string> = {
@@ -45,10 +46,12 @@ export function ResultsPage({ project }: { project: Project }) {
 
   const pending = summary ? summary.expected - summary.submitted : 0;
   const sealed = summary?.status === 'confirmed' || summary?.status === 'closed';
+  // 위원장은 평가위원 등록·추첨 화면에서 본위원 중 지정한다(committee_draws.chair_id).
+  const chairName = summary?.members.find(m => m.is_chair)?.name ?? summary?.chair_id ?? '';
 
   return <>
     <h1 className="no-print">결과·서명·리포트</h1>
-    <p className="muted no-print">평가위원이 제출·서명하면 점수가 모이고, 전원 제출 뒤 위원장이 확인하면 결과가 봉인됩니다.</p>
+    <p className="muted no-print">평가위원이 제출·서명하면 점수가 모이고, 전원 제출 뒤 위원장이 확인·서명하면 결과가 봉인됩니다.</p>
     {error && <div className="error no-print" role="alert">{error}</div>}
     {summary && <div className="no-print">
       <section className="panel">
@@ -68,9 +71,9 @@ export function ResultsPage({ project }: { project: Project }) {
         </div>
         {summary.rankings.length
           ? <div className="table-scroll"><table>
-              <thead><tr><th>순위</th><th>제안사</th><th>기술 평균 / 80</th><th>가격</th><th>합계</th></tr></thead>
+              <thead><tr><th>순위</th><th>제안사</th><th>기술 평균 / {maxTotal(project)}</th><th>가격</th><th>합계</th></tr></thead>
               <tbody>{summary.rankings.map(r => <tr key={r.vendor_id}>
-                <td>{r.rank}</td><td>{vendorName(r.vendor_id)}</td><td>{r.technical_average.toFixed(2)}</td>
+                <td>{r.rank}</td><td>{vendorName(project, r.vendor_id)}</td><td>{r.technical_average.toFixed(2)}</td>
                 <td className="muted">정책 승인 전</td><td className="muted">정책 승인 전</td></tr>)}</tbody>
             </table></div>
           : <p className="muted">선정위원 {pending}명 제출 대기 중입니다. 전원 제출 전에는 점수를 공개하지 않습니다.</p>}
@@ -80,12 +83,11 @@ export function ResultsPage({ project }: { project: Project }) {
       <section className="panel">
         <h2>1. 위원장 최종 확인</h2>
         {summary.confirmation
-          ? <p>확정 완료 · {summary.confirmation.confirmed_by} · {summary.confirmation.confirmed_at}<br />
-              <span className="hash">결과 SHA-256: {summary.confirmation.result_sha256}</span></p>
+          ? <ChairSignatureRecord confirmation={summary.confirmation} chairName={chairName} />
           : <p className="muted">{summary.chair_id == null
-              ? '위원장이 지정되지 않았습니다. 위원 기능(COM-03) 연계 뒤 확정할 수 있습니다.'
-              : summary.confirmable ? '위원장이 평가위원 화면에서 결과를 확인하면 봉인됩니다.' : `${pending}명 제출 대기 중입니다.`}</p>}
-        <p className="dev-note">확인 기록은 결과 스냅샷과 해시를 저장하는 것이며 법적 전자서명이 아닙니다.</p>
+              ? '위원장이 지정되지 않았습니다. 평가위원 등록·추첨 화면에서 본위원 중 위원장을 지정하세요.'
+              : summary.confirmable ? `위원장(${chairName})이 평가위원 화면에서 결과를 확인하고 서명하면 봉인됩니다.` : `위원장 ${chairName} · ${pending}명 제출 대기 중입니다.`}</p>}
+        <p className="dev-note">위원장 서명은 화면에서 작성한 자필 서명 이미지와 결과 스냅샷·해시 기록이며 법적 효력이 있는 전자서명이 아닙니다(로컬 시연용).</p>
       </section>
 
       <section className="panel">
@@ -108,6 +110,6 @@ export function ResultsPage({ project }: { project: Project }) {
         </div>
       </section>
     </div>}
-    {report && <ReportView report={report} />}
+    {report && <ReportView report={report} project={project} />}
   </>;
 }

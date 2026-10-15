@@ -17,7 +17,7 @@ from app.modules.evaluations.models import ScoreSheet
 from app.modules.evaluations.service import verify_sheet_hash
 from app.modules.projects.models import Project
 from app.modules.results.policies import POLICIES
-from app.modules.results.service import canonical_hash
+from app.modules.results.service import canonical_hash, signature_intact
 from app.modules.results.state import get_confirmation
 
 
@@ -68,12 +68,21 @@ def build_report(db: Session, project: Project) -> dict:
             }
         )
     snapshot_intact = canonical_hash(snapshot) == confirmation.result_sha256
+    signature_ok = signature_intact(confirmation)
     notices = [
         POLICIES[snapshot["policy_version"]].description,
-        "서명은 본인 확인 문구 동의와 평가표 내용 해시 기록이며 법적 전자서명이 아닙니다.",
+        "평가위원 서명은 본인 확인 문구 동의와 평가표 내용 해시 기록이며 법적 전자서명이 아닙니다.",
+        "위원장 서명은 화면에서 작성한 자필 서명 이미지와 확인 동의 기록이며 "
+        "법적 전자서명이 아닙니다(로컬 시연용).",
         "가격점수·최종 순위 산식은 정책 승인 전입니다. 표시 순위는 기술 평균 기준입니다.",
         "문서 revision 참조는 문서 모듈(DaeUng79) 연결 뒤 채워집니다.",
     ]
+    if signature_ok is None:
+        notices.append("이 확정 기록에는 위원장 서명 이미지가 없습니다(서명 기능 추가 전 기록).")
+    if signature_ok is False:
+        notices.insert(
+            0, "위원장 서명 이미지 해시가 기록과 다릅니다. 저장소 변조 여부를 확인하세요."
+        )
     if not snapshot_intact:
         notices.insert(0, "확정 스냅샷 해시가 저장된 값과 다릅니다. 저장소 변조 여부를 확인하세요.")
     if any(s["integrity"] != "intact" for s in sheets):
@@ -93,6 +102,7 @@ def build_report(db: Session, project: Project) -> dict:
         "sheets": sheets,
         "document_revisions": [],
         "snapshot_intact": snapshot_intact,
+        "signature_intact": signature_ok,
         "notices": notices,
     }
 
@@ -106,6 +116,8 @@ def close_project(db: Session, project: Project, actor_id: str):
     report = build_report(db, project)
     if not report["snapshot_intact"] or any(s["integrity"] != "intact" for s in report["sheets"]):
         raise HTTPException(409, "확정 결과 또는 평가표 증빙이 일치하지 않아 완료할 수 없습니다.")
+    if report["signature_intact"] is False:
+        raise HTTPException(409, "위원장 서명 이미지가 기록과 일치하지 않아 완료할 수 없습니다.")
     confirmation.status = "closed"
     confirmation.closed_by = actor_id
     confirmation.closed_at = datetime.now(UTC).isoformat()

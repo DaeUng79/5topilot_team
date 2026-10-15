@@ -12,6 +12,11 @@ def actor(candidate_id):
     return {"Authorization": f"Bearer local-evaluator:{candidate_id}"}
 
 
+def core(criteria):
+    """응답의 선택 출처 필드(null)를 빼고 id·name·max_score만 비교한다."""
+    return [{k: c[k] for k in ("id", "name", "max_score")} for c in criteria]
+
+
 def draw(client, admin, project, candidates):
     response = client.post(
         f"/api/v1/projects/{project['id']}/committee/draw",
@@ -35,7 +40,7 @@ def test_confirm_creates_versions_and_syncs_project(client, admin, setup_project
     stale = client.post(url + "/confirm", headers=admin, json={"expected_version": 0})
     assert stale.status_code == 409
     revised = [
-        {"id": "understanding", "name": "사업 이해도", "max_score": 20},
+        {"id": "understanding", "name": "사업 이해도", "max_score": 40},
         {"id": "methodology", "name": "수행 방법론", "max_score": 60},
     ]
     second = client.post(
@@ -52,9 +57,9 @@ def test_confirm_creates_versions_and_syncs_project(client, admin, setup_project
     assert second.json()["version"] == 2
     assert second.json()["source_revision"] == "rev-2"
     current = client.get(url + "/confirmation", headers=admin).json()
-    assert current["version"] == 2 and current["criteria"] == revised
+    assert current["version"] == 2 and core(current["criteria"]) == revised
     projects = client.get("/api/v1/projects", headers=admin).json()
-    assert next(p for p in projects if p["id"] == project["id"])["criteria"] == revised
+    assert core(next(p for p in projects if p["id"] == project["id"])["criteria"]) == revised
     duplicate = client.post(
         url + "/confirm",
         headers=admin,
@@ -74,7 +79,7 @@ def test_review_flag_permissions_and_effective_criteria(client, admin, setup_pro
     assert missing.status_code == 404
     with Session(test_engine) as db:
         criteria, version = effective_criteria(db, db.get(Project, project["id"]))
-        assert version == 0 and criteria == project["criteria"]
+        assert version == 0 and criteria == core(project["criteria"])
     client.post(url + "/confirm", headers=admin, json={"expected_version": 0})
     result = draw(client, admin, project, candidates)
     member, reserve = actor(result["selected_ids"][0]), actor(result["reserve_ids"][0])

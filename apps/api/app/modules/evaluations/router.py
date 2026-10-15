@@ -13,7 +13,11 @@ from app.core.permissions import require_project_role
 from app.modules.committee.models import Draw
 from app.modules.evaluations.models import ScoreSheet
 from app.modules.evaluations.service import SIGN_METHOD, sheet_hash, validate_scores
-from app.modules.projects.criteria import effective_criteria
+from app.modules.projects.criteria import (
+    effective_criteria,
+    ensure_scoring_total,
+    project_total,
+)
 from app.modules.projects.service import get_project
 from app.modules.results.policies import CURRENT_POLICY, POLICIES, aggregate
 from app.modules.results.state import ensure_not_sealed
@@ -119,6 +123,7 @@ def save_my_sheet(project_id: str, body: SheetSave, db: DB, actor: User):
     project = require_assigned(db, project_id, actor)
     ensure_not_sealed(db, project_id)
     criteria, criteria_version = effective_criteria(db, project)
+    ensure_scoring_total(criteria, criteria_version, project_total(project))
     scores = [s.model_dump() for s in body.scores]
     validate_scores(project, scores, criteria=criteria)
     sheet = my_sheet(db, project_id, actor.id)
@@ -169,6 +174,7 @@ def submit_my_sheet(project_id: str, body: SubmitRequest, db: DB, actor: User):
     project = require_assigned(db, project_id, actor)
     ensure_not_sealed(db, project_id)
     criteria, criteria_version = effective_criteria(db, project)
+    ensure_scoring_total(criteria, criteria_version, project_total(project))
     sheet = my_sheet(db, project_id, actor.id)
     if sheet is None:
         raise HTTPException(422, "먼저 평가표를 저장하세요.")

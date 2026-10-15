@@ -103,7 +103,8 @@
       "schema": "ConfirmationRead",
       "kind": "response",
       "status": 200,
-      "operation": "get_results_confirmation"
+      "operation": "get_results_confirmation",
+      "note": "0007: 위원장 자필 서명 이미지·해시·방식·이름. 서명 시각은 confirmed_at"
     },
     {
       "path": "results/report.ok.response.json",
@@ -116,7 +117,10 @@
       "path": "evaluator-access/verify.ok.request.json",
       "schema": "VerifyRequest",
       "kind": "request",
-      "operation": "verify_evaluator"
+      "operation": "verify_evaluator",
+      "must_not_contain": [
+        "code"
+      ]
     },
     {
       "path": "evaluator-access/verify.ok.response.json",
@@ -125,9 +129,22 @@
       "status": 200,
       "must_not_contain": [
         "code",
+        "birth_date",
         "demo_verify_code"
       ],
       "operation": "verify_evaluator"
+    },
+    {
+      "path": "evaluator-access/verify.local-test.response.json",
+      "schema": "SessionRead",
+      "kind": "response",
+      "status": 200,
+      "must_not_contain": [
+        "code",
+        "birth_date"
+      ],
+      "operation": "verify_evaluator",
+      "note": "관리자용 로컬 마스터 번호로 들어온 경우(APP_ENV=local 한정). 값은 문서에 적지 않는다"
     },
     {
       "path": "evaluator-access/verify.invalid.response.json",
@@ -137,11 +154,12 @@
       "operation": "verify_evaluator"
     },
     {
-      "path": "evaluator-access/verify.unavailable.response.json",
+      "path": "evaluator-access/verify.unregistered.response.json",
       "schema": "ErrorDetail",
       "kind": "error",
-      "status": 503,
-      "operation": "verify_evaluator"
+      "status": 401,
+      "operation": "verify_evaluator",
+      "note": "생년월일 미등록 위원이 마스터 번호 없이 시도한 경우"
     },
     {
       "path": "criteria/confirmation.ok.response.json",
@@ -156,29 +174,6 @@
       "kind": "response",
       "status": 200,
       "operation": "get_criteria_confirmation"
-    },
-    {
-      "path": "evaluator-access/request-code.ok.request.json",
-      "schema": "CodeRequest",
-      "kind": "request",
-      "operation": "request_verification_code"
-    },
-    {
-      "path": "evaluator-access/request-code.ok.response.json",
-      "schema": "CodeRequestRead",
-      "kind": "response",
-      "operation": "request_verification_code",
-      "status": 202,
-      "must_not_contain": [
-        "code"
-      ]
-    },
-    {
-      "path": "evaluator-access/request-code.unavailable.response.json",
-      "schema": "ErrorDetail",
-      "kind": "error",
-      "operation": "request_verification_code",
-      "status": 503
     },
     {
       "path": "evaluator-access/me.ok.response.json",
@@ -260,7 +255,9 @@
       "must_not_contain": [
         "code",
         "phone",
-        "scores"
+        "scores",
+        "birth_date",
+        "verify_method"
       ]
     },
     {
@@ -296,7 +293,8 @@
       "schema": "ConfirmationRead",
       "kind": "response",
       "operation": "close_project",
-      "status": 200
+      "status": 200,
+      "note": "0007: 위원장 자필 서명 이미지·해시·방식·이름. 서명 시각은 confirmed_at"
     },
     {
       "path": "results/close.review.response.json",
@@ -312,6 +310,185 @@
       "operation": "save_my_sheet",
       "status": 409,
       "note": "결과 확정·완료 뒤 변경 차단"
+    },
+    {
+      "path": "project-setup/setup.ok.response.json",
+      "schema": "ProjectSetupRead",
+      "kind": "response",
+      "operation": "get_project_setup",
+      "status": 200,
+      "note": "시작용 템플릿(7항목·3사). vendors NULL 행은 A사·B사·C사로 표시"
+    },
+    {
+      "path": "project-setup/criteria.ok.request.json",
+      "schema": "CriteriaUpdate",
+      "kind": "request",
+      "operation": "update_project_criteria",
+      "note": "id를 생략한 항목은 서버가 ID를 만든다. 전체 목록을 표시 순서대로 보낸다"
+    },
+    {
+      "path": "project-setup/vendors.ok.request.json",
+      "schema": "VendorsUpdate",
+      "kind": "request",
+      "operation": "update_project_vendors"
+    },
+    {
+      "path": "project-setup/criteria.conflict.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "update_project_criteria",
+      "status": 409,
+      "note": "평가표가 하나라도 저장되면 평가항목·업체 변경을 거절"
+    },
+    {
+      "path": "project-setup/vendors.invalid.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "update_project_vendors",
+      "status": 422
+    },
+    {
+      "path": "auth/login.ok.request.json",
+      "schema": "AdminLoginRequest",
+      "kind": "request",
+      "operation": "login_admin",
+      "note": "로컬 시연용 계정. 값은 .env의 LOCAL_ADMIN_ID/PASSWORD"
+    },
+    {
+      "path": "auth/login.ok.response.json",
+      "schema": "SessionRead",
+      "kind": "response",
+      "operation": "login_admin",
+      "status": 200,
+      "must_not_contain": [
+        "password",
+        "code",
+        "birth_date"
+      ]
+    },
+    {
+      "path": "auth/login.invalid.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "login_admin",
+      "status": 401
+    },
+    {
+      "path": "auth/login.unavailable.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "login_admin",
+      "status": 503,
+      "note": "데모 인증이 꺼진 배포 환경"
+    },
+    {
+      "path": "evaluator-access/login.ok.request.json",
+      "schema": "EvaluatorLoginRequest",
+      "kind": "request",
+      "operation": "login_evaluator",
+      "must_not_contain": [
+        "code"
+      ]
+    },
+    {
+      "path": "evaluator-access/login.ok.response.json",
+      "schema": "SessionRead",
+      "kind": "response",
+      "operation": "login_evaluator",
+      "status": 200,
+      "must_not_contain": [
+        "code",
+        "birth_date"
+      ],
+      "note": "project_id null = 선정된 모든 사업에 유효"
+    },
+    {
+      "path": "evaluator-access/login.forbidden.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "login_evaluator",
+      "status": 403,
+      "note": "이름·생년월일은 맞지만 선정된 사업이 없음"
+    },
+    {
+      "path": "project-setup/total-score.ok.request.json",
+      "schema": "TotalScoreUpdate",
+      "kind": "request",
+      "operation": "update_project_total_score"
+    },
+    {
+      "path": "project-setup/criteria.rfp.request.json",
+      "schema": "CriteriaUpdate",
+      "kind": "request",
+      "operation": "update_project_criteria",
+      "note": "제안요청서 반영 뒤 저장 예. origin·source_ref 등 출처 정보는 선택 필드"
+    },
+    {
+      "path": "ai/rfp-criteria.sample.response.json",
+      "schema": "RfpCriteriaRead",
+      "kind": "response",
+      "operation": "get_rfp_criteria",
+      "status": 200,
+      "note": "테스트용 예시 자료(status=sample). 실제 연결 시 status=ready, DaeUng79 step4 결과를 변환"
+    },
+    {
+      "path": "ai/rfp-criteria.not-found.response.json",
+      "schema": "RfpCriteriaRead",
+      "kind": "response",
+      "operation": "get_rfp_criteria",
+      "status": 200
+    },
+    {
+      "path": "committee/chair.ok.request.json",
+      "schema": "ChairAssign",
+      "kind": "request",
+      "operation": "assign_chair",
+      "note": "최초 지정. reason은 선택"
+    },
+    {
+      "path": "committee/chair.change.request.json",
+      "schema": "ChairAssign",
+      "kind": "request",
+      "operation": "assign_chair",
+      "note": "위원장이 이미 있는 사업에서 변경할 때는 reason 필수"
+    },
+    {
+      "path": "committee/chair.ok.response.json",
+      "schema": "ChairRead",
+      "kind": "response",
+      "operation": "assign_chair",
+      "status": 200
+    },
+    {
+      "path": "committee/chair.empty.response.json",
+      "schema": "ChairRead",
+      "kind": "response",
+      "operation": "get_chair",
+      "status": 200,
+      "note": "추첨 전 또는 미지정"
+    },
+    {
+      "path": "committee/chair.invalid.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "assign_chair",
+      "status": 422,
+      "note": "예비위원·추첨되지 않은 후보"
+    },
+    {
+      "path": "committee/chair.conflict.response.json",
+      "schema": "ErrorDetail",
+      "kind": "error",
+      "operation": "assign_chair",
+      "status": 409,
+      "note": "결과 확정 뒤 변경 시도"
+    },
+    {
+      "path": "results/confirm.ok.request.json",
+      "schema": "ConfirmRequest",
+      "kind": "request",
+      "operation": "confirm_results",
+      "note": "위원장의 확인 동의와 자필 서명 이미지(PNG data URL, 300KB 이하). 누락·형식 오류는 422"
     }
   ]
 }

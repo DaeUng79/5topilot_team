@@ -72,7 +72,7 @@ def test_register_draw_evaluate_submit_collect(client, admin, setup_project):
         if i == 0:
             assert results["averages"] == []
     assert results["status"] == "technical_complete"
-    assert [r["technical_average"] for r in results["averages"]] == [60, 60, 60]
+    assert [r["technical_average"] for r in results["averages"]] == [75, 75, 75]
 
 
 def test_auth_and_unassigned_access(client, admin, setup_project, monkeypatch):
@@ -208,7 +208,7 @@ def test_drafts_missing_scores_stale_version_and_immutable_submission(client, ad
 @pytest.mark.parametrize(
     "bad",
     [
-        {"score": 11},
+        {"score": 16},
         {"score": -1},
         {"score": 1.001},
         {"vendor_id": "missing"},

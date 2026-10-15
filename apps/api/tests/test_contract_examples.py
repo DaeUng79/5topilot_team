@@ -11,11 +11,15 @@ import pytest
 from fastapi import HTTPException
 from pydantic import BaseModel
 
+from app.modules.ai import rfp_criteria as rfp_module
+from app.modules.auth import router as auth_router
+from app.modules.committee import chair as chair_module
 from app.modules.evaluations import router as evaluations_router
 from app.modules.evaluations.service import validate_scores
 from app.modules.evaluator_access import router as access_router
 from app.modules.projects import criteria as criteria_module
 from app.modules.projects import router as projects_router
+from app.modules.projects import setup as project_setup
 from app.modules.projects.models import Project
 from app.modules.results import router as results_router
 from app.modules.results.policies import CURRENT_POLICY, POLICIES
@@ -43,7 +47,11 @@ MODELS: dict[str, type[BaseModel]] = {
         projects_router,
         access_router,
         criteria_module,
+        project_setup,
         results_router,
+        auth_router,
+        rfp_module,
+        chair_module,
     )
     for name, obj in vars(module).items()
     if isinstance(obj, type) and issubclass(obj, BaseModel)

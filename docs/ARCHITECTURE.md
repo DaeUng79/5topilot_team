@@ -47,6 +47,7 @@ A가 문서 기능을 별도 순수 함수/서비스로 추출한 뒤 `modules/a
 - `projects`: 사업명, 부서, 기준 JSON, 업체 ID 목록. 기준/업체는 시작용 고정 템플릿이다.
 - `committee_candidates`: 이름·소속·분야·활성 상태. 개인정보 연락처와 실명 인증은 후속 구현이다.
 - `committee_draws`: 사업당 1건. 모집단 스냅샷, 본위원/예비위원 순서, SHA-256, 실행자·시각.
+  0006(u-jing): `chair_id`(본위원 중 위원장, NULL=미지정)·`chair_history`(지정·변경 이력 JSON).
 - `evaluation_sheets`: 사업+위원당 1건. 점수, 의견, draft/submitted, version, 제출 시각.
 
 위원 추첨은 `secrets.SystemRandom().sample`로 비복원 추출한다. 본위원과 예비위원이 겹치지 않는다.
@@ -61,7 +62,8 @@ PostgreSQL의 사업 행 잠금과 project_id UNIQUE가 동시에 두 추첨이 
 제출 후 수정 API는 없다. 인증 주체는 선정위원 ID와 일치해야 한다.
 
 기술 평균은 선정위원 전원 제출 후 Decimal로 계산하고 ROUND_HALF_UP으로 소수 2자리 반올림한다.
-가격점수, 최고·최저 제외, 동점 순위, 위원장 확정, 법적 전자서명은 아직 구현하지 않았다.
+가격점수, 동점 순위 정책, 법적 전자서명은 아직 구현하지 않았다(최고·최저 제외 평균과 위원장
+확정·봉인은 results 모듈, 위원장 지정은 committee/chair.py. docs/modules/results.md 참고).
 UI의 최종 제출은 **개인 평가표 제출**이다. 사업 전체 결과 확정과 구별한다.
 
 ## API 시작 계약
@@ -73,6 +75,7 @@ UI의 최종 제출은 **개인 평가표 제출**이다. 사업 전체 결과 �
 | GET/POST `/projects` | C | 관리자, 사업 조회/등록 |
 | GET/POST `/committee/candidates` | D | 관리자, 후보 조회/등록 |
 | GET/POST `/projects/{id}/committee/draw` | D | 관리자, 추첨 조회/확정 |
+| GET/PUT `/projects/{id}/committee/chair` | D·u-jing | 관리자, 위원장 조회/지정·변경(본위원만, 결과 확정 전, 변경 사유·이력) |
 | GET/PUT `/projects/{id}/evaluations/me` | C | 선정위원, 본인 평가표 조회/저장 |
 | POST `/projects/{id}/evaluations/me/submit` | C | 선정위원, 누락 검증·version 확인·잠금 |
 | GET `/projects/{id}/results` | C | 관리자, 제출 현황/기술 평균 |
@@ -93,5 +96,5 @@ ZIP에는 빌드된 JS/CSS/HTML만 있고 package.json/TSX 원본이 없다.
 
 실제 JWT/SSO 및 기관/사업별 권한, 초대·본인인증, 개인정보 관리, 실제 서명, 문서 업로드/OCR,
 RAG, 자동저장, 제척과 쿼터, 재추첨/예비위원 승격, 기준 버전 확정, 가격점수·순위 정책,
-위원장 승인, 보고서/PDF, 불변 감사 로그와 백업/운영 배포는 후속 작업이다.
+보고서/PDF, 불변 감사 로그와 백업/운영 배포는 후속 작업이다.
 특히 UI의 개발 계정 전환은 보안 인증으로 대체해야 한다.

@@ -1,6 +1,8 @@
-"""서버가 서명한 평가위원 세션 토큰.
+"""서버가 서명한 세션 토큰.
 
-본인확인(modules/evaluator_access)을 통과한 뒤에만 발급되며 사업 하나에만 유효하다.
+평가위원 본인확인(modules/evaluator_access) 또는 관리자 로컬 로그인(modules/auth)을 통과한 뒤에만
+발급된다. 평가위원 세션은 사업 하나(project_id) 또는 선정된 모든 사업(None)에 유효하고, 관리자
+세션은 role=admin·project_id=None이다.
 형식은 `s1.<payload>.<hmac>`이고 서명 키는 settings.session_secret이다. 외부 IdP(JWT/SSO)가
 연결되면 verify_session_token 앞단에 그 검증을 두거나 이 모듈을 교체한다. 토큰에는 인증번호나
 개인정보를 넣지 않는다.
@@ -24,9 +26,9 @@ PREFIX = "s1"
 
 
 class SessionClaims(BaseModel):
-    role: Literal["evaluator"]
+    role: Literal["admin", "evaluator"]
     id: str
-    project_id: str
+    project_id: str | None
     iat: int
     exp: int
     jti: str
@@ -45,13 +47,18 @@ def _signature(body: str) -> str:
     return _b64(hmac.new(key, body.encode(), hashlib.sha256).digest())
 
 
-def issue_session_token(*, actor_id: str, project_id: str) -> tuple[str, str]:
+def issue_session_token(
+    *,
+    actor_id: str,
+    project_id: str | None,
+    role: Literal["admin", "evaluator"] = "evaluator",
+) -> tuple[str, str]:
     """(토큰, 만료 시각 ISO 8601)을 돌려준다. 서명 키가 없으면 503."""
     if not settings.session_secret:
         raise HTTPException(503, "SESSION_SECRET이 설정되지 않아 세션을 발급할 수 없습니다.")
     now = int(time.time())
     claims = SessionClaims(
-        role="evaluator",
+        role=role,
         id=actor_id,
         project_id=project_id,
         iat=now,

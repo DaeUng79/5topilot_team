@@ -3,7 +3,8 @@
 - admin: 데모 토큰 또는 (후속) 기관 인증을 통과한 관리자(간사).
 - evaluator: 해당 사업 추첨 결과(committee_draws.selected_ids)에 있는 본위원. 본인확인 세션은
   토큰에 적힌 사업에만 유효하다.
-- chair: 위원장. 지정 출처는 위원 기능(COM-03, Lex6won) 연계 대상이며 연결 전에는 항상 미지정이다.
+- chair: 위원장. 사업관리자가 추첨 결과의 본위원 중 1명을 지정한 사람(committee_draws.chair_id,
+  0006, modules/committee/chair.py). 사업마다 따로 판정하므로 다른 사업에서는 일반 위원일 수 있다.
 """
 
 from collections.abc import Iterable
@@ -29,9 +30,9 @@ def current_draw(db: Session, project_id: str) -> Draw | None:
 
 
 def chair_id(db: Session, project_id: str, draw: Draw | None = None) -> str | None:
-    """위원장 ID. committee_draws에 위원장 정보가 생기기 전까지는 None(미지정)."""
+    """위원장 ID. committee_draws.chair_id(0006)이며 추첨 전·미지정이면 None."""
     draw = draw if draw is not None else current_draw(db, project_id)
-    return getattr(draw, "chair_id", None) if draw is not None else None
+    return draw.chair_id if draw is not None else None
 
 
 def project_roles(db: Session, project_id: str, actor: Actor) -> set[str]:

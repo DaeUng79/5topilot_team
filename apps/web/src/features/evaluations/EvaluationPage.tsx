@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, evaluatorApi, unwrap, type Draw, type Project, type Results, type Score, type Sheet } from '../../api/client';
+import { CriterionLabel, useProposalCompare } from './ProposalComparePanel';
 
 export function EvaluationPage({ project }: { project: Project }) {
   const [draw, setDraw] = useState<Draw | null>(null);
@@ -30,15 +31,22 @@ export function EvaluationPage({ project }: { project: Project }) {
     <section className="panel"><div className="section-heading"><h2>기술점수 취합</h2>
       <button onClick={() => void refreshResults().catch(e => setError(String(e)))}>취합 새로고침</button></div>
       <p>제출 현황: <strong data-testid="submission-count">{results?.submitted ?? 0} / {results?.expected ?? 0}</strong></p>
-      {results?.status === 'technical_complete' ? <table><thead><tr><th>제안사</th><th>기술점수 평균 / 80</th></tr></thead>
-        <tbody>{results.averages.map(r => <tr key={r.vendor_id}><td>{vendorName(r.vendor_id)}</td><td>{r.technical_average.toFixed(2)}</td></tr>)}</tbody></table>
+      {results?.status === 'technical_complete' ? <table><thead><tr><th>제안사</th><th>기술점수 평균 / {maxTotal(project)}</th></tr></thead>
+        <tbody>{results.averages.map(r => <tr key={r.vendor_id}><td>{vendorName(project, r.vendor_id)}</td><td>{r.technical_average.toFixed(2)}</td></tr>)}</tbody></table>
         : <p className="muted">선정위원 전원 제출 후 평균을 표시합니다.</p>}
       <p className="muted">{results?.calculation}</p>
     </section>
   </>;
 }
 
-export function vendorName(id: string) { return id.replace('vendor-', '').toUpperCase() + '사'; }
+// 업체 표시명. 사업 설정(vendors)에 등록된 이름을 쓰고, 없는 ID는 종전 표기(vendor-a → A사)로 보여 준다.
+export function vendorName(project: Pick<Project, 'vendors'>, id: string) {
+  return project.vendors.find(v => v.id === id)?.name ?? id.replace('vendor-', '').toUpperCase() + '사';
+}
+// 기술점수 만점(배점 합계). 평가항목 수·배점이 사업마다 달라 고정값을 쓰지 않는다.
+export function maxTotal(project: Pick<Project, 'criteria'>) {
+  return project.criteria.reduce((sum, c) => sum + c.max_score, 0);
+}
 
 // 평가위원 화면(features/evaluator)이 같은 채점표를 쓴다. client를 주면 그 인증으로 호출한다.
 export function ScoreEditor({ memberId, project, onSubmitted, client = evaluatorApi(memberId) }: {
@@ -55,6 +63,7 @@ export function ScoreEditor({ memberId, project, onSubmitted, client = evaluator
   const [notice, setNotice] = useState('');
   const locked = sheet?.status === 'submitted';
   const complete = scores.length === project.vendor_ids.length * project.criteria.length;
+  const compare = useProposalCompare(project); // 업체별 제안서 요약 비교 패널. 점수 상태와 분리된 읽기 전용 자료.
 
   async function reload() {
     setBusy(true); setError('');
@@ -96,10 +105,10 @@ export function ScoreEditor({ memberId, project, onSubmitted, client = evaluator
     {error && <div className="error" role="alert">{error}<button disabled={busy} onClick={() => void reload()}>서버 내용 다시 불러오기</button></div>}
     {notice && <p role="status" className="success-text">{notice}</p>}
     <div className="table-scroll"><table><thead><tr><th>평가항목</th><th>배점</th>
-      {project.vendor_ids.map(id => <th key={id}>{vendorName(id)}</th>)}</tr></thead>
-      <tbody>{project.criteria.map(c => <tr key={c.id}><td>{c.name}</td><td>{c.max_score}</td>
+      {project.vendor_ids.map(id => <th key={id}>{vendorName(project, id)}</th>)}</tr></thead>
+      <tbody>{project.criteria.map(c => <tr key={c.id}><td><CriterionLabel criterion={c} {...compare.labelProps(c.id)} /></td><td>{c.max_score}</td>
         {project.vendor_ids.map(v => <td key={v}><input className="score" type="number" min={0} max={c.max_score} step="0.01"
-          aria-label={`${vendorName(v)} ${c.name}`} disabled={busy || locked}
+          aria-label={`${vendorName(project, v)} ${c.name}`} disabled={busy || locked}
           value={scores.find(s => s.vendor_id === v && s.criterion_id === c.id)?.score ?? ''}
           onChange={e => changeScore(v, c.id, e.target.value)} /></td>)}</tr>)}</tbody></table></div>
     <label>평가 의견<textarea value={opinion} maxLength={4000} disabled={busy || locked} onChange={e => {
@@ -110,5 +119,6 @@ export function ScoreEditor({ memberId, project, onSubmitted, client = evaluator
       <label className="checkbox"><input type="checkbox" checked={attested} disabled={busy || dirty || !complete || !sheet}
         onChange={e => setAttested(e.target.checked)} />본인의 판단으로 작성했으며 제출 후 수정할 수 없음을 확인합니다.</label>
       <button className="primary" disabled={busy || dirty || !complete || !attested || !sheet} onClick={() => void submit()}>최종 제출</button></>}
+    {compare.panel}
   </section>;
 }

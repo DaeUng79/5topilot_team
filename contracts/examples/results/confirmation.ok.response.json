@@ -10,5 +10,9 @@
   "confirmed_by": "demo-evaluator-1",
   "confirmed_at": "2026-10-11T06:00:00+00:00",
   "closed_by": null,
-  "closed_at": null
+  "closed_at": null,
+  "sign_method": "chair-handwritten-v1",
+  "signer_name": "테스트위원 1",
+  "signature_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "signature_image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 }

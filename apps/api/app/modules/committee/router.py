@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -9,6 +9,7 @@ from app.core.auth import Actor, require_admin
 from app.core.db import get_db
 from app.modules.committee.models import Candidate, Draw
 from app.modules.committee.service import conduct_draw
+from app.modules.evaluator_access.service import normalize_birth_date
 from app.modules.projects.service import get_project
 
 router = APIRouter(tags=["committee"])
@@ -16,14 +17,25 @@ DB = Annotated[Session, Depends(get_db)]
 Admin = Annotated[Actor, Depends(require_admin)]
 
 
-class CandidateCreate(BaseModel):
+class CandidateBase(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
     name: str = Field(min_length=1, max_length=100)
     organization: str = Field(min_length=1, max_length=200)
     specialty: str = Field(min_length=1, max_length=100)
 
 
-class CandidateRead(CandidateCreate):
+class CandidateCreate(CandidateBase):
+    # 본인확인용 생년월일(선택). YYYYMMDD 또는 YYYY-MM-DD로 받아 YYYYMMDD로 저장한다.
+    # 쓰기 전용이며 CandidateRead·추첨 스냅샷에는 포함하지 않는다(evaluator_access, u-jing).
+    birth_date: str | None = Field(default=None, max_length=10)
+
+    @field_validator("birth_date")
+    @classmethod
+    def _normalize_birth_date(cls, value: str | None) -> str | None:
+        return normalize_birth_date(value) if value else None
+
+
+class CandidateRead(CandidateBase):
     model_config = ConfigDict(from_attributes=True)
     id: str
     active: bool

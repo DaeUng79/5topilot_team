@@ -17,6 +17,9 @@ def seed():
                     department="정보화사업팀",
                 )
             )
+        # 본인확인 시연용 합성 생년월일(YYYYMMDD). 3·4·5는 미등록으로 두어
+        # 미등록 위원 처리(로컬 마스터 번호 외 차단)를 확인한다.
+        birth_dates = {1: "19750305", 2: "19871223"}
         for i, specialty in enumerate(
             ["정보시스템", "보안", "사업관리", "데이터·AI", "법률·회계"], 1
         ):
@@ -27,6 +30,7 @@ def seed():
                         name=f"테스트위원 {i}",
                         organization=f"가상기관 {i}",
                         specialty=specialty,
+                        birth_date=birth_dates.get(i),
                     )
                 )
         db.commit()
