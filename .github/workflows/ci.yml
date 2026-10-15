@@ -70,7 +70,12 @@ jobs:
       - run: npm run docs:check
       - run: npm run test:e2e
       - name: Legacy Python syntax (does not operate a desktop)
-        run: python -m py_compile computer_agent.py
+        run: |
+          if [ -f computer_agent.py ]; then
+            python -m py_compile computer_agent.py
+          else
+            echo "computer_agent.py not present (removed on main); skipped"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
