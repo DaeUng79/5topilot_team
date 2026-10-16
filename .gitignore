@@ -14,7 +14,6 @@ __pycache__/
 .vscode/
 .tests/
 /apps/documents_daeung/tests/
-/apps/documents_daeung/documents.sqlite3
 # 팀 공통 테스트 소스는 추적하고 생성 산출물만 제외
 .pytest_cache/
 .coverage
