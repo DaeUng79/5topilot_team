@@ -31,7 +31,6 @@ Thumbs.db
 *.db
 *.db-*
 *.sqlite*
-!apps/documents_daeung/documents_parse.sqlite3
 .ruff_cache/
 *.egg-info/
 artifacts/
