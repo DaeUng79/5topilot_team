@@ -1,1 +1,0 @@
-import{t as e}from"./manage-pages-Cmh7oAKK.js";var t=e;export{t as component};
