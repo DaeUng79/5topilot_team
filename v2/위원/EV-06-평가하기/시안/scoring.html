@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>평가하기 · 심사임당</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../_eval.css">
+<style>
+/* 이 화면만 쓰는 스타일 (sc- 접두어) */
+.sc { height: 100%; display: flex; flex-direction: column; padding: 8px 32px 68px; max-width: 1180px; margin: 0 auto; }
+.sc-top { flex: none; display: flex; align-items: center; gap: 16px; min-height: 52px; }
+.sc-top h1 { font-size: 24px; font-weight: 800; }
+.sc-top .sp { flex: 1; }
+.sc-save { font-size: 16px; color: var(--text-3); display: inline-flex; align-items: center; gap: 8px; }
+.sc-save .mk { font-weight: 800; }
+.sc-save.dirty { color: var(--warning-60); font-weight: 700; }
+.sc-save.fail { color: var(--danger-60); font-weight: 700; }
+.sc-save button { appearance: none; border: 0; background: none; cursor: pointer; text-decoration: underline; color: inherit; font-weight: 700; font-size: 16px; padding: 4px 6px; border-radius: 6px; }
+.sc-seg { display: inline-flex; border: 1px solid var(--gray-30); border-radius: 10px; padding: 2px; gap: 2px; background: var(--gray-0); }
+.sc-seg button { appearance: none; border: 0; background: none; cursor: pointer; font-size: 16px; color: var(--text-2); padding: 4px 16px; min-height: 36px; border-radius: 8px; }
+.sc-seg button[aria-pressed="true"] { background: var(--primary-5); color: var(--primary-60); font-weight: 700; box-shadow: inset 0 0 0 1px var(--primary-20); }
+.sc-done { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--success-60); background: var(--success-5); border-radius: 999px; padding: 6px 16px; font-size: 16px; }
+
+.sc-vtabs { flex: none; display: flex; gap: 8px; margin: 8px 0 10px; }
+.sc-vtab { appearance: none; border: 1px solid var(--gray-20); background: var(--gray-0); border-radius: 12px; padding: 6px 18px; cursor: pointer; font-size: 17px; display: inline-flex; align-items: baseline; gap: 10px; min-height: 44px; align-items: center; }
+.sc-vtab:hover { background: var(--gray-5); }
+.sc-vtab[aria-selected="true"] { border-color: var(--primary-50); background: var(--primary-5); color: var(--primary-60); font-weight: 700; box-shadow: inset 0 0 0 1px var(--primary-50); }
+.sc-vtab small { font-size: 15px; font-weight: 400; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.sc-vtab[aria-selected="true"] small { color: var(--primary-70); }
+
+.sc-card { flex: 1; min-height: 0; background: var(--gray-0); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); overflow: hidden; margin-top: 8px; display: flex; flex-direction: column; }
+.sc-scroll { flex: 1; min-height: 0; overflow: auto; }
+.sc-vtabs + .sc-card { margin-top: 0; }
+.sc-grid { display: grid; align-items: stretch; }
+.sc-grid.one { grid-template-columns: minmax(200px, 1.1fr) 180px minmax(240px, 1.4fr); }
+.sc-grid.all { grid-template-columns: minmax(200px, 1.2fr) repeat(3, 160px); }
+.sc-h { font-size: 15px; font-weight: 700; color: var(--text-3); padding: 10px 20px; border-bottom: 1px solid var(--line); background: var(--gray-0); position: sticky; top: 0; z-index: 2; }
+.sc-c { padding: 4px 20px; min-height: 48px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; }
+.sc-c.name { gap: 0; }
+.sc-c.name b { font-size: 17px; font-weight: 700; }
+.sc-c.name span { font-size: 15px; color: var(--text-3); }
+.sc-pts { font-size: 15px; color: var(--text-3); font-weight: 400; margin-left: 6px; }
+.sc-score { display: flex; align-items: center; gap: 8px; }
+.sc-score input { width: 84px; height: 40px; border: 1px solid var(--border-strong); border-radius: 10px; text-align: right; padding: 0 12px; font-size: 18px; font-weight: 700; background: var(--gray-0); font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
+.sc-score input::-webkit-outer-spin-button, .sc-score input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.sc-score input:focus { outline: 3px solid var(--primary-20); border-color: var(--primary-50); }
+.sc-score input[aria-invalid="true"] { border-color: var(--danger-60); background: var(--danger-5); }
+.sc-score input:disabled { background: var(--gray-5); border-color: var(--gray-20); color: var(--text-1); }
+.sc-score .of { font-size: 16px; color: var(--text-3); white-space: nowrap; }
+.sc-err { font-size: 15px; color: var(--danger-60); font-weight: 700; margin-top: 2px; }
+.sc-err::before { content: "! "; }
+.sc-op { width: 100%; height: 40px; border: 1px solid var(--gray-30); border-radius: 10px; padding: 0 14px; font-size: 16px; background: var(--gray-0); }
+.sc-op:focus { outline: 3px solid var(--primary-20); border-color: var(--primary-50); }
+.sc-op:disabled { background: var(--gray-5); border-color: var(--gray-20); }
+.sc-opbtn { appearance: none; border: 0; background: none; cursor: pointer; color: var(--text-3); font-size: 15px; padding: 2px 4px; text-align: left; border-radius: 6px; }
+.sc-opbtn:hover { color: var(--primary-60); text-decoration: underline; }
+.sc-opbtn.has { color: var(--primary-60); font-weight: 700; }
+.sc-oprow { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(200px, 1.2fr) repeat(3, 160px); background: var(--gray-5); border-bottom: 1px solid var(--line); }
+.sc-oprow .sc-c { border: 0; min-height: 0; padding: 8px 8px 8px 20px; }
+.sc-oprow .sc-c:first-child { font-size: 15px; color: var(--text-3); justify-content: center; }
+.sc-oprow .sc-c { padding-right: 8px; }
+.sc-total { flex: none; display: flex; justify-content: flex-end; align-items: baseline; gap: 12px; padding: 10px 20px; background: var(--gray-0); border-top: 1px solid var(--line); }
+.sc-total b { font-size: 28px; font-weight: 800; color: var(--primary-60); font-variant-numeric: tabular-nums; }
+.sc-total span { color: var(--text-3); }
+.sc-tr { flex: none; display: grid; grid-template-columns: minmax(200px, 1.2fr) repeat(3, 160px); align-items: baseline; padding: 10px 0; background: var(--gray-0); border-top: 1px solid var(--line); }
+.sc-grid.all .sc-c.name { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
+.sc-tr > :first-child { padding-left: 20px; font-weight: 700; }
+.sc-tr b { font-size: 24px; font-weight: 800; color: var(--primary-60); padding: 0 20px; font-variant-numeric: tabular-nums; }
+.sc-tr small { font-size: 15px; color: var(--text-3); font-weight: 400; margin-left: 4px; }
+.sc-tr .part { display: block; font-size: 14px; font-weight: 400; color: var(--text-3); }
+.sc-lock { margin-bottom: 6px; }
+
+/* 제출 팝업 */
+.sc-modal { max-width: 560px; }
+.sc-steps { display: flex; gap: 6px; align-items: center; font-size: 15px; color: var(--text-3); }
+.sc-steps b { color: var(--primary-60); }
+.sc-steps i { width: 24px; height: 3px; border-radius: 2px; background: var(--gray-20); display: inline-block; }
+.sc-steps i.on { background: var(--primary-50); }
+.sc-chk { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.sc-chk li { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 12px; background: var(--gray-5); }
+.sc-chk .ic { width: 28px; height: 28px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 16px; }
+.sc-chk .ok .ic { background: var(--success-60); color: #fff; }
+.sc-chk .no .ic { background: var(--danger-60); color: #fff; }
+.sc-chk .no { background: var(--danger-5); }
+.sc-chk .tx { flex: 1; font-size: 17px; }
+.sc-chk .tx small { display: block; font-size: 15px; color: var(--text-3); }
+.sc-chk .tx button { appearance: none; border: 0; background: none; color: var(--primary-60); font-weight: 700; text-decoration: underline; cursor: pointer; font-size: 16px; padding: 4px 0; }
+.sc-canvas-w { border: 2px dashed var(--gray-40); border-radius: 14px; background: var(--gray-0); position: relative; }
+.sc-canvas-w canvas { display: block; width: 100%; height: 160px; touch-action: none; cursor: crosshair; }
+.sc-canvas-w .ph { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-3); pointer-events: none; font-size: 17px; }
+.sc-canvas-w .ph[hidden] { display: none; }
+.sc-canvas-w button { position: absolute; right: 8px; top: 8px; }
+.sc-sum { width: 100%; border-collapse: collapse; font-size: 18px; }
+.sc-sum td { padding: 10px 4px; border-bottom: 1px solid var(--line); }
+.sc-sum td:last-child { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sc-sum small { color: var(--text-3); font-weight: 400; }
+.sc-warn { color: var(--danger-60); font-weight: 700; font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="ev-app" id="app">
+  <header id="hd"></header>
+  <main class="ev-main" id="main">
+    <section class="sc" id="sc" aria-label="평가하기"></section>
+  </main>
+</div>
+
+<div class="ev-demo" id="demo"><b>시안 보기</b>
+  <span class="ev-seg"><button type="button" data-d="reset" aria-pressed="false">처음 상태</button><button type="button" data-d="fail" aria-pressed="false">저장 실패 시험</button><button type="button" data-d="done" aria-pressed="false">제출 완료 화면</button></span>
+</div>
+
+<script src="../../EV-04-제안서-업체별/시안/proposals-data.js"></script>
+<script src="sign-pad.js"></script>
+<script src="../../_eval.js"></script>
+<script>
+(function () {
+  var D = window.PROPOSAL_DATA, CRIT = D.CRIT, V = ['A', 'B', 'C'];
+  var root = document.getElementById('sc');
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var key = function (v, c) { return v + '|' + c; };
+
+  /* 처음 상태: A사는 다 썼고 B·C사는 일부만 썼어요 (저장된 상태) */
+  var SEED = { A: [9, 13, 17.5, 12, 8, 9, 8, 9], B: [8, 12, 15, 13, 9, 8], C: [7, 10, 14, 11] };
+  var SEED_OP = { 'A|c3': '학습 데이터 정제 방법이 구체적이에요.', 'B|c2': '단계 구분이 명확해요.' };
+  var S = {};
+  function reset() {
+    S = { mode: 'one', vendor: 'A', vals: {}, ops: {}, saved: {}, savedOps: {}, savedAt: '14:32', fail: false, failed: false, submitted: false, submittedAt: '',
+      errs: {}, openOp: {}, signed: null, signImg: false };
+    V.forEach(function (v) { (SEED[v] || []).forEach(function (n, i) { S.vals[key(v, CRIT[i].id)] = String(n); }); });
+    Object.keys(SEED_OP).forEach(function (k) { S.ops[k] = SEED_OP[k]; });
+    S.saved = Object.assign({}, S.vals); S.savedOps = Object.assign({}, S.ops);
+  }
+  reset();
+
+  function fmt(n) { return (Math.round(n * 10) / 10).toString(); }
+  function check(c, raw) {
+    if (raw === '' || raw == null) return '';
+    var n = Number(raw);
+    if (!isFinite(n)) return '숫자로 써 주세요';
+    if (n < 0 || n > c.pts) return '0~' + c.pts + '점 사이로 써 주세요';
+    if (Math.round(n * 2) !== n * 2) return '0.5점 단위로 써 주세요';
+    return '';
+  }
+  function total(v) { var t = 0; CRIT.forEach(function (c) { var r = S.vals[key(v, c.id)]; if (r !== '' && r != null && !check(c, r)) t += Number(r); }); return t; }
+  function filled(v) { return CRIT.filter(function (c) { var r = S.vals[key(v, c.id)]; return r !== '' && r != null && !check(c, r); }).length; }
+  function empties() { var out = []; V.forEach(function (v) { CRIT.forEach(function (c) { var r = S.vals[key(v, c.id)]; if (r === '' || r == null) out.push({ v: v, c: c }); }); }); return out; }
+  function dirtyN() {
+    var n = 0, seen = {};
+    Object.keys(S.vals).concat(Object.keys(S.saved)).forEach(function (k) { if (!seen[k]) { seen[k] = 1; if ((S.vals[k] || '') !== (S.saved[k] || '')) n++; } });
+    var seen2 = {};
+    Object.keys(S.ops).concat(Object.keys(S.savedOps)).forEach(function (k) { if (!seen2[k]) { seen2[k] = 1; if ((S.ops[k] || '') !== (S.savedOps[k] || '')) n++; } });
+    return n;
+  }
+  function invalidN() { var n = 0; V.forEach(function (v) { CRIT.forEach(function (c) { if (check(c, S.vals[key(v, c.id)])) n++; }); }); return n; }
+  function hash() { return JSON.stringify(S.vals); }
+
+  function toast(m) { EvalShell.toast(m, 3200); }
+  EvalShell.mount(document.getElementById('hd'), { active: 'scoring' });
+  function now() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+
+  /* ── 그리기 ── */
+  function saveHtml() {
+    if (S.submitted) return '';
+    var n = dirtyN();
+    if (S.failed) return '<span class="sc-save fail" id="sv"><span class="mk" aria-hidden="true">!</span>저장 실패 <button type="button" data-a="save">다시 시도</button></span>';
+    if (n) return '<span class="sc-save dirty" id="sv"><span class="mk" aria-hidden="true">●</span>저장 안 된 변경 ' + n + '개 <button type="button" data-a="save">저장</button></span>';
+    return '<span class="sc-save" id="sv"><span class="mk" aria-hidden="true">✓</span>저장됨 ' + S.savedAt + '</span>';
+  }
+  function scoreCell(v, c) {
+    var k = key(v, c.id), e = S.errs[k];
+    return '<div class="sc-score"><input type="number" inputmode="decimal" step="0.5" min="0" max="' + c.pts + '" data-k="' + k + '" data-c="' + c.id + '" value="' + esc(S.vals[k] || '') + '" aria-label="' + D.NAME[v] + ' ' + c.name + ' 점수 (' + c.pts + '점 만점)"' + (e ? ' aria-invalid="true"' : '') + (S.submitted ? ' disabled' : '') + '><span class="of">/ ' + c.pts + '</span></div>' + (e ? '<div class="sc-err" role="alert">' + e + '</div>' : '');
+  }
+  function render() {
+    var h = '<div class="sc-top"><h1>평가하기</h1><span class="sc-seg" role="group" aria-label="보기 방식"><button type="button" data-m="one" aria-pressed="' + (S.mode === 'one') + '">업체별</button><button type="button" data-m="all" aria-pressed="' + (S.mode === 'all') + '">한꺼번에 비교</button></span><span class="sp"></span>' +
+      '<span id="savewrap">' + saveHtml() + '</span>' +
+      (S.submitted ? '<span class="sc-done"><span aria-hidden="true">✓</span> 제출 완료 ' + S.submittedAt + ' · 점수는 바꿀 수 없어요</span>' : '<button type="button" class="ev-btn" data-a="submit">제출하기</button>') + '</div>';
+    if (S.mode === 'one') {
+      h += '<div class="sc-vtabs" role="tablist" aria-label="업체">' + V.map(function (v) { return '<button type="button" class="sc-vtab" role="tab" data-v="' + v + '" aria-selected="' + (S.vendor === v) + '">' + D.NAME[v] + '<small>' + fmt(total(v)) + '점</small></button>'; }).join('') + '</div>';
+      var v1 = S.vendor;
+      h += '<div class="sc-card"><div class="sc-scroll"><div class="sc-grid one"><div class="sc-h">평가항목</div><div class="sc-h">점수</div><div class="sc-h">의견 (선택)</div>';
+      CRIT.forEach(function (c) {
+        var k = key(v1, c.id);
+        h += '<div class="sc-c name" title="' + c.hint + '"><b>' + c.name + '<span class="sc-pts">' + c.pts + '점</span></b></div><div class="sc-c">' + scoreCell(v1, c) + '</div><div class="sc-c"><input class="sc-op" data-ok="' + k + '" value="' + esc(S.ops[k] || '') + '" placeholder="한 줄 의견 (비워도 돼요)" aria-label="' + D.NAME[v1] + ' ' + c.name + ' 의견"' + (S.submitted ? ' disabled' : '') + '></div>';
+      });
+      h += '</div></div><div class="sc-total"><span>' + D.NAME[v1] + ' 총점 (자동)</span><b id="tot">' + fmt(total(v1)) + '</b><span>/ 100점</span></div></div>';
+    } else {
+      h += '<div class="sc-card"><div class="sc-scroll"><div class="sc-grid all"><div class="sc-h">평가항목</div>' + V.map(function (v) { return '<div class="sc-h">' + D.NAME[v] + '</div>'; }).join('');
+      CRIT.forEach(function (c) {
+        var anyOp = V.some(function (v) { return S.ops[key(v, c.id)]; });
+        h += '<div class="sc-c name"><b>' + c.name + '<span class="sc-pts">' + c.pts + '점</span></b><button type="button" class="sc-opbtn' + (anyOp ? ' has' : '') + '" data-op="' + c.id + '" aria-expanded="' + !!S.openOp[c.id] + '">' + (anyOp ? '의견 있음' : '의견 쓰기') + (S.openOp[c.id] ? ' ▴' : ' ▾') + '</button></div>' + V.map(function (v) { return '<div class="sc-c">' + scoreCell(v, c) + '</div>'; }).join('');
+        if (S.openOp[c.id]) h += '<div class="sc-oprow"><div class="sc-c">의견 (선택)</div>' + V.map(function (v) { var k = key(v, c.id); return '<div class="sc-c"><input class="sc-op" data-ok="' + k + '" value="' + esc(S.ops[k] || '') + '" aria-label="' + D.NAME[v] + ' ' + c.name + ' 의견"' + (S.submitted ? ' disabled' : '') + '></div>'; }).join('') + '</div>';
+      });
+      h += '</div></div><div class="sc-tr"><span>총점 (자동) <span class="part">100점 만점</span></span>' + V.map(function (v) { return '<b id="tot' + v + '">' + fmt(total(v)) + '</b>'; }).join('') + '</div></div>';
+    }
+    root.innerHTML = h;
+  }
+  function refresh() {
+    $('#savewrap').innerHTML = saveHtml();
+    if (S.mode === 'one') { var t = $('#tot'); t && (t.textContent = fmt(total(S.vendor))); var tab = root.querySelector('.sc-vtab[data-v="' + S.vendor + '"] small'); tab && (tab.textContent = fmt(total(S.vendor)) + '점'); root.querySelectorAll('.sc-vtab').forEach(function (b) { b.querySelector('small').textContent = fmt(total(b.dataset.v)) + '점'; }); }
+    else V.forEach(function (v) { var t = $('#tot' + v); t && (t.textContent = fmt(total(v))); });
+  }
+
+  /* ── 입력 ── */
+  root.addEventListener('input', function (e) {
+    var el = e.target;
+    if (el.dataset.k) {
+      var c = CRIT.filter(function (x) { return x.id === el.dataset.c; })[0], msg = check(c, el.value);
+      var before = hash(); S.vals[el.dataset.k] = el.value;
+      var cell = el.closest('.sc-c'), old = cell.querySelector('.sc-err');
+      if (msg) { S.errs[el.dataset.k] = msg; el.setAttribute('aria-invalid', 'true'); if (!old) { old = document.createElement('div'); old.className = 'sc-err'; old.setAttribute('role', 'alert'); cell.appendChild(old); } old.textContent = msg; }
+      else { delete S.errs[el.dataset.k]; el.removeAttribute('aria-invalid'); old && old.remove(); }
+      if (S.signed && hash() !== S.signed) { S.signed = null; toast('점수가 바뀌어 서명이 지워졌어요. 제출할 때 다시 서명해 주세요'); }
+      refresh();
+    } else if (el.dataset.ok) { S.ops[el.dataset.ok] = el.value; refresh(); }
+  });
+  /* 마우스 휠로 점수가 바뀌지 않게 */
+  root.addEventListener('wheel', function (e) { if (document.activeElement === e.target && e.target.type === 'number') e.target.blur(); }, { passive: true });
+  root.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-m],[data-v],[data-a],[data-op]'); if (!b) return;
+    if (b.dataset.m) { S.mode = b.dataset.m; render(); }
+    else if (b.dataset.v) { S.vendor = b.dataset.v; render(); }
+    else if (b.dataset.op) { S.openOp[b.dataset.op] = !S.openOp[b.dataset.op]; render(); var f = root.querySelector('.sc-oprow input'); }
+    else if (b.dataset.a === 'save') save();
+    else if (b.dataset.a === 'submit') openSubmit();
+  });
+  document.addEventListener('keydown', function (e) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); if (!S.submitted) save(); } });
+  window.addEventListener('beforeunload', function (e) { if (dirtyN() && !S.submitted) { e.preventDefault(); e.returnValue = ''; } });
+
+  function save() {
+    if (invalidN()) { toast('점수를 확인해 주세요. 범위를 벗어난 칸이 있어요'); return false; }
+    if (S.fail) { S.failed = true; refresh(); toast('저장하지 못했어요. 다시 시도해 주세요'); return false; }
+    S.failed = false; S.saved = Object.assign({}, S.vals); S.savedOps = Object.assign({}, S.ops); S.savedAt = now(); refresh(); toast('저장했어요'); return true;
+  }
+
+  /* ── 제출 흐름: 점검 → 서명 → 확인 ── */
+  var layer = null, pad = null, lastFocus = null;
+  function openLayer(html, cls) {
+    closeLayer(true);
+    lastFocus = document.activeElement;
+    layer = document.createElement('div'); layer.className = 'ev-scrim';
+    layer.innerHTML = '<div class="ev-modal sc-modal ' + (cls || '') + '" role="dialog" aria-modal="true" aria-labelledby="dlg-t">' + html + '</div>';
+    document.body.appendChild(layer);
+    layer.addEventListener('mousedown', function (e) { if (e.target === layer) closeLayer(); });
+    var f = layer.querySelector('[autofocus]') || layer.querySelector('button:not([disabled])'); f && f.focus();
+    return layer;
+  }
+  function closeLayer(quiet) { if (layer) { layer.remove(); layer = null; pad = null; if (!quiet && lastFocus && document.contains(lastFocus)) lastFocus.focus(); } }
+  document.addEventListener('keydown', function (e) {
+    if (!layer) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeLayer(); }
+    if (e.key === 'Tab') { var f = [].slice.call(layer.querySelectorAll('button:not([disabled]),input,canvas')).filter(function (x) { return x.tagName !== 'CANVAS'; }); if (!f.length) return; var a = f[0], z = f[f.length - 1]; if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
+  });
+
+  function stepsHtml(n) { return '<div class="sc-steps" aria-label="제출 단계 ' + n + '/3"><b>' + n + '/3</b> ' + ['점검', '서명', '확인'].map(function (t, i) { return '<span' + (i + 1 === n ? ' style="font-weight:700;color:var(--text-1)"' : '') + '>' + t + '</span>' + (i < 2 ? '<i class="' + (i + 1 < n ? 'on' : '') + '"></i>' : ''); }).join('') + '</div>'; }
+
+  function openSubmit() {
+    if (S.signed && S.signed !== hash()) { S.signed = null; }
+    stepCheck();
+  }
+  function stepCheck() {
+    var em = empties(), dn = dirtyN(), bad = invalidN();
+    var ok = !em.length && !dn && !bad;
+    var li = function (good, title, sub, btn) { return '<li class="' + (good ? 'ok' : 'no') + '"><span class="ic" aria-hidden="true">' + (good ? '✓' : '!') + '</span><div class="tx">' + title + (sub ? '<small>' + sub + '</small>' : '') + (btn || '') + '</div></li>'; };
+    var emTxt = em.slice(0, 3).map(function (x) { return D.NAME[x.v] + ' ' + x.c.name; }).join(', ') + (em.length > 3 ? ' 외 ' + (em.length - 3) + '곳' : '');
+    var l = openLayer(stepsHtml(1) + '<h2 id="dlg-t">제출하기 전에 확인해요</h2><ul class="sc-chk">' +
+      li(!em.length && !bad, em.length ? '비어 있는 점수 칸이 ' + em.length + '개 있어요' : (bad ? '범위를 벗어난 점수가 ' + bad + '개 있어요' : '모든 업체·항목에 점수를 썼어요'), em.length ? emTxt : '', em.length || bad ? '<button type="button" data-g="empty">빈 칸으로 가기</button>' : '') +
+      li(!dn, dn ? '저장 안 된 변경이 ' + dn + '개 있어요' : '저장 안 된 변경이 없어요', dn ? '제출하려면 먼저 저장해야 해요' : '', dn ? '<button type="button" data-g="save">지금 저장</button>' : '') +
+      '</ul><div class="ev-note">의견은 비워도 돼요. 제출하면 점수를 바꿀 수 없어요.</div>' +
+      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="next"' + (ok ? '' : ' disabled') + '>다음: 서명하기</button><button type="button" class="ev-btn text" data-g="close">닫기</button></div>');
+    l.onclick = function (e) {
+      var g = e.target.dataset.g; if (!g) return;
+      if (g === 'close') closeLayer();
+      else if (g === 'save') { if (save()) stepCheck(); else stepCheck(); }
+      else if (g === 'empty') { var tgt = em[0]; closeLayer(); if (tgt) { S.vendor = tgt.v; S.mode = S.mode; render(); var el = root.querySelector('input[data-k="' + key(tgt.v, tgt.c.id) + '"]'); el && el.focus(); } else { var bd = root.querySelector('[aria-invalid="true"]'); bd && bd.focus(); } }
+      else if (g === 'next') stepSign();
+    };
+  }
+  function stepSign() {
+    var re = S.signed === hash();
+    var l = openLayer(stepsHtml(2) + '<h2 id="dlg-t">개인 서명</h2><p style="font-size:17px;color:var(--text-2)">아래 칸에 손가락이나 마우스로 서명해 주세요.</p>' +
+      '<div class="sc-canvas-w"><canvas id="pad" aria-label="서명 칸"></canvas><div class="ph" id="ph">여기에 서명해 주세요</div><button type="button" class="ev-btn text sm" data-g="clear">지우기</button></div>' +
+      '<div class="ev-note info"><span aria-hidden="true">ⓘ</span><span>서명 뒤 점수를 바꾸면 다시 서명해야 해요.</span></div>' +
+      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="next" disabled>서명했어요</button><button type="button" class="ev-btn text" data-g="back">이전</button></div>');
+    var nx = l.querySelector('[data-g="next"]');
+    pad = SignPad.mount(l.querySelector('#pad'), { onChange: function (ink) { nx.disabled = !ink; l.querySelector('#ph').hidden = ink; } });
+    l.onclick = function (e) {
+      var g = e.target.dataset.g; if (!g) return;
+      if (g === 'clear') pad.clear();
+      else if (g === 'back') stepCheck();
+      else if (g === 'next') { S.signed = hash(); stepConfirm(); }
+    };
+  }
+  function stepConfirm() {
+    var rows = V.map(function (v) { return '<tr><td>' + D.NAME[v] + ' <small>' + filled(v) + '/' + CRIT.length + '개 항목</small></td><td>' + fmt(total(v)) + '점</td></tr>'; }).join('');
+    var l = openLayer(stepsHtml(3) + '<h2 id="dlg-t">이대로 제출할까요?</h2><table class="sc-sum" aria-label="업체별 총점"><tbody>' + rows + '</tbody></table><p class="sc-warn">제출하면 점수를 바꿀 수 없어요.</p>' +
+      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="go">제출하기</button><button type="button" class="ev-btn text" data-g="back" autofocus>돌아가기</button></div>');
+    l.onclick = function (e) {
+      var g = e.target.dataset.g; if (!g) return;
+      if (g === 'back') closeLayer();
+      else if (g === 'go') {
+        if (S.signed !== hash()) { toast('점수가 바뀌어 다시 서명해야 해요'); S.signed = null; stepSign(); return; }
+        S.submitted = true; S.submittedAt = now(); closeLayer(true); render(); toast('제출했어요');
+      }
+    };
+  }
+
+  /* 시안 보기 전환 */
+  document.getElementById('demo').addEventListener('click', function (e) {
+    var d = e.target.dataset.d; if (!d) return;
+    if (d === 'reset') { reset(); document.querySelector('[data-d="fail"]').setAttribute('aria-pressed', 'false'); closeLayer(true); render(); }
+    if (d === 'fail') { S.fail = !S.fail; e.target.setAttribute('aria-pressed', S.fail); if (S.fail) toast('이제 저장하면 실패해요'); }
+    if (d === 'done') { V.forEach(function (v) { CRIT.forEach(function (c, i) { var k = key(v, c.id); if (!S.vals[k]) S.vals[k] = String(Math.round(c.pts * (0.7 + 0.04 * ((i + v.charCodeAt(0)) % 6)) * 2) / 2); }); }); S.saved = Object.assign({}, S.vals); S.savedOps = Object.assign({}, S.ops); S.submitted = true; S.submittedAt = now(); closeLayer(true); render(); }
+  });
+
+  window.__sc = { S: function () { return S; }, pad: function () { return pad; } };
+  render();
+})();
+</script>
+</body>
+</html>
