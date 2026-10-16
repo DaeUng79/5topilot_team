@@ -1,0 +1,31 @@
+{
+  "schema_version": 4,
+  "harness_version": "0.2.0",
+  "project_id": "86b19280-976c-47a9-8d3d-1ffe19057bf5",
+  "created_at": "2026-10-16T14:06:51.760Z",
+  "level": "L2",
+  "runtime_profile": "gg_standard",
+  "policy_profile": "gg_standard",
+  "tools": [
+    "codex"
+  ],
+  "allowed_languages": [
+    "python",
+    "javascript",
+    "typescript"
+  ],
+  "policy_sha256": "a571af02524667216e8d8ba446200a70188f786dd3a442e4ee61cffccd1b67ae",
+  "institution_profile_sha256": "84c598ee5889b1ffbeded1bc9d72e3f67382a5290aca1f46e4826429fe23378d",
+  "policy_profiles_sha256": "094836fe0848b0cc88e05fef185f174b5f3e848abf9b78372edd08577b36a2c3",
+  "package_policy_sha256": "2989a5c1cfa1f8b9aa24480a534dac33f6fd2a70c4c0ff4ad20965ed637c2e39",
+  "runner_sha256": "dbcf79b12847a62efa2fa8e85fa4eec05cea6bbaea2d5d5dfa6d2094a8656a37",
+  "release_integrity_sha256": "fc222a8148c64ce1dff1cafc22b587ae0a49a06da8691dabddf0e2095963f533",
+  "policy_engine_sha256": "1e0e2cd01e6b05c790879a201fce3390d8ee712bdd856ce751cb9d4886ab7796",
+  "checker_evidence_sha256": "b288f142d2f32122e47cde79200b297c7a3178eb3e275a189f59a686c8960e02",
+  "mcp_config_sha256": "8d5c316587d620497fbcaab07d2839a1ded12c99d06262c2fcdf6aa2e6d902d1",
+  "claude_hook_sha256": "210c84742f7d3925e26aa395737da88cbc923b1c0aff7e34b5f2c0bfa6fc5a9c",
+  "managed_adapters": {
+    "codex_companion": true
+  },
+  "checker_machine_verdict": "pending_upstream_machine_verdict"
+}

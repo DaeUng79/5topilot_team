@@ -36,3 +36,6 @@ Thumbs.db
 artifacts/
 uploads/
 *.log
+
+.vibecode-harness/local/
+evidence/*.log

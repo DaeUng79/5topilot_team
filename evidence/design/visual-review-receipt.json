@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "review_kind": "html_prototype",
+  "reviewed_at": "2026-10-16T14:07:01.485Z",
+  "project_id": "86b19280-976c-47a9-8d3d-1ffe19057bf5",
+  "prototype": "apps/web_cookiesh1/v2/index.html",
+  "decision": {
+    "schema_version": 1,
+    "project_id": "86b19280-976c-47a9-8d3d-1ffe19057bf5",
+    "created_at": "2026-10-16T14:07:01.483Z",
+    "database": "yes",
+    "admin": "yes",
+    "external_api": "no",
+    "visual_interface": "html_prototype"
+  },
+  "approval_basis": "사용자: 디자인은 우리가 이미 확정한 상태고 그 디자인의 버튼과 기능화면이 제대로 작동하도록 알맞는 기능과 DB 를 연결해야해. 원본 디자인은 절대 손대지마.",
+  "scope": "기존 원본 디자인 확정 기록. 새 디자인 승인이나 보안 승인을 의미하지 않음.",
+  "preservation_contract": "apps/evaluations_u-jing/contracts/original_design_v2.json"
+}

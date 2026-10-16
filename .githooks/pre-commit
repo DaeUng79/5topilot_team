@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+node .vibecode-harness/bin/gg.mjs verify --project . --hook

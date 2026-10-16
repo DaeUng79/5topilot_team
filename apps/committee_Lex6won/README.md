@@ -1,8 +1,12 @@
 # 평가위원 등록·선정·배정 — 기능 모듈 v2
 
-담당 **원준석 · Lex6won**. 2026-10-16 v2 설계를 반영한 Python 3.11 / SQLite 모듈이다. 브랜치는 `feat/lex6won-committee-v2`, 기준 main은 `beeb32a`다. 프론트엔드와 독립적으로 호출한다.
+담당 **원준석 · Lex6won**. 2026-10-16 v2 설계를 반영한 Python 3.11 / SQLite 모듈이다. 기능 모듈은 프론트엔드와 독립적으로 호출하며, 현재 통합 브랜치는 `feat/lex6won-committee-v2-web`이다.
+
+현재 실행 기준은 [원본 화면 연결·전체 흐름 검증 보고](../evaluations_u-jing/COMMITTEE_FLOW_FIX_2026-10-17.md)다. 저장소 루트의 `start_simsa_v2.cmd`를 실행하고 http://127.0.0.1:5190/ 에 접속한다. Git의 `web_cookiesh1/v2` 원본 디자인을 별도 바인딩으로 연결한다.
 
 ## 공유할 파일
+
+- [초기 독립 웹 어댑터 기록](docs/WEB_V2_CONNECTION.md): 과거 개발 단계의 기록이며 현재 원본 디자인 통합 실행 안내는 아니다.
 
 - [버튼·입출력·DB·팀 연계 인계서](docs/COMMITTEE_V2_HANDOFF.md)
 - [입력 모델](committee_app/v2_contracts.py), [버튼 호출 진입점](committee_app/v2_gateway.py)
@@ -50,7 +54,7 @@ Runtime의 pii_key/lookup_key/auth_key는 서로 다른 32바이트 키다. 실�
 
 ## 기존 코드와 후속 연결
 
-기존 run.py, committee_app/main.py/service.py, web/는 보존했다. **기존 웹은 v1 흐름이며 새 v2 함수를 호출하지 않는다.** 사용법은 [LEGACY_README.md](LEGACY_README.md)에 보존했다. 이번 작업은 기능 모듈 단계이고 새 웹 UI/HTTP 엔드포인트는 후속 연결 대상이다.
+기존 run.py, committee_app/main.py/service.py, web/는 보존했다. **기존 웹은 v1 흐름이며 새 v2 함수를 호출하지 않는다.** 사용법은 [LEGACY_README.md](LEGACY_README.md)에 보존했다. 현재 v2 HTTP 연결과 공통·평가 통합은 `evaluations_u-jing/web_api.py` 및 화면별 `binding.js`를 사용한다.
 
 `v2_legacy.migrate_legacy_pool`은 원본을 읽기 전용으로 검사하고 명시적 부서/분야 매핑과 확인 해시를 받으면 후보를 새 DB로 이전한다. ID를 보존하고 충돌 시 전체 롤백한다. 비활성·불완전 후보는 검토 오류로 표시한다. 기존 사업·추첨·확정본은 v2 증빙으로 자동 전환하지 않는다. 이번 개발에서 실제 DB 이관은 실행하지 않았다.
 

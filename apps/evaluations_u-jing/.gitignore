@@ -1,0 +1,9 @@
+data/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+test-results/
+prototypes/unapproved_web/

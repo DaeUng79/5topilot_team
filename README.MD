@@ -26,45 +26,22 @@
 
 각 담당 폴더는 기능별 작업 공간입니다. 다른 팀원도 담당자와 상의해 함께 수정할 수 있습니다.
 
-## 지금 저장소에서 확인할 수 있는 것
+## 이 브랜치의 통합 기능 (2026-10-16)
 
-- **웹 화면**: React로 만든 화면입니다. API 서버 없이 합성 자료로 둘러보는 mock 모드를 사용할 수 있습니다. mock은 화면 시험용 가짜 자료이며 실제 문서를 저장하지 않습니다.
-- **문서 처리**: HWPX를 읽고 SQLite 파일에 저장하며, 페이지별 내용과 AI 분석 화면을 제공합니다.
-- **위원 관리와 평가·결과**: 담당 폴더와 설계 안내가 있습니다. 실제 동작 여부는 각 폴더의 README와 인수검증표에서 확인하세요.
-- **공동 API 서버**: 현재 저장소에 서버 코드가 준비되어 있지 않습니다. 따라서 웹 화면의 mock 동작을 실제 서버 연동 완료로 생각하면 안 됩니다.
+**2026-10-17 후속 수정:** [평가일·일반 위원 로그인·위원 선정부터 최종 결과까지의 업무 흐름 복구](apps/evaluations_u-jing/COMMITTEE_FLOW_FIX_2026-10-17.md). 기본 주소는 원본 역할 선택·로그인 화면입니다.
 
-AI가 만든 요구사항이나 평가기준은 초안입니다. 사람이 원문과 비교하고 확인한 뒤 사용해야 합니다.
-문서에 개인 정보나 비밀 정보가 있으면 AI 서비스에 보내도 되는지 먼저 확인하세요.
+> 확정된 원본 디자인을 보존하고 기존 버튼에 기능을 연결했습니다. [결과보고](apps/evaluations_u-jing/RESULT_REPORT_2026-10-16.md)와 [화면별 연결 현황](apps/evaluations_u-jing/DESIGN_CONNECTION_STATUS.md)을 확인하세요.
 
-## 웹 화면 실행하기
+원준석·김유진 담당 기능을 Python API와 SQLite에 연결했습니다. 실제 저장되는 가상 데이터로 위원 등록·선정, 참석, 평가·서명, 집계·최종 결과를 시연합니다. 오대웅 담당 문서 처리·AI 기능은 기존 소스를 유지하며 승인 자료 연계 계약을 제공합니다.
 
-준비물은 Git과 Node.js 22.12 이상입니다. 저장소 맨 위에서 실행합니다.
+- 실행: Windows에서 저장소의 `start_simsa_v2.cmd` → http://127.0.0.1:5190/
+- [실행 및 개발 인계](apps/evaluations_u-jing/IMPLEMENTATION_V2.md)
+- [검증 결과](apps/evaluations_u-jing/VERIFICATION_V2.md)
+- [버튼별 담당·소스·화면 매핑](apps/evaluations_u-jing/IMPLEMENTATION_MAP_V2.html)
+- 화면: `apps/web_cookiesh1/src/screens/` 23개 디렉터리. PM-01 목록/상세 포함 24개 화면 항목.
+- 기능/DB: `apps/committee_Lex6won/`, `apps/evaluations_u-jing/`. SQLite 실행 파일은 Git에 넣지 않고 migration과 가상 seed를 공유합니다.
 
-```bash
-cd apps/web_cookiesh1
-npm install
-```
-
-API 서버 없이 화면을 보려면 mock 모드로 실행합니다.
-
-| 컴퓨터 환경            | 실행 명령                               |
-| ---------------------- | --------------------------------------- |
-| macOS·Linux·Git Bash | `VITE_USE_MOCK=1 npm run dev`         |
-| Windows PowerShell     | `$env:VITE_USE_MOCK='1'; npm run dev` |
-
-브라우저에서 [http://127.0.0.1:5173](http://127.0.0.1:5173)을 엽니다.
-화면에 **MOCK · 실제 서버 아님** 표시가 있으면 합성 자료로 실행 중입니다.
-mock 자료는 브라우저에 저장되어 새로고침해도 유지됩니다. 처음 상태로 되돌리려면 화면의 시연 도구에서 초기화합니다.
-
-코드를 확인할 때는 `apps/web_cookiesh1` 폴더에서 다음 명령을 사용할 수 있습니다.
-
-```bash
-npm run typecheck
-npm run build
-```
-
-`npm test`로 mock 응답 규칙 등 단위 테스트를 실행할 수 있습니다.
-화면 실행 방법과 mock 자료 설명은 [웹 화면 README](apps/web_cookiesh1/README.md)를 참고하세요.
+이전 React 앱의 `VITE_USE_MOCK`, typecheck/build/test 안내는 현재 실행 절차가 아닙니다. 원본 `index.html`과 `v2/index.html`을 유지하며 Python 서버에서 기능 연결을 제공합니다. 파일 열기는 정적 시안 확인용이며 실제 기능은 HTTP 주소로 접속해야 합니다.
 
 ## 문서 처리 도구 실행하기
 
@@ -119,11 +96,6 @@ git switch -c feat/<작업 이름> upstream/main
 팀 저장소: [https://github.com/DaeUng79/5topilot_team](https://github.com/DaeUng79/5topilot_team) ·
 [목표 화면 예시](https://simsa-ai.lovable.app/admin/projects/p1?tab=progress)
 
-## 기반 PR #1 구조 안내 (이 브랜치 한정)
+## 이전 기반 문서
 
-이 작업 브랜치에는 [PR #1](https://github.com/DaeUng79/5topilot_team/pull/1)의 공동 API·웹 기반이 함께 들어 있습니다.
-PR #1이 main에 병합되기 전까지는 아래 문서와 경로를 따릅니다.
-
-- [처음 실행하기](docs/QUICKSTART.md) · [4인 팀 작업 방법](docs/TEAM_WORKFLOW.md) · [아키텍처와 현재 구현 범위](docs/ARCHITECTURE.md)
-- 업무 API: `apps/api` / 프론트: `apps/web` / API 명세: `contracts/openapi.json` / 자동검증: `.github/workflows/ci.yml`
-- 원본 데모는 `npm run demo`, 새 웹은 `npm run dev`로 각각 실행합니다.
+`docs/QUICKSTART.md`, `docs/ARCHITECTURE.md`에는 삭제된 `apps/api`, `apps/web` 기반 안내가 남아 있을 수 있습니다. 현재 통합 실행은 위의 2026-10-16 인계 문서를 기준으로 합니다.

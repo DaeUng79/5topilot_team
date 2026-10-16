@@ -21,3 +21,4 @@ htmlcov/
 *.sqlite3-wal
 .env
 .vibecode-harness/
+.check-reports/

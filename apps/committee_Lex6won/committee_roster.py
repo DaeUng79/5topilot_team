@@ -142,7 +142,8 @@ async def confirm_roster(ctx: Context, command: DTO, *, runtime: Runtime) -> DTO
         version(rule, body.rule_version)
         primary = [m for m in body.members if m.member_kind == "PRIMARY"]
         reserves = [m for m in body.members if m.member_kind == "RESERVE"]
-        if len(primary) != rule["target_count"] or len(reserves) != rule["reserve_count"]:
+        reserve_count = rule["reserve_count"] if body.reserve_count is None else body.reserve_count
+        if len(primary) != rule["target_count"] or len(reserves) != reserve_count:
             raise ModuleError("ROSTER_COUNT", "정위원·예비위원 수가 선정 규칙과 다릅니다.", 422)
         if len({m.nominee_id for m in body.members}) != len(body.members):
             raise ModuleError("DUPLICATE_MEMBER", "동일 후보를 중복 배정할 수 없습니다.", 422)
@@ -221,6 +222,11 @@ async def confirm_roster(ctx: Context, command: DTO, *, runtime: Runtime) -> DTO
         projection = [{k: v for k, v in a.items() if k != "nominee_id"} for a in assignments]
         checksum = digest(projection)
         confirmed_at = now()
+        if body.reserve_count is not None and reserve_count != rule["reserve_count"]:
+            conn.execute(
+                "UPDATE committee_rules SET reserve_count=?,version=version+1,updated_at=? WHERE id=?",
+                (reserve_count, confirmed_at, rule["id"]),
+            )
         runtime.insert(
             conn,
             "committee_rosters",

@@ -129,6 +129,8 @@ class Member(Input):
 class ConfirmRoster(ProjectQuery):
     rule_version: Version
     members: list[Member] = Field(min_length=7, max_length=36)
+    # The original screen chooses reserve positions at final confirmation.
+    reserve_count: int | None = Field(default=None, ge=0, le=27, strict=True)
 
 
 class Preview(Scoped):

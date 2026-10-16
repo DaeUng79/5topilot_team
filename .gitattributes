@@ -1,0 +1,3 @@
+# Preserve release bytes used by the managed harness integrity checks.
+/.vibecode-harness/** -text
+/.githooks/* text eol=lf

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "project_id": "86b19280-976c-47a9-8d3d-1ffe19057bf5",
+  "created_at": "2026-10-16T14:07:01.483Z",
+  "database": "yes",
+  "admin": "yes",
+  "external_api": "no",
+  "visual_interface": "html_prototype"
+}
