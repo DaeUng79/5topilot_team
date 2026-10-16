@@ -3,7 +3,7 @@
 
 | 단계 | 산출물 | 템플릿 | 끝나는 조건 |
 |---|---|---|---|
-| 1. 전체 구조 | ARCHITECTURE · DB_CONTRACT · SCREEN_MAP | — | 화면 목록과 테이블 경계에 팀 합의 |
+| 1. 전체 구조 | ARCHITECTURE · DB_CONTRACT · v2/README(화면 지도) | — | 화면 목록과 테이블 경계에 팀 합의 |
 | 2. 화면 구성 | 화면 카드 1장 + 비교 시안 링크 | [screen-card](templates/screen-card.md) | 화면마다 안 선택 → ✅ |
 | 3. 세부 기능 | 버튼 단위 기능 카드 | [feature-card](templates/feature-card.md) | 입력·검증·API·DB·오류가 다 채워짐 |
 
