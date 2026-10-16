@@ -1,0 +1,14 @@
+{
+  "kind": "observed_tool_result_summary",
+  "tool": "vibecode-checker.check_package",
+  "caller": "codex:committee-v2",
+  "checked_at": "2026-10-16T05:44:29Z",
+  "name": "cryptography",
+  "version": "50.0.2",
+  "ecosystem": "pypi",
+  "verdict": "checked_clean",
+  "checked": true,
+  "known_vulnerability_count": 0,
+  "cooldown": "passed",
+  "scope": "Explicit runtime dependency, already installed through the existing development lock. No package install performed. Not an institutional approval."
+}

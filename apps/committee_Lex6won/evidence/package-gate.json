@@ -1,0 +1,380 @@
+[
+  {
+    "name": "fastapi",
+    "version": "0.142.2",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:03+00:00"
+  },
+  {
+    "name": "uvicorn",
+    "version": "0.54.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:05+00:00"
+  },
+  {
+    "name": "python-multipart",
+    "version": "0.0.32",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:08+00:00"
+  },
+  {
+    "name": "openpyxl",
+    "version": "3.1.5",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:10+00:00"
+  },
+  {
+    "name": "msoffcrypto-tool",
+    "version": "5.4.2",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:12+00:00"
+  },
+  {
+    "name": "pytest",
+    "version": "9.1.1",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:14+00:00"
+  },
+  {
+    "name": "pytest-cov",
+    "version": "7.1.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:16+00:00"
+  },
+  {
+    "name": "ruff",
+    "version": "0.16.10",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:19+00:00"
+  },
+  {
+    "name": "mypy",
+    "version": "2.4.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:21+00:00"
+  },
+  {
+    "name": "httpx",
+    "version": "0.28.1",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:42:23+00:00"
+  },
+  {
+    "name": "httpcore",
+    "version": "1.0.9",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:49:10+00:00"
+  },
+  {
+    "name": "annotated-doc",
+    "version": "0.0.5",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:49:12+00:00"
+  },
+  {
+    "name": "ast_serialize",
+    "version": "0.13.0",
+    "checked": true,
+    "verdict": "cooldown_hold",
+    "requires_review": true,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:49:14+00:00"
+  },
+  {
+    "name": "ast_serialize",
+    "version": "0.12.1",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:40+00:00"
+  },
+  {
+    "name": "click",
+    "version": "8.5.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:42+00:00"
+  },
+  {
+    "name": "colorama",
+    "version": "0.4.6",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:45+00:00"
+  },
+  {
+    "name": "coverage",
+    "version": "7.16.2",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:47+00:00"
+  },
+  {
+    "name": "cryptography",
+    "version": "50.0.2",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:49+00:00"
+  },
+  {
+    "name": "h11",
+    "version": "0.16.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:51+00:00"
+  },
+  {
+    "name": "iniconfig",
+    "version": "2.3.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:53+00:00"
+  },
+  {
+    "name": "librt",
+    "version": "0.16.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:55+00:00"
+  },
+  {
+    "name": "mypy_extensions",
+    "version": "1.1.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:57+00:00"
+  },
+  {
+    "name": "olefile",
+    "version": "0.47",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:53:59+00:00"
+  },
+  {
+    "name": "opentelemetry-api",
+    "version": "1.45.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:01+00:00"
+  },
+  {
+    "name": "packaging",
+    "version": "26.3",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:03+00:00"
+  },
+  {
+    "name": "pathspec",
+    "version": "1.1.1",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:05+00:00"
+  },
+  {
+    "name": "pluggy",
+    "version": "1.6.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:07+00:00"
+  },
+  {
+    "name": "pydantic",
+    "version": "2.13.5",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:09+00:00"
+  },
+  {
+    "name": "pydantic_core",
+    "version": "2.46.5",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:14+00:00"
+  },
+  {
+    "name": "Pygments",
+    "version": "2.21.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:16+00:00"
+  },
+  {
+    "name": "starlette",
+    "version": "1.7.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:18+00:00"
+  },
+  {
+    "name": "anyio",
+    "version": "4.15.1",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:20+00:00"
+  },
+  {
+    "name": "idna",
+    "version": "3.20",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:22+00:00"
+  },
+  {
+    "name": "typing_extensions",
+    "version": "4.16.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:24+00:00"
+  },
+  {
+    "name": "typing-inspection",
+    "version": "0.4.4",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:26+00:00"
+  },
+  {
+    "name": "certifi",
+    "version": "2026.7.22",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:28+00:00"
+  },
+  {
+    "name": "et_xmlfile",
+    "version": "2.0.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:30+00:00"
+  },
+  {
+    "name": "annotated-types",
+    "version": "0.8.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:32+00:00"
+  },
+  {
+    "name": "cffi",
+    "version": "2.1.1",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:34+00:00"
+  },
+  {
+    "name": "pycparser",
+    "version": "3.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T09:54:36+00:00"
+  },
+  {
+    "name": "pip",
+    "version": "26.2.1",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T10:11:46+00:00"
+  },
+  {
+    "name": "setuptools",
+    "version": "83.0.0",
+    "checked": true,
+    "verdict": "checked_clean",
+    "requires_review": false,
+    "in_kev": false,
+    "checked_at": "2026-10-13T10:11:49+00:00"
+  }
+]
