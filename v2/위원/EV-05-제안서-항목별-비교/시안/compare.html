@@ -11,7 +11,8 @@
 .cp { position: absolute; inset: 0; display: flex; flex-direction: column; }
 .cp-bar { flex: none; height: 56px; display: flex; align-items: center; gap: 16px; padding: 0 24px; background: var(--gray-0); border-bottom: 1px solid var(--line); }
 .cp-bar h1 { font-size: 20px; font-weight: 700; }
-.cp-sub { margin-left: auto; display: inline-flex; border: 1px solid var(--gray-30); border-radius: 10px; padding: 2px; gap: 2px; background: var(--gray-0); }
+.cp-bar h1 { margin-right: auto; }
+.cp-sub { display: inline-flex; border: 1px solid var(--gray-30); border-radius: 10px; padding: 2px; gap: 2px; background: var(--gray-0); }
 .cp-sub a, .cp-sub span { font-size: 16px; color: var(--text-2); padding: 4px 16px; min-height: 36px; border-radius: 8px; display: inline-flex; align-items: center; text-decoration: none; }
 .cp-sub a:hover { color: var(--text-1); background: var(--gray-5); }
 .cp-sub span[aria-current="page"] { background: var(--primary-5); color: var(--primary-60); font-weight: 700; box-shadow: inset 0 0 0 1px var(--primary-20); }
@@ -25,7 +26,7 @@
 .cp-it .pt { font-size: 15px; color: var(--text-3); font-weight: 400; font-variant-numeric: tabular-nums; }
 .cp-it[aria-current="true"] .pt { color: var(--primary-70); }
 .cp-right { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-.cp-scroll { flex: 1; min-height: 0; overflow: auto; padding: 18px 24px 16px; }
+.cp-scroll { flex: 1; min-height: 0; overflow: auto; padding: 18px 24px 96px; }
 .cp-hd { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
 .cp-hd h2 { font-size: 24px; font-weight: 800; }
 .cp-hd span { color: var(--text-3); font-size: 16px; }
@@ -42,41 +43,6 @@
 .cp-none p { font-size: 17px; color: var(--text-2); font-weight: 700; }
 .cp-none p::before { content: "– "; }
 .cp-link { appearance: none; border: 0; background: none; color: var(--primary-60); font-weight: 700; text-decoration: underline; cursor: pointer; font-size: 16px; padding: 4px 0; align-self: flex-start; }
-
-/* 문서에게 물어보기 */
-.cp-chat { flex: none; background: var(--gray-0); border-top: 1px solid var(--line); box-shadow: 0 -4px 14px rgb(3 31 63 / .06); }
-.cp-chat-bar { display: flex; align-items: center; gap: 12px; padding: 0 24px; height: 56px; }
-.cp-chat-bar b { font-size: 17px; }
-.cp-chat-bar .note { font-size: 15px; color: var(--text-3); }
-.cp-chat-bar .sp { flex: 1; }
-.cp-chat-body { display: none; padding: 0 24px 14px; }
-.cp-chat.open .cp-chat-body { display: block; }
-.cp-ans { height: 170px; overflow: auto; margin-bottom: 10px; }
-.cp-sug { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 4px; }
-.cp-sug > span { font-size: 16px; color: var(--text-3); }
-.cp-chip { appearance: none; border: 1px solid var(--gray-30); background: var(--gray-0); border-radius: 999px; padding: 0 16px; min-height: 40px; cursor: pointer; font-size: 16px; }
-.cp-chip:hover { background: var(--primary-5); border-color: var(--primary-50); color: var(--primary-60); }
-.cp-q { font-weight: 700; font-size: 17px; margin: 0 0 8px; }
-.cp-q::before { content: "Q. "; color: var(--primary-60); }
-.cp-acols { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 12px; }
-.cp-tg { display: flex; align-items: center; gap: 16px; padding-bottom: 8px; font-size: 16px; color: var(--text-2); }
-.cp-tg label { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; font-weight: 700; color: var(--text-1); cursor: pointer; }
-.cp-tg input { width: 20px; height: 20px; accent-color: var(--primary-50); }
-.cp-rule { font-size: 15px; color: var(--text-3); margin: 6px 0 0; }
-.cp-acard { border: 1px solid var(--line); background: var(--gray-5); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
-.cp-acard h4 { margin: 0; font-size: 17px; font-weight: 800; }
-.cp-acard p { font-size: 16px; line-height: 1.5; }
-.cp-acard .pg { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 15px; color: var(--text-3); }
-.cp-pg { appearance: none; border: 1px solid var(--primary-50); background: var(--gray-0); color: var(--primary-60); font-weight: 700; border-radius: 999px; padding: 0 12px; min-height: 32px; cursor: pointer; font-size: 15px; font-variant-numeric: tabular-nums; }
-.cp-pg:hover { background: var(--primary-5); }
-.cp-acard.no { border: 2px dashed var(--gray-30); background: var(--gray-0); }
-.cp-acard.no p { color: var(--text-2); font-weight: 700; }
-.cp-acard.no p::before { content: "– "; }
-.cp-ask { display: flex; gap: 8px; }
-.cp-ask input { flex: 1; height: 48px; border: 1px solid var(--border-strong); border-radius: 10px; padding: 0 16px; font-size: 17px; background: var(--gray-0); }
-.cp-ask input:focus { outline: 3px solid var(--primary-20); border-color: var(--primary-50); }
-.cp-ask .ev-btn { height: 48px; padding: 0 24px; font-size: 17px; }
-.cp-think { color: var(--text-3); font-size: 16px; padding: 12px 0; }
 
 /* 오른쪽 슬라이드 (제안서 해당 쪽) */
 .cp-sl-scrim { position: fixed; inset: 0; background: rgb(19 20 22 / .35); z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s; }
@@ -97,21 +63,13 @@
   <main class="ev-main">
     <div class="cp">
       <div class="cp-bar"><h1>항목별 비교</h1>
+        <button type="button" class="ev-btn ghost sm" id="ask-open">문서에 질문</button>
         <nav class="cp-sub" aria-label="제안서 보는 방식"><a href="../../EV-04-제안서-업체별/시안/proposals.html">업체별</a><span aria-current="page">항목별 비교</span></nav>
       </div>
       <div class="cp-wrap">
         <nav class="cp-list" aria-label="평가항목" id="list"></nav>
         <div class="cp-right">
           <div class="cp-scroll" id="scroll"></div>
-          <section class="cp-chat" id="chat" aria-label="문서에게 물어보기">
-            <div class="cp-chat-bar"><b>문서에게 물어보기</b><span class="note">다른 사업 문서는 찾지 않아요 · 대화는 저장하지 않아요</span><span class="sp"></span><button type="button" class="ev-btn ghost sm" id="chat-t" aria-expanded="false" aria-controls="chat-b">열기</button></div>
-            <div class="cp-chat-body" id="chat-b">
-              <div class="cp-ans" id="ans" aria-live="polite"></div>
-              <div class="cp-tg" id="tg" role="group" aria-label="물어볼 업체"><span>물어볼 업체</span></div>
-              <form class="cp-ask" id="ask"><input id="q" type="text" autocomplete="off" placeholder="예: ML 구축 방법 알려줘" aria-label="궁금한 점"><button type="submit" class="ev-btn">묻기</button><button type="button" class="ev-btn ghost" id="reset">대화 초기화</button></form>
-              <p class="cp-rule" id="rule">문서 버전이 바뀌면 대화는 자동으로 초기화돼요</p>
-            </div>
-          </section>
         </div>
       </div>
     </div>
@@ -130,7 +88,6 @@
 (function () {
   var D = window.PROPOSAL_DATA, CRIT = D.CRIT;
   var qs0 = new URLSearchParams(location.search), V = (qs0.get('vendors') || 'ABC').split('').filter(function (x) { return 'ABC'.indexOf(x) >= 0; });  // 업체 수는 사업마다 달라요 (시안: ?vendors=AB)
-  var tgt = V.slice();
   var $ = function (s) { return document.querySelector(s); };
   EvalShell.mount($('#hd'), { active: 'proposals' });
   var q = new URLSearchParams(location.search), sel = CRIT.some(function (c) { return c.id === q.get('c'); }) ? q.get('c') : 'c3';
@@ -187,41 +144,16 @@
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
     if (slOpen) { e.preventDefault(); closeSlide(); }
-    else if ($('#chat').classList.contains('open')) { e.preventDefault(); setChat(false); }
   });
 
-  /* 문서에게 물어보기 */
-  function setChat(on) {
-    $('#chat').classList.toggle('open', on); var b = $('#chat-t'); b.textContent = on ? '접기' : '열기'; b.setAttribute('aria-expanded', String(on));
-    if (on) { if (!$('#ans').innerHTML) renderSug(); setTimeout(function () { $('#q').focus(); }, 30); }
-  }
-  $('#chat-t').addEventListener('click', function () { setChat(!$('#chat').classList.contains('open')); });
-  function renderSug() {
-    $('#ans').innerHTML = '<div class="cp-sug"><span>이런 걸 물어볼 수 있어요</span>' + D.CHAT.map(function (c, i) { return '<button type="button" class="cp-chip" data-q="' + i + '">' + c.q + '</button>'; }).join('') + '</div>';
-  }
-  function answer(text) {
-    var hit = null, t = text.trim(); if (!t) return;
-    D.CHAT.forEach(function (c) { if (!hit && (c.q === t || c.keys.some(function (k) { return t.toLowerCase().indexOf(k.toLowerCase()) >= 0; }))) hit = c; });
-    var cards = tgt.map(function (v) {
-      var a = hit && hit.ans[v];
-      if (!a || !a.text) return '<article class="cp-acard no"><h4>' + D.NAME[v] + '</h4><p>근거 없음</p><span class="pg">이 문서에서 관련 내용을 찾지 못했어요</span></article>';
-      return '<article class="cp-acard"><h4>' + D.NAME[v] + '</h4><p>' + a.text + '</p><span class="pg">근거 ' + a.pages.map(function (p) { return '<button type="button" class="cp-pg" data-open="' + v + '" data-p="' + p + '" aria-label="' + D.NAME[v] + ' ' + p + '쪽 열기">' + p + '쪽</button>'; }).join('') + '</span></article>';
-    }).join('');
-    $('#ans').innerHTML = '<p class="cp-q">' + t.replace(/</g, '&lt;') + '</p><div class="cp-acols" style="--n:' + tgt.length + '">' + cards + '</div>';
-    $('#q').value = '';
-  }
-  $('#ans').addEventListener('click', function (e) {
-    var s = e.target.closest('[data-q]'); if (s) { var c = D.CHAT[+s.dataset.q]; $('#q').value = c.q; answer(c.q); return; }
-    var b = e.target.closest('[data-open]'); if (b) openSlide(b.dataset.open, +b.dataset.p, false, b);
-  });
-  $('#ask').addEventListener('submit', function (e) { e.preventDefault(); if (!tgt.length) { EvalShell.toast('물어볼 업체를 하나 이상 골라 주세요'); return; } answer($('#q').value); });
-  $('#tg').insertAdjacentHTML('beforeend', V.map(function (v) { return '<label><input type="checkbox" data-t="' + v + '" checked> ' + D.NAME[v] + '</label>'; }).join(''));
-  $('#tg').addEventListener('change', function () { tgt = V.filter(function (v) { return $('#tg [data-t="' + v + '"]').checked; }); });
-  $('#reset').addEventListener('click', function () { renderSug(); $('#q').value = ''; EvalShell.toast('대화를 초기화했어요'); $('#q').focus(); });
+  /* 문서에 질문: 오른쪽 아래 떠 있는 문서 도우미 (_eval.js 공통). 근거 쪽 칩을 누르면 이 화면의 슬라이드로 연다 */
+  EvalChat.setVendors(V);
+  EvalChat.onOpenPage = function (v, p, btn) { openSlide(v, p, false, btn); };
+  $('#ask-open').addEventListener('click', function () { EvalChat.open(); });
 
   renderList(); renderCols();
-  if (q.get('chat')) { setChat(true); if (q.get('chat') !== '1') answer(q.get('chat')); }
-  window.__cp = { openSlide: openSlide, answer: answer, setChat: setChat };
+  if (q.get('chat')) EvalChat.open(q.get('chat') !== '1' ? q.get('chat') : null);
+  window.__cp = { openSlide: openSlide };
 })();
 </script>
 </body>

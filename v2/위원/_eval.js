@@ -5,6 +5,7 @@
           EvalReader.mount(el, {title, pages, toc}) */
 (function () {
   'use strict';
+  var SRC = (document.currentScript && document.currentScript.src) || '';
   var LS = {
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
@@ -102,6 +103,7 @@
       shellState.host = el;
       shellState.opts = Object.assign({ active: null, project: '(가상) ○○ 사업', user: '김가상' }, opts || {});
       renderShell(); bindShell();
+      if (shellState.opts.chat !== false && window.EvalChat) window.EvalChat.mount(shellState.opts);
     },
     refresh: renderShell,
     setChair: function (on) { on ? LS.set('ev.chair', '1') : LS.del('ev.chair'); renderShell(); },
@@ -312,5 +314,146 @@
        반환: {go(p), setMode('spread'|'single'), page, total} */
     mount: mountReader,
     demoPages: demoPages
+  };
+
+  /* ───────── EvalChat: 오른쪽 아래 떠 있는 문서 도우미 (모든 위원 화면 공통) ─────────
+     EvalShell.mount() 가 자동으로 붙인다 (끄려면 mount 옵션 chat:false).
+     EvalChat.open(질문?) · close() · setVendors(['A','B']) · onOpenPage = function (업체, 쪽, 버튼) {}  (기본: 제안서 읽기 화면을 새 창으로)
+     시안용 답변: PROPOSAL_DATA.CHAT / MATCH (가상 자료). 대화는 저장하지 않는다. */
+  var CH = { built: false, isOpen: false, all: ['A', 'B', 'C'], sel: ['A', 'B', 'C'], msgs: [], busy: false, project: '', last: null, timer: 0 };
+  var CKEYS = { c1: ['이해', '배경', '범위'], c2: ['방법론', '추진', '전략'], c4: ['아키텍처', '구성', '시스템'], c6: ['조직', '인력', '경력'], c7: ['일정', '품질', '공정'], c8: ['교육', '유지보수', '하자'] };
+  var SUGG = ['A·B·C사 보안 대책 비교', '일정 관리 방법 알려줘'];
+  function rel(p) { try { return new URL(p, SRC).href; } catch (e) { return p; } }
+  function pd() { return window.PROPOSAL_DATA; }
+  function hhmm() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  function loadData(cb) {
+    if (pd()) return cb();
+    var s = document.createElement('script'); s.src = rel('EV-04-제안서-업체별/시안/proposals-data.js'); s.onload = cb; s.onerror = cb; document.head.appendChild(s);
+  }
+  function findAnswer(text) {
+    var d = pd(); if (!d) return {};
+    var t = text.trim().toLowerCase(), hit = null;
+    d.CHAT.forEach(function (c) { if (!hit && (c.q.toLowerCase() === t || c.keys.some(function (k) { return t.indexOf(k.toLowerCase()) >= 0; }))) hit = c; });
+    if (hit) return hit.ans;
+    var out = null;
+    Object.keys(CKEYS).forEach(function (cid) {
+      if (out || !CKEYS[cid].some(function (k) { return t.indexOf(k) >= 0; })) return;
+      out = {};
+      CH.all.forEach(function (v) {
+        var m = d.MATCH[cid] && d.MATCH[cid][v];
+        out[v] = m ? { text: m.lines[0], pages: m.end > m.page ? [m.page, Math.min(m.end, m.page + 3)] : [m.page] } : { text: null, pages: [] };
+      });
+    });
+    return out || {};
+  }
+  function openPage(v, p, btn) {
+    if (EvalChat.onOpenPage) { EvalChat.onOpenPage(v, p, btn); return; }
+    window.open(rel('EV-04-제안서-업체별/시안/proposals.html') + '?v=' + v + '&p=' + p, '_blank', 'noopener');
+  }
+  function cq(s) { return document.querySelector('.evc ' + s); }
+  function msgHtml(m) {
+    if (m.role === 'u') return '<div class="evc-m u"><div class="evc-b">' + esc(m.text).replace(/\n/g, '<br>') + '</div><time>' + m.t + '</time></div>';
+    var d = pd(), names = d ? d.NAME : { A: 'A사', B: 'B사', C: 'C사' };
+    var secs = m.vs.map(function (v) {
+      var a = m.ans[v];
+      if (!a || !a.text) return '<section class="evc-vs ev-vt-' + v + ' none"><h4><i></i>' + names[v] + '</h4><p>이 문서에서 관련 내용을 찾지 못했어요</p></section>';
+      return '<section class="evc-vs ev-vt-' + v + '"><h4><i></i>' + names[v] + '</h4><p>' + a.text + '</p><div class="evc-src">출처' + a.pages.map(function (p) { return '<button type="button" class="evc-pg" data-v="' + v + '" data-p="' + p + '" aria-label="' + names[v] + ' 제안서 ' + p + '쪽 열기">p.' + p + '</button>'; }).join('') + '</div></section>';
+    }).join('');
+    var any = m.vs.some(function (v) { return m.ans[v] && m.ans[v].text; });
+    return '<div class="evc-m a"><div class="evc-b"><p class="evc-lead">' + (any ? '선택한 업체별로 정리했어요.' : '관련 내용을 찾지 못했어요. 다르게 물어봐 주세요.') + '</p>' + secs + '</div><time>' + m.t + '</time></div>';
+  }
+  function renderList() {
+    var box = cq('.evc-list'), h = '';
+    if (!CH.msgs.length) {
+      h = '<div class="evc-empty"><div class="evc-hi" aria-hidden="true">💬</div><b>무엇이 궁금하세요?</b><p>제안서 안에서 찾아 업체별로 나란히 알려드려요.</p><div class="evc-sug">' +
+        SUGG.map(function (q) { return '<button type="button" class="evc-sq" data-q="' + esc(q) + '">' + esc(q) + '</button>'; }).join('') + '</div></div>';
+    } else h = CH.msgs.map(msgHtml).join('');
+    if (CH.busy) h += '<div class="evc-m a"><div class="evc-b evc-typing" role="status" aria-label="답변을 찾는 중"><i></i><i></i><i></i></div></div>';
+    box.innerHTML = h; box.scrollTop = box.scrollHeight;
+    cq('.evc-reset').disabled = !CH.msgs.length;
+  }
+  function renderVendors() {
+    var names = pd() ? pd().NAME : { A: 'A사', B: 'B사', C: 'C사' };
+    cq('.evc-vendors').innerHTML = '<span id="evc-vl">물어볼 업체</span>' + CH.all.map(function (v) {
+      return '<button type="button" class="evc-vc ev-vt-' + v + '" data-v="' + v + '" aria-pressed="' + (CH.sel.indexOf(v) >= 0) + '"><i></i>' + names[v] + '</button>';
+    }).join('');
+  }
+  function ask(text) {
+    text = (text || '').trim(); if (!text || CH.busy) return;
+    if (!CH.sel.length) { toast('물어볼 업체를 하나 이상 골라 주세요'); return; }
+    CH.msgs.push({ role: 'u', text: text, t: hhmm() });
+    CH.busy = true; renderList();
+    var ta = cq('.evc-in'); ta.value = ''; ta.style.height = ''; syncSend();
+    var vs = CH.sel.slice();
+    clearTimeout(CH.timer);
+    CH.timer = setTimeout(function () {
+      CH.busy = false;
+      CH.msgs.push({ role: 'a', vs: vs, ans: findAnswer(text), t: hhmm() });
+      renderList();
+    }, 750);
+  }
+  function syncSend() { var ta = cq('.evc-in'); cq('.evc-send').disabled = !ta.value.trim() || CH.busy; }
+  function buildChat(o) {
+    var root = document.createElement('div'); root.className = 'evc';
+    root.innerHTML =
+      '<button type="button" class="evc-fab" aria-haspopup="dialog" aria-expanded="false" aria-controls="evc-win" aria-label="문서 도우미 열기"><svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4.4 3.7A.6.6 0 0 1 3.6 20.2V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><circle cx="8" cy="10.5" r="1.2" fill="#fff"/><circle cx="12" cy="10.5" r="1.2" fill="#fff"/><circle cx="16" cy="10.5" r="1.2" fill="#fff"/></svg><span class="evc-tip" aria-hidden="true">문서에 질문</span></button>' +
+      '<section class="evc-win" id="evc-win" role="dialog" aria-label="문서 도우미" hidden>' +
+      '<header class="evc-hd"><div class="evc-ti"><b>문서 도우미</b><span>' + esc(CH.project) + '</span></div>' +
+      '<button type="button" class="evc-reset" title="대화 초기화">대화 초기화</button><button type="button" class="evc-x" aria-label="닫기">✕</button></header>' +
+      '<div class="evc-vendors" role="group" aria-labelledby="evc-vl"></div>' +
+      '<div class="evc-list" role="log" aria-live="polite" aria-label="대화"></div>' +
+      '<p class="evc-note">이 사업 문서 안에서만 답해요 · 대화는 저장하지 않아요</p>' +
+      '<form class="evc-form"><textarea class="evc-in" rows="1" placeholder="궁금한 점을 입력하세요" aria-label="질문 입력 (Enter 보내기, Shift+Enter 줄바꿈)"></textarea><button type="submit" class="evc-send" aria-label="보내기"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6l-.1 6.5L15 12 3.3 13.9l.1 6.5Z"/></svg></button></form></section>';
+    document.body.appendChild(root);
+    var fab = root.querySelector('.evc-fab'), win = root.querySelector('.evc-win'), ta = root.querySelector('.evc-in');
+    fab.addEventListener('click', function () { CH.isOpen ? EvalChat.close(true) : EvalChat.open(); });
+    root.querySelector('.evc-x').addEventListener('click', function () { EvalChat.close(true); });
+    root.querySelector('.evc-reset').addEventListener('click', function () { clearTimeout(CH.timer); CH.busy = false; CH.msgs = []; renderList(); syncSend(); toast('대화를 초기화했어요', 1600); ta.focus(); });
+    root.querySelector('.evc-form').addEventListener('submit', function (e) { e.preventDefault(); ask(ta.value); });
+    ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ask(ta.value); } });
+    ta.addEventListener('input', function () { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 110) + 'px'; syncSend(); });
+    win.addEventListener('keydown', function (e) { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); EvalChat.close(true); } });
+    win.addEventListener('click', function (e) {
+      var q = e.target.closest('[data-q]'); if (q) { ask(q.dataset.q); return; }
+      var g = e.target.closest('.evc-pg'); if (g) { openPage(g.dataset.v, +g.dataset.p, g); return; }
+      var v = e.target.closest('.evc-vc'); if (v) {
+        var i = CH.sel.indexOf(v.dataset.v);
+        if (i >= 0) CH.sel.splice(i, 1); else CH.sel.push(v.dataset.v);
+        CH.sel = CH.all.filter(function (x) { return CH.sel.indexOf(x) >= 0; });
+        renderVendors(); var nb = cq('.evc-vc[data-v="' + v.dataset.v + '"]'); nb && nb.focus();
+      }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key !== 'Escape' || !CH.isOpen) return; setTimeout(function () { if (!e.defaultPrevented && CH.isOpen && !document.querySelector('.ev-scrim')) EvalChat.close(true); }, 0); });
+    renderVendors(); renderList(); syncSend();
+  }
+
+  var EvalChat = window.EvalChat = {
+    onOpenPage: null,
+    mount: function (o) {
+      if (CH.built) return; CH.built = true; CH.project = (o && o.project) || '(가상) ○○ 사업';
+      var go = function () { buildChat(o); };
+      loadData(function () { if (document.body) go(); else document.addEventListener('DOMContentLoaded', go); });
+    },
+    open: function (q) {
+      var tries = 0;
+      (function wait() {
+        if (!CH.built || !cq('.evc-win')) { if (tries++ < 40) setTimeout(wait, 50); return; }
+        var win = cq('.evc-win'), fab = cq('.evc-fab');
+        CH.last = document.activeElement;
+        win.hidden = false; CH.isOpen = true; fab.setAttribute('aria-expanded', 'true'); fab.setAttribute('aria-label', '문서 도우미 닫기'); document.querySelector('.evc').classList.add('open');
+        if (q && typeof q === 'string') ask(q); else setTimeout(function () { cq('.evc-in').focus(); }, 30);
+      })();
+    },
+    close: function (refocus) {
+      var win = cq('.evc-win'); if (!win || !CH.isOpen) return;
+      win.hidden = true; CH.isOpen = false; document.querySelector('.evc').classList.remove('open');
+      var fab = cq('.evc-fab'); fab.setAttribute('aria-expanded', 'false'); fab.setAttribute('aria-label', '문서 도우미 열기');
+      if (refocus) fab.focus();
+    },
+    setVendors: function (list) {
+      CH.all = list.filter(function (x) { return 'ABC'.indexOf(x) >= 0; }); if (!CH.all.length) CH.all = ['A', 'B', 'C'];
+      CH.sel = CH.all.slice(); if (CH.built && cq('.evc-vendors')) renderVendors();
+    },
+    ask: function (q) { EvalChat.open(q); }
   };
 })();

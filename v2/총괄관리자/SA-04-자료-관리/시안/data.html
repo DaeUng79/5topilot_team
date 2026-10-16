@@ -9,7 +9,7 @@
 <style>
 .acts{display:flex;align-items:center;gap:8px}
 .acts .why{color:var(--text-3);font-size:var(--t-base);margin-right:4px}
-td.file{max-width:230px}td.strong{max-width:250px}td{padding:0 12px}th{padding:12px}
+td.file{max-width:250px}td.two small.fpath{font-size:var(--t-sm);word-break:break-all;line-height:1.3;color:var(--gray-50)}td.strong{max-width:250px}td{padding:0 12px}th{padding:12px}
 td.two{line-height:1.35}td.two small{display:block;color:var(--text-3);font-size:var(--t-base)}td.two .badge{margin-top:2px}
 .toolbar select{width:auto;min-width:140px;min-height:44px;appearance:auto}
 .toolbar .btn{min-height:44px}
@@ -145,6 +145,7 @@ const R=[
  ['(가상)대학교','디자인학과','문하상','교수','사용성(UX)','(가상)정보화담당관',3],
 ];
 const bd={'보관':'<span class="badge success">✓ 보관</span>','폐기 예정':'<span class="badge warning">! 폐기 예정</span>','폐기됨':'<span class="badge">✕ 폐기됨</span>'};
+const FD={'제안요청서':'제안요청서','제안서':'제안서','결과 자료':'결과'};
 const SRC={UPLOAD:'<span class="badge primary">UPLOADED_RESULT · 직접 올린 자료</span>',SYSTEM:'<span class="badge info">SYSTEM_RESULT · 시스템 취합본</span>'};
 let tab='files',q='',fd='',ft='';
 const pools=[...new Set(R.map(r=>r[5]))];
@@ -160,7 +161,7 @@ function tabs(t){tab=t;q='';fd='';ft='';$('#t-files').setAttribute('aria-selecte
   draw()}
 function draw(){let L;
   if(tab==='files'){L=F.filter(f=>(!ft||f.type===ft)&&(!q||[f.proj,f.type,f.co,f.file].join(' ').includes(q)));
-    $('#rows').innerHTML=L.map(f=>{const i=F.indexOf(f);return `<tr><td class="strong">${h(f.proj)}</td><td class="two">${f.type}<small>${f.src?SRC[f.src]:h(f.co)}</small></td><td class="two file">${h(f.file)}<small>${f.size} · ${f.date.slice(5)} · v${f.ver}</small></td><td>${bd[f.ret]}</td><td><button class="btn sm" type="button" data-e="${i}" aria-label="${h(f.file)} 수정 / 파일 교체">수정 / 파일 교체</button></td></tr>`}).join('');
+    $('#rows').innerHTML=L.map(f=>{const i=F.indexOf(f);return `<tr><td class="strong">${h(f.proj)}</td><td class="two">${f.type}<small>${f.src?SRC[f.src]:h(f.co)}</small></td><td class="two file">${h(f.file)}<small>${f.size} · ${f.date.slice(5)} · v${f.ver}</small><small class="fpath" title="${h(f.proj)}/${FD[f.type]||'결과'}/${h(f.file)}">…/${FD[f.type]||'결과'}/${h(f.file)}</small></td><td>${bd[f.ret]}</td><td><button class="btn sm" type="button" data-e="${i}" aria-label="${h(f.file)} 수정 / 파일 교체">수정 / 파일 교체</button></td></tr>`}).join('');
     $$('#rows [data-e]').forEach(b=>b.onclick=()=>openEd(+b.dataset.e))}
   else{L=R.filter(r=>(!fd||r[5]===fd)&&(!q||r.slice(0,5).join(' ').includes(q)));$('#rows').innerHTML=L.map(r=>`<tr><td>${h(r[0])}</td><td>${h(r[1])}</td><td class="strong">${h(r[2])}</td><td>${r[3]}</td><td>${r[4]}</td><td>${h(r[5])}</td><td class="num tnum">${r[6]}회</td></tr>`).join('')}
   $('#count').textContent=L.length+'건';$('#none').hidden=L.length>0;$('table').hidden=!L.length}

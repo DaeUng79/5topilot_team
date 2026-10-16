@@ -84,7 +84,7 @@
 </div>
 
 <div class="ev-demo" id="demo"><b>시안 보기</b>
-  <span class="ev-seg" role="group" aria-label="화면 상태"><button type="button" data-s="before" aria-pressed="false">전원 제출 전</button><button type="button" data-s="after" aria-pressed="false">전원 제출 후</button><button type="button" data-s="result" aria-pressed="false">결과 취합 뒤</button><button type="button" data-s="stale" aria-pressed="false">재취합·위원장 변경</button><button type="button" data-s="done" aria-pressed="false">최종 제출 뒤</button></span>
+  <span class="ev-seg" role="group" aria-label="화면 상태"><button type="button" data-s="before" aria-pressed="false">전원 제출 전</button><button type="button" data-s="after" aria-pressed="false">전원 제출 후</button><button type="button" data-s="result" aria-pressed="false">결과 취합 뒤</button><button type="button" data-s="done" aria-pressed="false">최종 제출 뒤</button></span>
 </div>
 
 <script src="../../EV-06-평가하기/시안/sign-pad.js"></script>
@@ -96,8 +96,8 @@
   /* 위원 1~7 이 낸 업체별 총점 (가상) */
   var SC = { A: [88, 91, 85, 79, 90, 86, 93], B: [84, 80, 88, 92, 76, 85, 87], C: [78, 82, 75, 86, 83, 70, 81] };
   var N = 7, root = $('#ch');
-  var q = new URLSearchParams(location.search), mode = ['before', 'after', 'result', 'stale', 'done'].indexOf(q.get('s')) >= 0 ? q.get('s') : 'before';
-  var stale = mode === 'stale'; if (stale) mode = 'result';
+  var q = new URLSearchParams(location.search), mode = ['before', 'after', 'result', 'done'].indexOf(q.get('s')) >= 0 ? q.get('s') : 'before';
+  var stale = false;
   var mounted = false, checked = false, signed = false, pad = null, submittedAt = '', layer = null, lastFocus = null;
 
   function calc(v) {
@@ -151,7 +151,7 @@
   }
   function render() {
     shell();
-    ['before', 'after', 'result', 'stale', 'done'].forEach(function (s) { $('[data-s="' + s + '"]').setAttribute('aria-pressed', String(s === (stale && mode === 'result' ? 'stale' : mode))); });
+    ['before', 'after', 'result', 'done'].forEach(function (s) { $('[data-s="' + s + '"]').setAttribute('aria-pressed', String(s === mode)); });
     if (mode === 'before') { root.innerHTML = lockedHtml(); pad = null; return; }
     root.innerHTML = '<div class="ch-top"><h1>평가결과 확인</h1><span>위원 ' + N + '명 모두 제출했어요</span>' + (mode === 'after' ? '' : '<span class="ch-st' + (mode === 'done' ? ' fin' : '') + '">' + (mode === 'done' ? 'FINALIZED' : '미확정') + '</span>') + '</div><div class="ch-grid">' + (mode === 'after' ? '<div class="ch-card" style="padding:40px;font-size:18px;color:var(--text-2)">아직 결과가 취합되지 않았어요. [결과 취합]을 눌러 주세요.</div>' : '<div class="ch-card' + (mode === 'done' ? '' : ' ch-wm') + '" style="overflow:hidden">' + tableHtml() + '</div>') + actHtml() + '</div>';
     pad = null;
@@ -200,8 +200,8 @@
 
   $('#demo').addEventListener('click', function (e) {
     var s = e.target.dataset.s; if (!s) return;
-    if (s === 'done') submittedAt = submittedAt || now(); else { checked = s === 'stale'; signed = false; }
-    stale = s === 'stale'; mode = s === 'stale' ? 'result' : s; closeConfirm(true); render();
+    if (s === 'done') submittedAt = submittedAt || now(); else { checked = false; signed = false; }
+    mode = s; closeConfirm(true); render();
   });
   window.__ch = { pad: function () { return pad; } };
   if (mode === 'done') submittedAt = now();

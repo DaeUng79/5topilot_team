@@ -27,11 +27,16 @@
 .day .n{display:inline-grid;place-items:center;height:28px;min-width:28px;padding:0 4px}
 .day .ev{font-size:var(--t-sm);color:var(--primary-60);font-weight:700;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .day .ev::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary-50);flex:none}
-.lists{overflow:auto;padding:12px 24px 16px;display:flex;flex-direction:column;gap:20px;min-height:0}
-.lh{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.lists{overflow:auto;padding:16px 24px 20px;display:flex;flex-direction:column;gap:28px;min-height:0;background:var(--gray-5)}
+.lsec{background:#fff;border:1px solid var(--line);border-left:6px solid var(--k,var(--primary-50));border-radius:var(--radius-sm);padding:12px 16px 8px}
+.lsec.k-run{--k:var(--primary-50)}.lsec.k-cur{--k:var(--warning-60)}.lsec.k-next{--k:var(--gray-50)}
+.lh{display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.lh .ic{width:28px;height:28px;border-radius:var(--radius-full);display:grid;place-items:center;background:var(--k);color:#fff;font-size:14px;font-weight:700;flex:none}
 .lh h3{font-size:var(--t-lg)}
-.lh span{color:var(--text-3);font-size:var(--t-base)}
-.lrow{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;min-height:52px;padding:6px 12px;margin:0 -12px;border-radius:var(--radius-sm);text-decoration:none;color:inherit;border-bottom:1px solid var(--line)}
+.lh .cnt{margin-left:auto;font-weight:700;background:var(--gray-5);border-radius:var(--radius-full);padding:2px 12px;font-size:var(--t-base)}
+.lh .mo{color:var(--text-3);font-size:var(--t-base)}
+.lsec .lrow:last-child{border-bottom:0}
+.lrow{display:grid;grid-template-columns:1fr auto 104px;gap:12px;align-items:center;min-height:52px;padding:6px 12px;margin:0 -12px;border-radius:var(--radius-sm);text-decoration:none;color:inherit;border-bottom:1px solid var(--line)}
 .lrow:hover{background:var(--primary-5)}
 .lrow.dim{opacity:.45}
 .lrow.hl{background:var(--primary-5);box-shadow:inset 3px 0 0 var(--primary-50)}
@@ -96,7 +101,6 @@
     <section class="card">
       <div class="tabs" role="tablist" aria-label="대시보드">
         <button class="tab" role="tab" id="t-sched" aria-selected="true" aria-controls="p-sched" type="button">일정</button>
-        <button class="tab" role="tab" id="t-todo" aria-selected="false" aria-controls="p-todo" type="button" tabindex="-1">확인할 일 <span class="badge danger" aria-label="3건">3</span></button>
         <button class="tab" role="tab" id="t-dept" aria-selected="false" aria-controls="p-dept" type="button" tabindex="-1">부서별</button>
       </div>
 
@@ -112,28 +116,6 @@
             <div class="cal" id="cal" role="grid" aria-label="평가 일정 달력"></div>
           </div>
           <div class="lists" id="lists"></div>
-        </div>
-      </div>
-
-      <div class="pane" id="p-todo" role="tabpanel" aria-labelledby="t-todo" hidden>
-        <div class="todo">
-          <section aria-labelledby="h-act">
-            <h2 class="sec-h" id="h-act">필요한 조치 <span class="muted" style="font-weight:400">3건</span></h2>
-            <div class="grp"><div class="titem"><span class="badge danger">잠김</span><p>(가상)시설관리과 계정이 잠겼어요<small>비밀번호를 5번 틀렸어요 · 오늘 09:05</small></p><a href="../../SA-02-부서-관리/시안/departments.html">부서·계정에서 풀기 →</a></div></div>
-            <div class="grp"><div class="titem"><span class="badge warning">변환 실패</span><p>사아자전자_제안서.hwpx를 읽지 못했어요<small>(가상) 청사 CCTV 교체 사업 · 어제 17:40</small></p><a href="../../SA-04-자료-관리/시안/data.html">자료 관리에서 보기 →</a></div></div>
-            <div class="grp"><div class="titem"><span class="badge info">일정 지연</span><p>위원 명단 확정이 늦어지고 있어요<small>(가상) 버스 정보 안내 단말 구매 · 평가일 11-12</small></p><a href="../../SA-03-전체-사업-현황/시안/projects.html#open=5">사업 보기 →</a></div></div>
-          </section>
-          <section aria-labelledby="h-log">
-            <h2 class="sec-h" id="h-log">최근 변경 기록</h2>
-            <ul class="log">
-              <li><time>오늘 09:12</time><div><b>총괄 로그인</b><span>김가상 (총괄)</span></div></li>
-              <li><time>10-15 16:30</time><div><b>사업 평가일 변경: 통합 민원 시스템 구축 용역</b><span>김가상 (정보화담당관)</span></div></li>
-              <li><time>10-14 11:02</time><div><b>평가 시작: 청사 CCTV 교체 사업</b><span>이나상 (시설관리과)</span></div></li>
-              <li><time>10-13 15:48</time><div><b>부서 등록: 문화관광과</b><span>김가상 (총괄)</span></div></li>
-              <li><time>10-12 10:20</time><div><b>부서 비활성: 감사담당관</b><span>김가상 (총괄)</span></div></li>
-              <li><time>10-10 14:05</time><div><b>사업 삭제(폐기): 구형 단말 교체 검토</b><span>김가상 (총괄)</span></div></li>
-            </ul>
-          </section>
         </div>
       </div>
 
@@ -190,7 +172,7 @@ const inMonth=(y,m)=>FP().filter(p=>p[3].startsWith(y+'-'+pad(m+1)+'-'));
 $('#yy').innerHTML=[2025,2026,2027].map(y=>`<option value="${y}">${y}년</option>`).join('');
 $('#mm').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i}">${i+1}월</option>`).join('');
 function row(p,cls=''){return `<a class="lrow ${cls}" href="../../SA-03-전체-사업-현황/시안/projects.html#open=${p[0]}" aria-label="${h(p[1])} 자세히 보기"><span class="t">${h(p[1])}</span><span class="d">${p[2]}</span><span class="badge ${tone[p[4]]}">${mk[p[4]]} ${p[4]}</span></a>`}
-function sec(title,sub,arr,empty){const body=arr.length?arr.map(p=>row(p,pick&&p[3]===pick?'hl':pick?'dim':'')).join(''):`<p class="lempty">${empty}</p>`;return `<section><div class="lh"><h3>${title}</h3><span>${sub}</span></div>${body}</section>`}
+function sec(title,sub,arr,empty,kind,ic){const body=arr.length?arr.map(p=>row(p,pick&&p[3]===pick?'hl':pick?'dim':'')).join(''):`<p class="lempty">${empty}</p>`;return `<section class="lsec ${kind}" aria-label="${title}"><div class="lh"><span class="ic" aria-hidden="true">${ic}</span><h3>${title}</h3><span class="mo">${sub}</span><span class="cnt">${arr.length}건</span></div>${body}</section>`}
 function draw(){
   $('#yy').value=Y;$('#mm').value=M;
   const first=new Date(Y,M,1).getDay(),dim=new Date(Y,M+1,0).getDate(),prevDim=new Date(Y,M,0).getDate();
@@ -204,9 +186,9 @@ function draw(){
   const nm=(M+1)%12,ny=M===11?Y+1:Y,cur=Y===TODAY.getFullYear()&&M===TODAY.getMonth();
   const run=FP().filter(p=>p[4]==='평가 중');
   $('#lists').innerHTML=(pick?`<div class="filt">${pick.slice(5).replace('-','월 ')}일 평가 사업을 강조했어요<button class="btn" type="button" id="clr">모두 보기</button></div>`:'')+
-    sec('진행 중 사업','평가 중 · '+run.length+'건',run,'지금 평가 중인 사업이 없어요')+
-    sec(cur?'이번 달 평가':(M+1)+'월 평가',(M+1)+'월 · '+inMonth(Y,M).length+'건',inMonth(Y,M),'이 달에는 평가가 없어요')+
-    sec(cur?'다음 달 평가':(nm+1)+'월 평가',(nm+1)+'월 · '+inMonth(ny,nm).length+'건',inMonth(ny,nm),'이 달에는 평가가 없어요');
+    sec('진행 중 사업','평가 중',run,'지금 평가 중인 사업이 없어요','k-run','●')+
+    sec(cur?'이번 달 평가':(M+1)+'월 평가',(M+1)+'월',inMonth(Y,M),'이 달에는 평가가 없어요','k-cur','▣')+
+    sec(cur?'다음 달 평가':(nm+1)+'월 평가',(nm+1)+'월',inMonth(ny,nm),'이 달에는 평가가 없어요','k-next','→');
   $('#clr')&&($('#clr').onclick=()=>{pick=null;draw()})}
 const go=(dm)=>{M+=dm;if(M<0){M=11;Y--}if(M>11){M=0;Y++}pick=null;draw()};
 $('#prev').onclick=()=>go(-1);$('#next').onclick=()=>go(1);$('#goto').onclick=()=>{Y=2026;M=9;pick=null;draw()};
@@ -225,10 +207,10 @@ $('#b-refresh').onclick=()=>{late=false;asof='09:14';paintAsof();draw();bars();t
 $('#f-per').onchange=e=>{fper=e.target.value;pick=null;draw();bars()};$('#f-dept').onchange=e=>{fdept=e.target.value;pick=null;draw();bars()};
 paintAsof();
 // 탭
-const TB={sched:$('#t-sched'),todo:$('#t-todo'),dept:$('#t-dept')};
+const TB={sched:$('#t-sched'),dept:$('#t-dept')};
 function tab(k){Object.entries(TB).forEach(([n,b])=>{b.setAttribute('aria-selected',n===k);b.tabIndex=n===k?0:-1;$('#p-'+n).hidden=n!==k})}
 Object.entries(TB).forEach(([n,b])=>b.addEventListener('click',()=>tab(n)));
-Object.keys(TB).forEach((n,i,a)=>TB[n].addEventListener('keydown',e=>{const j=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!j)return;const t=a[(i+j+3)%3];tab(t);TB[t].focus()}));
+Object.keys(TB).forEach((n,i,a)=>TB[n].addEventListener('keydown',e=>{const j=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!j)return;const t=a[(i+j+2)%2];tab(t);TB[t].focus()}));
 draw();const hh=location.hash.slice(1);if(TB[hh])tab(hh);
 </script>
 </body>
