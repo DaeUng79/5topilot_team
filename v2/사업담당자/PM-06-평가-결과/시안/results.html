@@ -30,11 +30,10 @@ td input.cell,td select.cell{min-height:40px;font-size:var(--t-base)}
 .demo .grp{display:inline-flex;gap:6px;align-items:center;margin-right:12px}
 .proj{color:var(--text-3)}
 .drawer.wide{width:min(760px,100vw)}
-.btn.sm{min-height:40px;padding:0 14px;font-size:var(--t-base)}
 @media print{.side,.demo,.head .acts,.steps{display:none!important}.app{display:block}.main,.body,.card{height:auto;overflow:visible;box-shadow:none}body{overflow:visible}}
 
 .lockc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:32px}
-.lockc .ico{width:72px;height:72px;border-radius:50%;background:var(--gray-10);display:grid;place-items:center;font-size:32px}
+.lockc .ico{width:72px;height:72px;border-radius:50%;background:var(--gray-10);display:grid;place-items:center;font-size:30px}
 .lockc strong{font-size:var(--t-2xl)}
 .prog{width:min(420px,100%);height:12px;border-radius:var(--radius-full);background:var(--gray-10);overflow:hidden}
 .prog i{display:block;height:100%;background:var(--primary-50);border-radius:var(--radius-full)}
@@ -85,9 +84,8 @@ th.sc{text-align:center}
   <div class="body">
     <section class="card" aria-label="평가 결과" id="card"></section>
   </div>
-  <div class="demo"><b>시안 보기</b>
-    <span class="grp" id="presets"></span>
-    <span class="muted">(가상 데이터) 전원 제출 전에는 개별 점수가 보이지 않아요 · 위원은 위원 1, 2…로만 나와요</span></div>
+  <details class="demo"><summary>시안 상태</summary><div class="demo-in"><span class="grp" id="presets"></span>
+    <span class="muted">(가상 데이터) 전원 제출 전에는 개별 점수가 보이지 않아요 · 위원은 위원 1, 2…로만 나와요</span></div></details>
 
 </div>
 </div>

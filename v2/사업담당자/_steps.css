@@ -9,13 +9,13 @@
 .pj-act .hint{color:var(--text-3);font-size:var(--t-base)}
 
 .steps{display:flex;gap:8px;margin:0;padding:12px 32px 16px;flex:none}
-.step{appearance:none;flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;border-radius:var(--radius-sm);background:var(--gray-0);border:1px solid var(--gray-20);color:var(--text-2);font:inherit;font-size:var(--t-base);font-weight:700;text-align:left;text-decoration:none;cursor:pointer;transition:background .15s,border-color .15s}
-.step:hover{background:var(--gray-5);border-color:var(--gray-30)}
-.step .n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--gray-10);color:var(--text-2);font-size:14px;font-weight:700}
+.step{appearance:none;flex:1;min-width:0;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;border-radius:var(--radius-sm);background:var(--gray-0);border:0;box-shadow:var(--shadow-1);color:var(--text-2);font:inherit;font-size:var(--t-base);font-weight:700;text-align:left;text-decoration:none;cursor:pointer;transition:background .15s}
+.step:hover{background:var(--gray-5)}
+.step .n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--gray-10);color:var(--text-2);font-size:var(--t-sm);font-weight:700}
 .step.is-done .n{background:var(--success-5);color:var(--success-60)}
 .step.is-done{color:var(--text-1)}
-.step.is-current{background:var(--primary-5);border-color:var(--primary-50);color:var(--primary-60);box-shadow:inset 0 -3px 0 var(--primary-50)}
+.step.is-current{background:var(--primary-5);color:var(--primary-60);box-shadow:inset 0 -3px 0 var(--primary-50)}
 .step.is-current .n{background:var(--primary-50);color:#fff}
-.step.is-locked{background:var(--gray-5);border-style:dashed;color:var(--text-3);font-weight:400;cursor:not-allowed}
-.step.is-locked:hover{background:var(--gray-5);border-color:var(--gray-20)}
-.step.is-locked .n{background:none;font-size:16px}
+.step.is-locked{background:none;box-shadow:none;color:var(--text-3);font-weight:400;cursor:not-allowed}
+.step.is-locked:hover{background:none}
+.step.is-locked .n{background:none;font-size:var(--t-base)}

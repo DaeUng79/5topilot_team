@@ -20,7 +20,6 @@ td.nm{max-width:420px}
 .pager button:hover:not(:disabled){background:var(--gray-5)}
 .pager button[aria-current="page"]{background:var(--primary-5);border-color:var(--primary-50);color:var(--primary-60);font-weight:700}
 .pager button:disabled{color:var(--gray-30);cursor:not-allowed}
-td .btn.sm{min-height:36px;padding:0 12px;font-size:var(--t-base)}
 .mats{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
 .mats li{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);font-size:var(--t-body)}
 .mats li:last-child{border:0}
@@ -48,7 +47,7 @@ td .btn.sm{min-height:36px;padding:0 12px;font-size:var(--t-base)}
 </aside>
 <div class="main">
   <header class="head">
-    <div><h1>사업 목록</h1><p class="sub">우리 부서 사업만 보여요 (서버가 부서 조건을 정해 줘요). 사업을 누르면 단계별로 이어서 할 수 있어요.</p></div>
+    <div><h1>사업 목록</h1><p class="sub">우리 부서 사업이에요. 누르면 단계별로 이어서 할 수 있어요.</p></div>
     <button class="btn primary" type="button" id="b-new">사업 등록</button>
   </header>
   <div class="body">
@@ -71,10 +70,9 @@ td .btn.sm{min-height:36px;padding:0 12px;font-size:var(--t-base)}
       <nav class="pager" id="pager" aria-label="쪽 이동"></nav>
     </section>
   </div>
-  <div class="demo" id="demo"><b>시안 보기</b>
-    <button type="button" data-st="base" aria-pressed="true">기본</button>
+  <details class="demo" id="demo"><summary>시안 상태</summary><div class="demo-in"><button type="button" data-st="base" aria-pressed="true">기본</button>
     <button type="button" data-st="empty" aria-pressed="false">빈 목록</button>
-    <span class="muted" style="margin-left:auto">행을 누르면 그 사업의 단계 화면으로 가요</span></div>
+    <span class="muted" style="margin-left:auto">행을 누르면 그 사업의 단계 화면으로 가요</span></div></details>
 </div>
 </div>
 
@@ -115,7 +113,7 @@ let P=[
  {id:16,name:'(가상) 데이터 표준화 용역',owner:'박다상',date:'',step:1,s:'준비',doc:'none',ev:'none'},
 ];
 let nextId=20,q='',fs='',empty=false,pg=1;const PS=5;
-const st={'준비':'info','평가 중':'primary','완료':'success'},mark={'준비':'○','평가 중':'●','완료':'✓'};
+const st={'준비':'','평가 중':'primary','완료':'success'},mark={'준비':'○','평가 중':'●','완료':'✓'};
 const DOCB={ok:['success','✓ 문서 준비됨'],wait:['warning','⟳ 문서 준비 중'],none:['','○ 문서 없음']};
 const EVB={ok:['success','✓ 평가 준비됨'],wait:['warning','⟳ 평가 수신 대기'],none:['','○ 평가 시작 전']};
 const bd=(m,k)=>`<span class="badge ${m[k][0]}">${m[k][1]}</span>`;

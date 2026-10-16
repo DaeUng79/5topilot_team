@@ -30,7 +30,6 @@ td input.cell,td select.cell{min-height:40px;font-size:var(--t-base)}
 .demo .grp{display:inline-flex;gap:6px;align-items:center;margin-right:12px}
 .proj{color:var(--text-3)}
 .drawer.wide{width:min(760px,100vw)}
-.btn.sm{min-height:40px;padding:0 14px;font-size:var(--t-base)}
 @media print{.side,.demo,.head .acts,.steps{display:none!important}.app{display:block}.main,.body,.card{height:auto;overflow:visible;box-shadow:none}body{overflow:visible}}
 
 .main{height:100vh}
@@ -99,11 +98,6 @@ tr.sumrow td{font-weight:700;background:var(--gray-5);height:56px}
 .lstcard li:last-child{border:0}
 .lstcard li .nm{font-weight:700;font-size:var(--t-body)}
 .stg .box td{height:44px}
-.demo .grp{flex-wrap:wrap;gap:4px}
-.demo{padding:4px 32px}
-.demo button{min-height:28px;padding:0 8px}
-.demo b{margin-right:0}
-.demo>.muted{display:none}
 .cfg td{height:42px}
 .cfg th{height:38px}
 tr.sumrow td{height:42px}
@@ -135,7 +129,7 @@ tr.sumrow td{height:42px}
   <div class="pj-head">
     <a class="pj-back" href="../../PM-01-사업-목록-등록/시안/projects.html">← 사업 목록</a>
     <div class="pj-row">
-      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge info">○ 준비</span></div>
+      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge">○ 준비</span></div>
       <div class="pj-act"><span class="hint">평가일 2026-11-05</span></div>
     </div>
   </div>
@@ -147,9 +141,8 @@ tr.sumrow td{height:42px}
       <div class="foot" id="foot"></div>
     </section>
   </div>
-  <div class="demo"><b>시안 보기</b>
-    <span class="grp" id="presets"></span>
-    <span class="muted">(가상 데이터) 전화번호는 뒤 4자리만 보여요 · 추첨한 뒤에는 규칙이 잠겨요</span></div>
+  <details class="demo"><summary>시안 상태</summary><div class="demo-in"><span class="grp" id="presets"></span>
+    <span class="muted">(가상 데이터) 전화번호는 뒤 4자리만 보여요 · 추첨한 뒤에는 규칙이 잠겨요</span></div></details>
 
 </div>
 </div>

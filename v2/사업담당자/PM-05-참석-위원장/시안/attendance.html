@@ -30,7 +30,6 @@ td input.cell,td select.cell{min-height:40px;font-size:var(--t-base)}
 .demo .grp{display:inline-flex;gap:6px;align-items:center;margin-right:12px}
 .proj{color:var(--text-3)}
 .drawer.wide{width:min(760px,100vw)}
-.btn.sm{min-height:40px;padding:0 14px;font-size:var(--t-base)}
 @media print{.side,.demo,.head .acts,.steps{display:none!important}.app{display:block}.main,.body,.card{height:auto;overflow:visible;box-shadow:none}body{overflow:visible}}
 
 .cbar{display:flex;align-items:center;gap:20px;padding:16px 20px;border-bottom:1px solid var(--line);flex:none;flex-wrap:wrap}
@@ -41,7 +40,7 @@ td input.cell,td select.cell{min-height:40px;font-size:var(--t-base)}
 .chk .ic{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700}
 .chk .okc .ic{background:var(--success-5);color:var(--success-60)}
 .chk .badc .ic{background:var(--danger-5);color:var(--danger-60)}
-.chk b{font-weight:700}
+.chk b{font-weight:700;margin-right:8px}
 .chk small{display:block;color:var(--text-3);font-size:var(--t-base)}
 .chk .badc small{color:var(--danger-60);font-weight:700}
 .cbar .go{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
@@ -84,7 +83,7 @@ tr.chair td{background:var(--primary-5)}
   <div class="pj-head">
     <a class="pj-back" href="../../PM-01-사업-목록-등록/시안/projects.html">← 사업 목록</a>
     <div class="pj-row">
-      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge info" id="pst">○ 준비</span></div>
+      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge" id="pst">○ 준비</span></div>
       <div class="pj-act"><span class="hint">평가일 2026-11-05</span></div>
     </div>
   </div>
@@ -95,9 +94,8 @@ tr.chair td{background:var(--primary-5)}
       <div class="pane" id="main"></div>
     </section>
   </div>
-  <div class="demo"><b>시안 보기</b>
-    <span class="grp" id="presets"></span>
-    <span class="muted">(가상 데이터)</span></div>
+  <details class="demo"><summary>시안 상태</summary><div class="demo-in"><span class="grp" id="presets"></span>
+    <span class="muted">(가상 데이터)</span></div></details>
 
 </div>
 </div>
@@ -134,7 +132,7 @@ function ckList(){const c=cur();return `<ol class="vs" aria-label="평가 시작
 function render(){
   const c=cur(),L=M();
   renderSteps($('#steps'),['done','done','done','done','current','locked']);
-  $('#pst').className='badge '+(S.started?'primary':'info');$('#pst').textContent=S.started?'● 평가 중':'○ 준비';
+  $('#pst').className='badge '+(S.started?'primary':'');$('#pst').textContent=S.started?'● 평가 중':'○ 준비';
   $('#side2').innerHTML=`<strong>평가 시작까지</strong>${ckList()}<p class="muted" style="font-size:var(--t-base)">${S.started?'시작했어요. 참여자·업체·기준이 잠겼어요.':'지금 할 일: <b style="color:var(--text-1)">'+STEPS[Math.min(c,4)]+'</b>'}</p>`;
   const m=$('#main');
   if(c===0){

@@ -10,7 +10,7 @@
 :root{--demo-h:49px}
 body{display:flex;flex-direction:column;background:var(--gray-0)}
 .stage{flex:1;min-height:0;position:relative}
-.mark{position:absolute;top:16px;left:24px;font-weight:800;font-size:var(--t-xl);letter-spacing:-.02em;color:var(--primary-60);margin:0}
+.mark{position:absolute;top:16px;left:24px;font-weight:700;font-size:var(--t-xl);letter-spacing:-.02em;color:var(--primary-60);margin:0}
 .center{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 24px 24px;overflow:auto}
 .who{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px}
 .who .ico svg{width:88px;height:88px;display:block}
@@ -48,13 +48,12 @@ body{display:flex;flex-direction:column;background:var(--gray-0)}
 </section>
 </div>
 
-<div class="demo" id="demo"><b>시안 보기</b>
-  <button type="button" data-st="base" aria-pressed="true">기본</button>
+<details class="demo" id="demo"><summary>시안 상태</summary><div class="demo-in"><button type="button" data-st="base" aria-pressed="true">기본</button>
   <button type="button" data-st="wrong" aria-pressed="false">틀림</button>
   <button type="button" data-st="lock" aria-pressed="false">5회 잠금</button>
   <button type="button" data-st="off" aria-pressed="false">비활성 부서 계정 (같은 문구)</button>
   <span class="muted" style="margin-left:auto">직접 해 보기: 아이디 info01 · 비밀번호 demo1234 (info02는 비활성 계정이지만 같은 문구가 나와요)</span>
-</div>
+</div></details>
 <div class="scrim" id="scrim"></div><div class="scrim top" id="scrim2"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="../../_ui.js"></script>

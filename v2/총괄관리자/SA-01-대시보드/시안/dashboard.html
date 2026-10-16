@@ -10,7 +10,7 @@
 .pane{flex:1;min-height:0;display:flex}
 .pane[hidden]{display:none}
 .sched{display:grid;grid-template-columns:minmax(440px,5fr) 6fr;gap:0;flex:1;min-height:0}
-.calwrap{padding:16px 20px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px;min-height:0}
+.calwrap{padding:16px 20px;display:flex;flex-direction:column;gap:12px;min-height:0}
 .calnav{display:flex;align-items:center;gap:8px}
 .calnav select{width:auto;min-width:96px;min-height:44px}
 .calnav .btn{min-width:44px;padding:0 12px}
@@ -28,9 +28,9 @@
 .day .ev{font-size:var(--t-sm);color:var(--primary-60);font-weight:700;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .day .ev::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary-50);flex:none}
 .lists{overflow:auto;padding:16px 24px 20px;display:flex;flex-direction:column;gap:28px;min-height:0;background:var(--gray-5)}
-.lsec{background:#fff;border:1px solid var(--line);border-left:6px solid var(--k,var(--primary-50));border-radius:var(--radius-sm);padding:12px 16px 8px}
+.lsec{background:#fff;box-shadow:var(--shadow-1);border-left:6px solid var(--k,var(--primary-50));border-radius:var(--radius-sm);padding:12px 16px 8px}
 .lsec.k-run{--k:var(--primary-50)}.lsec.k-cur{--k:var(--warning-60)}.lsec.k-next{--k:var(--gray-50)}
-.lh{display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.lh{display:flex;align-items:center;gap:8px;padding-bottom:8px}
 .lh .ic{width:28px;height:28px;border-radius:var(--radius-full);display:grid;place-items:center;background:var(--k);color:#fff;font-size:14px;font-weight:700;flex:none}
 .lh h3{font-size:var(--t-lg)}
 .lh .cnt{margin-left:auto;font-weight:700;background:var(--gray-5);border-radius:var(--radius-full);padding:2px 12px;font-size:var(--t-base)}
@@ -160,7 +160,7 @@ const P=[ // [id,name,dept,date,stage]
  [7,'(가상) 전자문서 보관소 구축','총무과','2026-09-14','완료'],[8,'(가상) 공공 와이파이 확대 사업','정보화담당관','2026-10-24','평가 중'],
  [9,'(가상) 주차 정보 시스템 개선','교통행정과','2026-12-02','준비'],[10,'(가상) 시설 안전 점검 앱 개발','시설관리과','2026-08-27','완료'],
  [11,'(가상) 업무 포털 개편 용역','총무과','2026-11-25','준비'],[12,'(가상) 돌봄 서비스 신청 시스템','복지정책과','2026-10-22','평가 중']];
-const tone={'준비':'info','평가 중':'primary','완료':'success'},mk={'준비':'○','평가 중':'●','완료':'✓'};
+const tone={'준비':'','평가 중':'primary','완료':'success'},mk={'준비':'○','평가 중':'●','완료':'✓'};
 let Y=2026,M=9,pick=null;
 const pad=n=>String(n).padStart(2,'0'),key=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
 const DEPTS=['정보화담당관','시설관리과','복지정책과','교통행정과','기획예산담당관','총무과'];
@@ -171,8 +171,8 @@ const FP=()=>P.filter(p=>(!fdept||p[2]===fdept)&&perOk(p));
 const inMonth=(y,m)=>FP().filter(p=>p[3].startsWith(y+'-'+pad(m+1)+'-'));
 $('#yy').innerHTML=[2025,2026,2027].map(y=>`<option value="${y}">${y}년</option>`).join('');
 $('#mm').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i}">${i+1}월</option>`).join('');
-function row(p,cls=''){return `<a class="lrow ${cls}" href="../../SA-03-전체-사업-현황/시안/projects.html#open=${p[0]}" aria-label="${h(p[1])} 자세히 보기"><span class="t">${h(p[1])}</span><span class="d">${p[2]}</span><span class="badge ${tone[p[4]]}">${mk[p[4]]} ${p[4]}</span></a>`}
-function sec(title,sub,arr,empty,kind,ic){const body=arr.length?arr.map(p=>row(p,pick&&p[3]===pick?'hl':pick?'dim':'')).join(''):`<p class="lempty">${empty}</p>`;return `<section class="lsec ${kind}" aria-label="${title}"><div class="lh"><span class="ic" aria-hidden="true">${ic}</span><h3>${title}</h3><span class="mo">${sub}</span><span class="cnt">${arr.length}건</span></div>${body}</section>`}
+function row(p,cls='',nb=false){return `<a class="lrow ${cls}" href="../../SA-03-전체-사업-현황/시안/projects.html#open=${p[0]}" aria-label="${h(p[1])} 자세히 보기"><span class="t">${h(p[1])}</span><span class="d">${p[2]}</span>${nb?'<span></span>':`<span class="badge ${tone[p[4]]}">${mk[p[4]]} ${p[4]}</span>`}</a>`}
+function sec(title,sub,arr,empty,kind,ic){const body=arr.length?arr.map(p=>row(p,pick&&p[3]===pick?'hl':pick?'dim':'',kind==='k-run')).join(''):`<p class="lempty">${empty}</p>`;return `<section class="lsec ${kind}" aria-label="${title}"><div class="lh"><span class="ic" aria-hidden="true">${ic}</span><h3>${title}</h3><span class="mo">${sub}</span><span class="cnt">${arr.length}건</span></div>${body}</section>`}
 function draw(){
   $('#yy').value=Y;$('#mm').value=M;
   const first=new Date(Y,M,1).getDay(),dim=new Date(Y,M+1,0).getDate(),prevDim=new Date(Y,M,0).getDate();

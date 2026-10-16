@@ -12,28 +12,28 @@
 .cp-bar { flex: none; height: 56px; display: flex; align-items: center; gap: 16px; padding: 0 24px; background: var(--gray-0); border-bottom: 1px solid var(--line); }
 .cp-bar h1 { font-size: 20px; font-weight: 700; }
 .cp-bar h1 { margin-right: auto; }
-.cp-sub { display: inline-flex; border: 1px solid var(--gray-30); border-radius: 10px; padding: 2px; gap: 2px; background: var(--gray-0); }
-.cp-sub a, .cp-sub span { font-size: 16px; color: var(--text-2); padding: 4px 16px; min-height: 36px; border-radius: 8px; display: inline-flex; align-items: center; text-decoration: none; }
+.cp-sub { display: inline-flex; border: 1px solid var(--gray-30); border-radius: var(--radius-sm); padding: 2px; gap: 2px; background: var(--gray-0); }
+.cp-sub a, .cp-sub span { font-size: 16px; color: var(--text-2); padding: 4px 16px; min-height: 36px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; text-decoration: none; }
 .cp-sub a:hover { color: var(--text-1); background: var(--gray-5); }
 .cp-sub span[aria-current="page"] { background: var(--primary-5); color: var(--primary-60); font-weight: 700; box-shadow: inset 0 0 0 1px var(--primary-20); }
 .cp-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 300px 1fr; }
 .cp-list { background: var(--gray-0); border-right: 1px solid var(--line); overflow: auto; padding: 12px 10px; }
-.cp-list h2 { font-size: 15px; font-weight: 700; color: var(--text-3); padding: 6px 12px 8px; }
-.cp-it { appearance: none; border: 0; background: none; width: 100%; text-align: left; display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 6px 12px; border-radius: 10px; cursor: pointer; font-size: 17px; }
+.cp-list h2 { font-size: 14px; font-weight: 700; color: var(--text-3); padding: 6px 12px 8px; }
+.cp-it { appearance: none; border: 0; background: none; width: 100%; text-align: left; display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 17px; }
 .cp-it:hover { background: var(--gray-5); }
 .cp-it[aria-current="true"] { background: var(--primary-5); color: var(--primary-60); font-weight: 700; box-shadow: inset 3px 0 0 var(--primary-50); }
 .cp-it .nm { flex: 1; }
-.cp-it .pt { font-size: 15px; color: var(--text-3); font-weight: 400; font-variant-numeric: tabular-nums; }
+.cp-it .pt { font-size: 14px; color: var(--text-3); font-weight: 400; font-variant-numeric: tabular-nums; }
 .cp-it[aria-current="true"] .pt { color: var(--primary-70); }
 .cp-right { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .cp-scroll { flex: 1; min-height: 0; overflow: auto; padding: 18px 24px 96px; }
 .cp-hd { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
-.cp-hd h2 { font-size: 24px; font-weight: 800; }
+.cp-hd h2 { font-size: 24px; font-weight:700; }
 .cp-hd span { color: var(--text-3); font-size: 16px; }
 .cp-cols { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 14px; }
-.cp-tag { font-size: 14px; line-height: 22px; border: 1px solid var(--primary-20); background: var(--primary-5); color: var(--primary-70); border-radius: 20px; padding: 0 10px; font-weight: 700; white-space: nowrap; }
-.cp-col { background: var(--gray-0); border-radius: 16px; box-shadow: var(--shadow-1); padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
-.cp-col h3 { font-size: 20px; font-weight: 800; }
+.cp-tag { font-size: 14px; line-height: 22px; border: 1px solid var(--primary-20); background: var(--primary-5); color: var(--primary-70); border-radius: var(--radius-lg); padding: 0 10px; font-weight: 700; white-space: nowrap; }
+.cp-col { background: var(--gray-0); border-radius: var(--radius-lg); box-shadow: var(--shadow-1); padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.cp-col h3 { font-size: 20px; font-weight:700; }
 .cp-sec { font-size: 16px; color: var(--text-2); }
 .cp-sec b { color: var(--primary-60); font-variant-numeric: tabular-nums; }
 .cp-ex { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; flex: 1; }

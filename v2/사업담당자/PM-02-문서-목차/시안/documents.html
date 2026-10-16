@@ -17,22 +17,23 @@
 .reg-b{padding:8px 16px 14px;flex:1;display:flex;flex-direction:column;gap:8px;min-height:0}
 /* 끌어 놓는 칸 */
 .drop{border:2px dashed var(--primary-50);background:var(--primary-5);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;transition:background .15s}
-.drop.over{background:var(--primary-10,#dbe7ff);border-style:solid}
+.drop.over{background:var(--primary-10);border-style:solid}
 .drop-big{flex:1;flex-direction:column;gap:8px;text-align:center;padding:16px;min-height:0}
 .drop-big .big{font-size:var(--t-lg);font-weight:700}
 .drop-big .rule{color:var(--text-3);font-size:var(--t-base)}
 /* 등록된 제안요청서 */
-.filebox{flex:1;border:1px solid var(--gray-20);border-radius:var(--radius-sm);padding:16px;display:flex;flex-direction:column;gap:4px;justify-content:center;min-height:0}
+.filebox{flex:1;background:var(--gray-5);border-radius:var(--radius-sm);padding:16px;display:flex;flex-direction:column;gap:4px;justify-content:center;min-height:0}
 .filebox .fn{font-size:var(--t-lg);font-weight:700;overflow-wrap:anywhere;line-height:1.35}
 .filebox .path{color:var(--text-3);font-size:var(--t-sm);overflow-wrap:anywhere;line-height:1.4}
 .filebox .msg{font-size:var(--t-base);color:var(--text-2)}
 .filebox .msg.bad{color:var(--danger-60);font-weight:700}
 .filebox .fa{display:flex;gap:8px;align-items:center;margin-top:6px}
-.vt{display:inline-block;margin-left:6px;padding:0 8px;border-radius:var(--radius-sm);background:var(--primary-5);color:var(--primary-60);font-size:14px;font-weight:700;vertical-align:1px}
+.vt{display:inline-block;margin-left:8px;padding:0 8px;border-radius:var(--radius-sm);background:var(--primary-5);color:var(--primary-60);font-size:14px;font-weight:700;vertical-align:1px}
 /* 업체별 제안서 줄 */
 .vlist{display:flex;flex-direction:column;gap:6px;flex:1;justify-content:flex-start}
-.vrow{display:flex;align-items:center;gap:10px;min-height:60px;padding:4px 12px;border:1px solid var(--gray-20);border-radius:var(--radius-sm);background:var(--gray-0)}
-.vrow.drop{justify-content:flex-start;padding:8px 14px;border-width:2px}
+.vrow{display:flex;align-items:center;gap:10px;min-height:60px;padding:4px 12px;border-radius:var(--radius-sm);background:var(--gray-5)}
+.vrow.drop{justify-content:flex-start;padding:8px 12px;border:1px dashed var(--gray-30);background:var(--gray-5)}
+.vrow.drop.over{border-color:var(--primary-50);background:var(--primary-5)}
 .vrow .who{flex:none;width:84px;display:flex;flex-direction:column;gap:2px;align-items:flex-start;min-width:0}.vrow .who small{font-size:var(--t-sm);color:var(--text-3);max-width:84px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vrow .code{flex:none;display:inline-grid;place-items:center;min-width:48px;height:32px;border-radius:var(--radius-sm);background:var(--gray-10);font-weight:700}
 .vrow .vi{flex:1;min-width:0;line-height:1.4}
@@ -44,6 +45,15 @@
 .vrow .va{flex:none;display:flex;gap:6px}
 .vrow .btn,.filebox .btn{min-height:40px;padding:0 14px;font-size:var(--t-base)}
 .vrow.empty .vi b{color:var(--text-1)}
+.vrow .vx{flex:none;display:flex;gap:0;margin-left:-4px}
+.vrow .vx .tl{min-height:32px;padding:0 8px;font-size:var(--t-sm)}
+.vempty{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 16px;border-radius:var(--radius-sm);background:var(--gray-5);text-align:center;color:var(--text-2)}
+.addrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;border-radius:var(--radius-sm);background:var(--gray-5)}
+.addrow input{flex:1;min-width:200px;min-height:44px}
+.addrow .code{flex:none;display:inline-grid;place-items:center;min-width:48px;height:32px;border-radius:var(--radius-sm);background:var(--gray-10);font-weight:700}
+.addrow .hint{color:var(--text-3);font-size:var(--t-sm)}
+.addrow .err{flex-basis:100%;font-size:var(--t-sm)}
+.vadd{align-self:flex-start;margin-left:-4px}
 /* 더 보기 */
 .morebar{grid-column:1/-1;display:flex;align-items:center;gap:8px;min-height:40px;margin-top:-4px}
 .morebar .sp{flex:1}
@@ -110,7 +120,7 @@ textarea[aria-invalid="true"]{border-color:var(--danger-50);background:var(--dan
   <header class="pj-head">
     <a class="pj-back" href="../../PM-01-사업-목록-등록/시안/overview.html">← 사업 정보</a>
     <div class="pj-row">
-      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge info">○ 준비</span></div>
+      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge">○ 준비</span></div>
       <div class="pj-act"><span class="hint" id="remain"></span><a class="btn" id="b-next" href="../../PM-03-평가항목/시안/criteria.html">다음: 평가항목</a></div>
     </div>
   </header>
@@ -126,16 +136,16 @@ textarea[aria-invalid="true"]{border-color:var(--danger-50);background:var(--dan
     </section>
     <div class="morebar">
       <button class="tl" type="button" id="b-more" aria-expanded="false" aria-controls="more">더 보기 ▾</button>
-      <span class="muted" style="font-size:var(--t-sm)">등록 이력 · 요구사항 추출 · 업체 관리 · 원본 보기</span>
+      <span class="muted" style="font-size:var(--t-sm)">등록 이력 · 요구사항 추출 · 원본 보기</span>
       <span class="sp"></span>
       <a class="tl pri" href="../../PM-08-근거-연결/시안/evidence.html">근거 연결 →</a>
     </div>
     <section class="card more" id="more" hidden aria-label="더 보기">
       <section><h3>등록된 파일</h3><div id="m-files"></div></section>
-      <section><h3>요구사항 추출</h3><div id="m-xr"></div><h3 style="margin-top:6px">업체 관리</h3><div id="m-vend"></div></section>
+      <section><h3>요구사항 추출</h3><div id="m-xr"></div></section>
     </section>
   </div>
-  <div class="demo" id="demo"><b>시안 보기</b> 요구사항 추출
+  <details class="demo" id="demo"><summary>시안 상태</summary><div class="demo-in">요구사항 추출
     <button type="button" data-r="none" aria-pressed="false">없음</button>
     <button type="button" data-r="wait" aria-pressed="false">대기</button>
     <button type="button" data-r="run" aria-pressed="false">처리 중</button>
@@ -146,7 +156,7 @@ textarea[aria-invalid="true"]{border-color:var(--danger-50);background:var(--dan
     <button type="button" data-vfail="1" aria-pressed="false">C사 실패</button>
     <button type="button" data-all="done" aria-pressed="false">모두 끝난 상태</button>
     <button type="button" data-all="init" aria-pressed="false">처음 상태</button>
-  </div>
+  </div></details>
 </div>
 </div>
 <input type="file" id="file" hidden>
@@ -213,7 +223,7 @@ function initState(){return{
   {code:'C사',name:'(가상)한빛소프트',ord:3,fx:false,s:'none',toc:'none',entries:[],err:'',revs:[]},
  ]}}
 function blankState(){const s=initState();s.rfp={s:'none',toc:'none',entries:[],err:'',revs:[]};s.inUse=false;s.v.forEach(v=>{Object.assign(v,{s:'none',toc:'none',entries:[],err:'',revs:[],fx:false})});return s}
-let S=initState(),target=null,timers=[],histObj=null,editV=null,moreOpen=false;
+let S=initState(),adding=false,addErr='',addVal='',target=null,timers=[],histObj=null,editV=null,moreOpen=false;
 const BADGE={none:['','— 파일 없음'],wait:['','○ 대기'],run:['info','⟳ 처리 중'],done:['success','✓ 완료'],fail:['danger','! 실패'],unsup:['danger','! 지원 안 함'],pdfchk:['info','⟳ PDF 확인 중']};
 const bd=s=>`<span class="badge ${BADGE[s][0]}">${BADGE[s][1]}</span>`;
 const fileOf=o=>o.revs.length?o.revs[0].file:'';
@@ -228,6 +238,11 @@ function remainCount(){let n=0;
 function primaryKey(){if(!fileOf(S.rfp))return 'rfp';const v=sorted().find(v=>!v.revs.length);return v?String(S.v.indexOf(v)):''}
 const pb=(key,label,pk)=>`<button class="btn${pk===key?' primary':''}" type="button" data-up="${key}">${label}</button>`;
 
+const vx=i=>`<span class="vx"><button class="tl" type="button" data-vedit="${i}" aria-label="${h(S.v[i].code)} 업체 수정">수정</button><button class="tl dng" type="button" data-vdel="${i}" aria-label="${h(S.v[i].code)} 업체 삭제">삭제</button></span>`;
+function addArea(pk){
+  const none=!S.v.length?'<div class="vempty"><span>먼저 업체를 추가하면 그 업체의 제안서를 올릴 수 있어요</span>'+(adding?'':`<button class="btn${pk===''?' primary':''}" type="button" id="b-add">+ 업체 추가</button>`)+'</div>':'';
+  if(!adding)return none||'<button class="tl pri vadd" type="button" id="b-add">+ 업체 추가</button>';
+  return none+`<form class="addrow" id="f-inl" novalidate><label class="sr-only" for="i-name">법인명</label><input id="i-name" placeholder="법인명 (예: (가상)하늘정보)" value="${h(addVal)}"${addErr?' aria-invalid="true" aria-describedby="i-err"':''}><span class="hint">표시 코드</span><span class="code">${nextCode()}</span><button class="btn" type="submit">추가</button><button class="btn" type="button" id="i-cancel">취소</button>${addErr?`<span class="err" id="i-err">${h(addErr)}</span>`:''}</form>`}
 function paint(){
   const r=S.rfp,f=fileOf(r),top=r.revs[0],pk=primaryKey();
   /* ① 제안요청서 */
@@ -239,23 +254,28 @@ function paint(){
       <div class="fa">${bd(r.s)}${r.s==='fail'?'<button class="btn" type="button" data-retry="rfp">다시 시도</button>':''}<button class="btn" type="button" data-up="rfp">파일 바꾸기</button></div></div>`;
   /* ② 제안서 (업체별 한 줄) */
   $('#rows').innerHTML=sorted().map(v=>{const i=S.v.indexOf(v),top=v.revs[0],ver=top?`<span class="vt">v${top.n}</span>`:'';
-    if(!top)return `<div class="vrow drop empty" data-drop="${i}"><div class="who"><span class="code">${h(v.code)}</span><small>${h(v.name.replace('(가상)',''))}</small></div><div class="vi"><b>파일 선택 또는 끌어 놓기</b><span>${v.err?`<span class="bad" style="display:inline">${h(v.err)}</span>`:'HWPX · PDF'}</span></div><div class="va">${pb(String(i),'파일 선택',pk)}</div></div>`;
+    if(!top)return `<div class="vrow drop empty" data-drop="${i}"><div class="who"><span class="code">${h(v.code)}</span><small>${h(v.name.replace('(가상)',''))}</small></div><div class="vi"><b>파일 선택 또는 끌어 놓기</b><span>${v.err?`<span class="bad" style="display:inline">${h(v.err)}</span>`:'HWPX · PDF'}</span></div><div class="vs"><span class="badge">○ 제안서 대기</span></div><div class="va">${pb(String(i),'파일 선택',pk)}</div>${vx(i)}</div>`;
     const sub=v.err?`<span class="bad">${h(v.err)}</span>`:v.s==='pdfchk'?'<span class="info">PDF 연결 확인 중 · 성공으로 표시하지 않아요</span>':v.s==='fail'?'<span class="bad">파일을 읽지 못했어요. 이전 버전은 그대로예요</span>':v.s==='wait'?'<span>처리를 기다리는 중이에요</span>':`<span title="${h(pathOf('제안서',top.file))}">${h(pathOf("제안서",top.file))}</span>`;
     const act=(v.s==='fail'?`<button class="btn" type="button" data-retry="${i}">다시 시도</button>`:'')+`<button class="btn" type="button" data-up="${i}">${v.s==='unsup'?'다시 올리기':'바꾸기'}</button>`;
-    return `<div class="vrow" data-drop="${i}"><div class="who"><span class="code">${h(v.code)}</span><small>${h(v.name.replace('(가상)',''))}</small></div><div class="vi"><b>${h(top.file)}${ver}</b>${sub}</div><div class="vs">${bd(v.s)}</div><div class="va">${act}</div></div>`}).join('');
+    return `<div class="vrow" data-drop="${i}"><div class="who"><span class="code">${h(v.code)}</span><small>${h(v.name.replace('(가상)',''))}</small></div><div class="vi"><b>${h(top.file)}${ver}</b>${sub}</div><div class="vs">${bd(v.s)}</div><div class="va">${act}</div>${vx(i)}</div>`}).join('')+addArea(pk);
   /* 더 보기 */
   const files=[['rfp','제안요청서','',r,'제안요청서'],...sorted().map(v=>[String(S.v.indexOf(v)),v.code,v.name,v,'제안서'])].filter(x=>x[3].revs.length);
   $('#m-files').innerHTML=files.length?files.map(([k,lab,nm,o,kind])=>`<div class="mrow"><span class="nm" title="${h(nm)}">${h(lab)}<small>v${o.revs[0].n}</small></span><span class="ls"><button class="tl" type="button" data-view="${k}">원본 보기</button><button class="tl" type="button" data-dl="${k}">내려받기</button><button class="tl" type="button" data-hist="${k}">이력 ${o.revs.length}</button>${o.s==='done'?`<button class="tl" type="button" data-toc="${k}" title="보조 기능이에요">목차 확인</button>`:''}<button class="tl dng" type="button" data-del="${k}">삭제</button></span></div>`).join(''):'<p class="muted" style="margin:6px 0">아직 등록된 파일이 없어요</p>';
   const xr={wait:['','대기','기다리는 중이에요. 몇 초마다 자동으로 확인해요'],run:['info','처리 중','요구사항을 뽑는 중이에요'],fail:['danger','실패','못 뽑았어요. 원본은 그대로예요'],done:['success','완료','요구사항 추출이 끝났어요']}[r.s];
   $('#m-xr').innerHTML=!f?'<p class="muted" style="margin:6px 0">제안요청서를 올리면 보여요</p>':`<div class="mrow"><span class="badge ${xr[0]}">${xr[1]}</span><span class="tx">${xr[2]}</span>${r.s==='fail'?'<button class="tl pri" type="button" data-retry="rfp">다시 시도</button>':''}<button class="tl" type="button" data-refresh>새로고침</button></div>`;
-  $('#m-vend').innerHTML='<div class="vchips">'+sorted().map(v=>`<button class="tl vc" type="button" data-edit="${S.v.indexOf(v)}" aria-label="${h(v.code)} 업체 수정" title="수정"><b>${h(v.code)}</b> ${h(v.name.replace('(가상)',''))}</button>`).join('')+'<button class="tl pri" type="button" id="b-add">+ 업체 추가</button></div>';
   $('#more').hidden=!moreOpen;$('#b-more').textContent=moreOpen?'더 보기 ▴':'더 보기 ▾';$('#b-more').setAttribute('aria-expanded',moreOpen);
-  $('#b-add').onclick=()=>openVend(null);
+  const ba=$('#b-add');if(ba)ba.onclick=()=>{adding=true;addErr='';addVal='';paint();$('#i-name').focus()};
+  const fi=$('#f-inl');if(fi){$('#i-name').oninput=e=>e.target.removeAttribute('aria-invalid');$('#i-cancel').onclick=()=>{adding=false;addErr='';paint()};
+    fi.onsubmit=e=>{e.preventDefault();const n=$('#i-name').value.trim();addVal=n;
+      addErr=!n?'법인명을 적어 주세요':S.v.some(v=>v.name===n)?'이미 있는 업체예요':'';
+      if(addErr){paint();$('#i-name').focus();return}
+      const c=nextCode();S.v.push({code:c,name:n,ord:S.v.length+1,fx:false,s:'none',toc:'none',entries:[],err:'',revs:[]});adding=false;addVal='';paint();toast(c+'로 추가했어요 · 이제 제안서를 올려 주세요')}}
+  $$('[data-vedit]').forEach(b=>b.onclick=()=>openVend(S.v[+b.dataset.vedit]));
+  $$('[data-vdel]').forEach(b=>b.onclick=()=>delVendor(S.v[+b.dataset.vdel]));
   $$('[data-up]').forEach(b=>b.onclick=()=>pick(b.dataset.up));
   $$('[data-retry]').forEach(b=>b.onclick=()=>{const o=b.dataset.retry==='rfp'?S.rfp:S.v[+b.dataset.retry];o.s='wait';o.err='';paint();flow(o)});
   $$('[data-toc]').forEach(b=>b.onclick=()=>openToc(b.dataset.toc));
   $$('[data-hist]').forEach(b=>b.onclick=()=>openHist(b.dataset.hist));
-  $$('[data-edit]').forEach(b=>b.onclick=()=>openVend(S.v[+b.dataset.edit]));
   $$('[data-view]').forEach(b=>b.onclick=()=>toast('원본 파일을 새 창에서 열어요 (시안)'));
   $$('[data-dl]').forEach(b=>b.onclick=()=>{const o=b.dataset.dl==='rfp'?S.rfp:S.v[+b.dataset.dl];toast('내려받는 이름: '+pathOf(b.dataset.dl==='rfp'?'제안요청서':'제안서',fileOf(o)))});
   $$('[data-del]').forEach(b=>b.onclick=()=>b.dataset.del==='rfp'?delRfp():delVendorDoc(S.v[+b.dataset.del]));
@@ -336,6 +356,9 @@ function openVend(v){editV=v||null;const fixed=!!(v&&S.inUse&&v.fx);
   $('#a-code').disabled=fixed;$('#a-code-h').textContent=fixed?'평가에 고정돼 바꿀 수 없어요':'사업 안에서 겹치지 않게 적어 주세요';
   ['a-name','a-code','a-ord'].forEach(id=>{$('#'+id+'-e').hidden=true;$('#'+id).removeAttribute('aria-invalid')});
   $('#a-del').hidden=!v;$('#a-block').hidden=true;$('#a-lock').hidden=fixed;openLayer($('#add'),'#a-name')}
+function delVendor(v){
+  if(S.inUse&&v.fx){toast('평가에 고정된 업체라 지울 수 없어요');return}
+  confirmDlg({title:`${v.code} 업체를 삭제할까요?`,body:'목록에서 빠지고 올린 제안서 이력은 감사 기록에 남아요.',ok:'삭제',danger:true,onOk:()=>{S.v.splice(S.v.indexOf(v),1);paint();toast(v.code+' 업체를 삭제했어요')}})}
 $('#a-del').onclick=()=>{const v=editV;
   if(S.inUse&&v.fx){$('#a-block').hidden=false;toast('평가에 고정된 업체는 지울 수 없어요');return}
   closeLayer($('#add'));confirmDlg({title:`${v.code} 업체를 삭제할까요?`,body:'목록에서 빠지고 올린 제안서 이력은 감사 기록에 남아요.',ok:'삭제',danger:true,onOk:()=>{S.v.splice(S.v.indexOf(v),1);paint();toast(v.code+' 업체를 삭제했어요')}})};

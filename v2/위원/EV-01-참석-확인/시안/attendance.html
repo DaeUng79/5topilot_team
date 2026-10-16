@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="../../_eval.css">
 <style>
   .back { height: 100%; display: grid; place-items: center; color: var(--text-3); }
-  .back-doc { width: 560px; height: 78%; background: var(--gray-0); border-radius: 3px; box-shadow: 0 1px 2px rgb(0 0 0 / .06), 0 6px 20px rgb(0 0 0 / .06); }
+  .back-doc { width: 560px; height: 78%; background: var(--gray-0); border-radius: var(--radius-sm); box-shadow: var(--shadow-1); }
   .when { font-size: 17px; color: var(--text-2); background: var(--gray-5); border-radius: var(--radius-sm); padding: 12px 16px; }
   .when b { color: var(--text-1); }
   .agree { display: flex; flex-direction: column; gap: 4px; }
@@ -66,13 +66,11 @@
   </div>
 </div>
 
-<div class="ev-demo" role="group" aria-label="시안 전환">
-  <b>위원 구분</b>
-  <span class="ev-seg" id="seg">
+<details class="ev-demo" role="group" aria-label="시안 전환"><summary>시안 상태</summary><div class="ev-demo-in"><b>위원 구분</b> <span class="ev-seg" id="seg">
     <button type="button" data-r="0" aria-pressed="true">위원</button>
     <button type="button" data-r="1" aria-pressed="false">예비위원</button>
   </span>
-</div>
+</div></details>
 
 <script src="../../_eval.js"></script>
 <script>

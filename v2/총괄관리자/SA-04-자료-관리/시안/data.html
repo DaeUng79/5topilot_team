@@ -8,17 +8,16 @@
 <link rel="stylesheet" href="../../_shell.css">
 <style>
 .acts{display:flex;align-items:center;gap:8px}
-.acts .why{color:var(--text-3);font-size:var(--t-base);margin-right:4px}
-td.file{max-width:250px}td.two small.fpath{font-size:var(--t-sm);word-break:break-all;line-height:1.3;color:var(--gray-50)}td.strong{max-width:250px}td{padding:0 12px}th{padding:12px}
+
+td.file{max-width:230px}td.two small.fpath{font-size:var(--t-sm);word-break:break-all;line-height:1.3;color:var(--gray-50)}td.strong{max-width:200px}td{padding:0 12px}th{padding:12px}
 td.two{line-height:1.35}td.two small{display:block;color:var(--text-3);font-size:var(--t-base)}td.two .badge{margin-top:2px}
 .toolbar select{width:auto;min-width:140px;min-height:44px;appearance:auto}
 .toolbar .btn{min-height:44px}
-.spec-note{display:inline-flex;gap:6px;align-items:center;font-size:var(--t-base);color:var(--text-3)}
+.spec-note{display:inline-flex;gap:6px;align-items:center;font-size:var(--t-sm);color:var(--text-3)}
 .form{display:flex;flex-direction:column;gap:16px}
 textarea{width:100%;min-height:88px;padding:10px 14px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:var(--t-body);resize:vertical}
 textarea:focus{outline:none;border-color:var(--primary-50);box-shadow:var(--focus)}
 input[type=file]{padding:8px 14px;height:auto}
-.btn.sm{min-height:36px;padding:0 12px;font-size:var(--t-base)}
 </style>
 </head>
 <body>
@@ -42,9 +41,9 @@ input[type=file]{padding:8px 14px;height:auto}
     <div><h1>자료 관리</h1><p class="sub" id="sub"></p></div>
     <div class="acts" id="acts">
       <button class="btn primary" type="button" id="b-up">결과 자료 등록</button>
-      <span class="why" id="why">규칙 정해지면 사용</span>
-      <button class="btn" type="button" disabled aria-describedby="why">보관 규칙 설정</button>
-      <button class="btn" type="button" disabled aria-describedby="why">폐기</button>
+      <span class="sr-only" id="why">규칙이 정해지면 쓸 수 있어요</span>
+      <button class="btn" type="button" disabled aria-describedby="why" title="규칙이 정해지면 쓸 수 있어요">보관 규칙 설정</button>
+      <button class="btn" type="button" disabled aria-describedby="why" title="규칙이 정해지면 쓸 수 있어요">폐기</button>
     </div>
   </header>
   <div class="body">
@@ -60,7 +59,7 @@ input[type=file]{padding:8px 14px;height:auto}
       </div>
     </section>
   </div>
-  <div class="demo"><b>시안 보기</b><span class="muted">보관·폐기는 칸과 버튼 자리만 있고, 규칙이 정해지면 쓸 수 있어요</span></div>
+  <details class="demo"><summary>시안 상태</summary><div class="demo-in"><span class="muted">보관·폐기는 칸과 버튼 자리만 있고, 규칙이 정해지면 쓸 수 있어요</span></div></details>
 </div>
 </div>
 <aside class="drawer" id="p-up" role="dialog" aria-modal="true" aria-labelledby="p-up-t">

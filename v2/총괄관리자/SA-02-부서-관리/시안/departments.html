@@ -19,7 +19,7 @@ select{appearance:auto}
 .pager button:hover:not(:disabled){background:var(--gray-5)}
 .pager button[aria-current="page"]{background:var(--primary-5);border-color:var(--primary-50);color:var(--primary-60);font-weight:700}
 .pager button:disabled{color:var(--gray-30);cursor:not-allowed}
-.spec-note{display:inline-flex;gap:6px;align-items:center;font-size:var(--t-base);color:var(--text-3)}
+.spec-note{display:inline-flex;gap:6px;align-items:center;font-size:var(--t-sm);color:var(--text-3)}
 .perms{display:flex;flex-direction:column;gap:4px}
 .perm{display:flex;align-items:center;gap:12px;min-height:44px;font-weight:400;font-size:var(--t-base);cursor:pointer}
 .perm input{width:20px;min-height:20px;height:20px;flex:none;accent-color:var(--primary-50)}
@@ -76,10 +76,9 @@ select{appearance:auto}
       </div>
     </section>
   </div>
-  <div class="demo"><b>시안 보기</b>
-    <button type="button" id="d-conf" aria-pressed="false">저장할 때 충돌 나게</button>
+  <details class="demo"><summary>시안 상태</summary><div class="demo-in"><button type="button" id="d-conf" aria-pressed="false">저장할 때 충돌 나게</button>
     <span class="muted">· 행을 누르면 수정 칸이 열려요 · 사업이 있는 부서는 삭제 대신 비활성</span>
-  </div>
+  </div></details>
 </div>
 </div>
 

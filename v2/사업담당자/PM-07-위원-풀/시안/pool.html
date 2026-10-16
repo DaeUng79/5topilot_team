@@ -30,7 +30,6 @@ td input.cell,td select.cell{min-height:40px;font-size:var(--t-base)}
 .demo .grp{display:inline-flex;gap:6px;align-items:center;margin-right:12px}
 .proj{color:var(--text-3)}
 .drawer.wide{width:min(760px,100vw)}
-.btn.sm{min-height:40px;padding:0 14px;font-size:var(--t-base)}
 @media print{.side,.demo,.head .acts,.steps{display:none!important}.app{display:block}.main,.body,.card{height:auto;overflow:visible;box-shadow:none}body{overflow:visible}}
 
 td.em{max-width:230px}
@@ -78,7 +77,7 @@ td,th{padding-left:12px;padding-right:12px}
       </div>
     </section>
   </div>
-  <div class="demo"><b>시안 보기</b><span class="muted">(가상 데이터) 전화번호는 가려서 보여요 · 행을 누르면 수정·삭제 · 직접 등록 후보는 풀에 자동으로 들어오지 않아요</span></div>
+  <details class="demo"><summary>시안 상태</summary><div class="demo-in"><span class="muted">(가상 데이터) 전화번호는 가려서 보여요 · 행을 누르면 수정·삭제 · 직접 등록 후보는 풀에 자동으로 들어오지 않아요</span></div></details>
 
 </div>
 </div>
@@ -136,7 +135,7 @@ $$('#f-scope button').forEach(b=>b.onclick=()=>setScope(b.dataset.s));
 $('#q').oninput=e=>{q=e.target.value.trim();render()};
 const list=()=>P.filter(r=>r.scope===scope&&(!ff||r.field===ff)&&(!q||r.name.includes(q)||r.org.includes(q)));
 function render(){const L=list();$('#count').textContent=SCN[scope]+' '+L.length+'명';$('#none').hidden=L.length>0;$('table').hidden=!L.length;$('#pnote').hidden=scope!=='proj';
-  $('#sub').textContent=scope==='dept'?'우리 부서가 평가위원 후보로 모아 둔 사람들이에요. 사업마다 여기서 추첨해요.':'이 사업에만 직접 넣은 후보예요. 부서 풀에는 자동으로 들어가지 않아요.';
+  $('#sub').textContent=scope==='dept'?'우리 부서의 평가위원 후보예요. 사업마다 여기서 추첨해요.':'이 사업에만 직접 넣은 후보예요. 부서 풀에는 자동으로 들어가지 않아요.';
   $('#rows').innerHTML=L.map(r=>`<tr tabindex="0" data-id="${r.id}" aria-label="${h(r.name)} 자세히 보기"><td class="strong">${h(r.name)}</td><td>${h(r.org.replace('(가상)',''))}</td><td>${h(r.dept)}</td><td>${h(r.pos)}</td><td>${h(r.field)}</td><td class="tnum">${mask(r.tel)}</td><td class="em">${r.email?h(r.email):'<span class="muted">—</span>'}</td><td class="num tnum">${r.n}회</td></tr>`).join('');
   $$('#rows tr').forEach(tr=>rowKey(tr,()=>openDetail(tr.dataset.id)))}
 const footBtns=html=>{$('#p-foot').innerHTML=html};

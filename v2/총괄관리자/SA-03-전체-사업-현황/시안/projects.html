@@ -7,7 +7,7 @@
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="../../_shell.css">
 <style>
-td .lock{display:block;font-size:var(--t-base);color:var(--text-3);font-weight:400}
+td .lock{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 td.nm{max-width:360px}
 .steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .steps li{display:flex;flex-direction:column;gap:6px;font-size:var(--t-base);color:var(--text-3)}
@@ -23,16 +23,16 @@ td.nm{max-width:360px}
 .hist time{color:var(--text-3)}
 .hist b{display:block}
 .hist span{color:var(--text-3)}
-.lockbar{display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:var(--radius-sm);background:var(--warning-5);border:1px solid var(--warning-10);font-weight:700;font-size:var(--t-body)}
+.lockbar{display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:var(--radius-sm);background:var(--warning-5);font-weight:700;font-size:var(--t-body)}
 .edit-in{min-height:40px}
 .toolbar .btn{min-height:44px}
-td.st2{line-height:1}td.st2 .badge{display:flex;width:max-content;font-size:var(--t-sm);padding:1px 10px;margin:2px 0}
+td.st2{line-height:1}td.st2 .badge{display:flex;width:max-content;background:none;padding:0;font-size:var(--t-sm);margin:2px 0;color:var(--text-2)}td.st2 .badge.success{color:var(--success-60)}td.st2 .badge.warning{color:var(--warning-60)}
 .pager{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 20px;border-top:1px solid var(--line);flex:none}
 .pager button{appearance:none;min-width:40px;min-height:40px;border-radius:var(--radius-sm);border:1px solid var(--gray-20);background:var(--gray-0);font-size:var(--t-base);cursor:pointer;padding:0 10px}
 .pager button:hover:not(:disabled){background:var(--gray-5)}
 .pager button[aria-current="page"]{background:var(--primary-5);border-color:var(--primary-50);color:var(--primary-60);font-weight:700}
 .pager button:disabled{color:var(--gray-30);cursor:not-allowed}
-.dsec{margin-top:8px;padding-top:16px;border-top:2px solid var(--gray-20)}
+.dsec{margin-top:8px;padding-top:16px;border-top:1px solid var(--line)}
 .dsec:first-of-type{margin-top:0}
 .dsec .sec-h{display:flex;align-items:center;gap:8px}
 .dsec .ic{width:28px;height:28px;border-radius:var(--radius-full);background:var(--primary-5);color:var(--primary-60);display:grid;place-items:center;font-size:14px;flex:none}
@@ -77,7 +77,7 @@ select{appearance:auto}
 </aside>
 <div class="main">
   <header class="head">
-    <div><h1>전체 사업</h1><p class="sub">모든 부서의 사업을 한눈에 봐요. 평가가 시작된 사업은 사업 식별·평가조건을 바꿀 수 없어요.</p></div>
+    <div><h1>전체 사업</h1><p class="sub">모든 부서의 사업을 한눈에 봐요.</p></div>
     <button class="btn primary" type="button" id="b-new">사업 등록</button>
   </header>
   <div class="body">
@@ -106,7 +106,7 @@ select{appearance:auto}
       <nav class="pager" id="pager" aria-label="쪽 이동"></nav>
     </section>
   </div>
-  <div class="demo"><b>시안 보기</b><span class="muted">행을 누르면 오른쪽에 자세히·자료가 나와요 · 🔒 표시 사업은 사업 식별·평가조건을 못 바꾸고 삭제할 수 없어요</span></div>
+  <details class="demo"><summary>시안 상태</summary><div class="demo-in"><span class="muted">행을 누르면 오른쪽에 자세히·자료가 나와요 · 🔒 표시 사업은 사업 식별·평가조건을 못 바꾸고 삭제할 수 없어요</span></div></details>
 </div>
 </div>
 
@@ -185,7 +185,7 @@ let nextId=30;
 const hist={1:[['2026-10-12','김가상 (부서)','평가일을 11-05로 바꿨어요'],['2026-10-08','김가상 (부서)','사업을 만들었어요']],
  2:[['2026-10-14','이나상 (부서)','평가를 시작했어요'],['2026-10-10','이나상 (부서)','위원 명단을 확정했어요'],['2026-10-02','이나상 (부서)','사업을 만들었어요']]};
 const defHist=r=>[['2026-10-0'+(r.id%8+1),r.owner+' (부서)','사업을 만들었어요']];
-const st={'준비':'info','평가 중':'primary','완료':'success'};
+const st={'준비':'','평가 중':'primary','완료':'success'};
 const mark={'준비':'○','평가 중':'●','완료':'✓'};
 const locked=r=>r.s!=='준비';
 const lockMsg=r=>'평가가 시작돼 바꿀 수 없어요';

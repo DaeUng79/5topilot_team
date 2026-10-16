@@ -49,7 +49,7 @@ input:disabled{cursor:not-allowed}
   <header class="pj-head">
     <a class="pj-back" href="projects.html">← 사업 목록</a>
     <div class="pj-row">
-      <div class="pj-title"><h1 id="t-name"></h1><span class="badge info" id="t-st">○ 준비</span></div>
+      <div class="pj-title"><h1 id="t-name"></h1><span class="badge" id="t-st">○ 준비</span></div>
       <div class="pj-act"><span class="hint">다음 일: 문서 올리기</span><a class="btn primary" href="../../PM-02-문서-목차/시안/documents.html">다음: 문서</a></div>
     </div>
   </header>
@@ -73,10 +73,9 @@ input:disabled{cursor:not-allowed}
       </section>
     </div>
   </div>
-  <div class="demo" id="demo"><b>시안 보기</b>
-    <button type="button" data-st="stale" aria-pressed="true">반영 안 됨 있음</button>
+  <details class="demo" id="demo"><summary>시안 상태</summary><div class="demo-in"><button type="button" data-st="stale" aria-pressed="true">반영 안 됨 있음</button>
     <button type="button" data-st="fresh" aria-pressed="false">모두 반영됨</button>
-    <span class="muted" style="margin-left:auto">‘아직 반영 안 됨’은 다른 데이터베이스에서 값이 늦게 올 때 보여요</span></div>
+    <span class="muted" style="margin-left:auto">‘아직 반영 안 됨’은 다른 데이터베이스에서 값이 늦게 올 때 보여요</span></div></details>
 </div>
 </div>
 
