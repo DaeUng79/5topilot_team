@@ -209,7 +209,7 @@ input:focus{outline:3px solid var(--primary-20);border-color:var(--primary-50)}
 <script>
 (function(){
   var q=new URLSearchParams(location.search).get('v');
-  var v=(q==='b')?'b':'a';
+  var v=(q==='a')?'a':'b';
   document.body.classList.add('v'+v);
   document.getElementById('v'+v).setAttribute('aria-current','true');
   var body=document.body,stage=document.getElementById('stage'),msg=document.getElementById('msg'),f=document.getElementById('f');
