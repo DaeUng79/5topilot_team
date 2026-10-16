@@ -1,0 +1,28 @@
+[
+  {
+    "port": 5187,
+    "candidates": 129,
+    "assets": {
+      "/": 200,
+      "/assets/app.js": 200,
+      "/assets/app.css": 200,
+      "/assets/style.css": 200
+    },
+    "verification_mode": "demo",
+    "candidate_data_unchanged": true,
+    "schema_revision": 2
+  },
+  {
+    "port": 5188,
+    "candidates": 48,
+    "assets": {
+      "/": 200,
+      "/assets/app.js": 200,
+      "/assets/app.css": 200,
+      "/assets/style.css": 200
+    },
+    "verification_mode": "demo",
+    "candidate_data_unchanged": true,
+    "schema_revision": 2
+  }
+]

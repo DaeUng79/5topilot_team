@@ -6,6 +6,9 @@
 
 ## 개발 내용
 
+- 2026-10-13: [위원 등록·3배수 선정 구현 기록](COMMITTEE_IMPLEMENTATION.md),
+  [독립 실행 앱](../../apps/committee_Lex6won/README.md). 로컬 구현·검증과 팀 병합·운영 상태를 구분합니다.
+
 - 코드 등록 경로: `apps/api/app/modules/committee/`, `docs/team/`
 - 산출물: 범위·우선순위·인수 조건, 후보/자격/제척·분야 정원·선정·배정
 - 현재 확인 상태: [기반 PR #1](https://github.com/DaeUng79/5topilot_team/pull/1) 작성이 확인됐습니다. 2026-10-10 조회 시 Draft/open 상태이며 main 병합 완료를 뜻하지 않습니다.
