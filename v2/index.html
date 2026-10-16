@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>심사임당 v2 · 시안 보기</title>
+<style>
+  :root { --gray-0:#fff; --gray-5:#f4f5f7; --gray-20:#d9dce1; --gray-60:#5b6270; --gray-90:#1e2127; --primary-5:#eef4ff; --primary-60:#1f5fd6; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: 'Pretendard GOV', Pretendard, system-ui, sans-serif; color: var(--gray-90); }
+  body { display: grid; grid-template-columns: 240px 1fr; }
+  nav { background: var(--gray-5); border-right: 1px solid var(--gray-20); padding: 16px 12px; overflow-y: auto; }
+  nav h1 { font-size: 18px; margin: 0 8px 16px; }
+  nav h2 { font-size: 14px; color: var(--gray-60); margin: 16px 8px 4px; font-weight: 700; }
+  nav button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 8px; border-radius: 10px; font: inherit; font-size: 16px; color: var(--gray-90); cursor: pointer; }
+  nav button:hover { background: var(--gray-0); }
+  nav button[aria-current="true"] { background: var(--primary-5); color: var(--primary-60); font-weight: 700; }
+  nav button small { display: block; font-size: 14px; color: var(--gray-60); font-weight: 400; }
+  nav p { font-size: 14px; color: var(--gray-60); margin: 16px 8px 0; }
+  iframe { width: 100%; height: 100%; border: 0; background: var(--gray-0); }
+</style>
+</head>
+<body>
+<nav aria-label="시안 목록">
+  <h1>심사임당 v2 시안</h1>
+  <h2>입장</h2>
+  <button data-src="00-입장/시안/entry.html">ENTRY 입장 화면<small>B안 · 결정</small></button>
+  <h2>총괄관리자</h2>
+  <button data-src="총괄관리자/SA-00-로그인-권한/시안/login.html">SA-00 로그인·권한</button>
+  <button data-src="총괄관리자/SA-01-대시보드/시안/dashboard.html">SA-01 대시보드</button>
+  <button data-src="총괄관리자/SA-02-부서-관리/시안/departments.html">SA-02 부서·계정</button>
+  <button data-src="총괄관리자/SA-03-전체-사업-현황/시안/projects.html">SA-03 전체 사업</button>
+  <button data-src="총괄관리자/SA-04-자료-관리/시안/data.html">SA-04 자료 관리</button>
+  <h2>사업담당자</h2>
+  <p>시안 준비 전 (PM-00 ~ PM-07)</p>
+  <h2>평가위원</h2>
+  <p>시안 준비 전 (EV-00 ~ EV-07)</p>
+</nav>
+<iframe title="선택한 시안" id="view"></iframe>
+<script>
+  const view = document.getElementById('view');
+  const buttons = [...document.querySelectorAll('nav button')];
+  function open(btn) {
+    buttons.forEach(b => b.setAttribute('aria-current', String(b === btn)));
+    view.src = btn.dataset.src;
+    history.replaceState(null, '', '#' + encodeURIComponent(btn.dataset.src));
+  }
+  buttons.forEach(b => b.addEventListener('click', () => open(b)));
+  const start = decodeURIComponent(location.hash.slice(1));
+  open(buttons.find(b => b.dataset.src === start) || buttons[0]);
+</script>
+</body>
+</html>

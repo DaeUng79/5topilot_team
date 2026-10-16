@@ -164,7 +164,6 @@ input:focus{outline:3px solid var(--primary-20);border-color:var(--primary-50)}
 
 <p class="mark">심사임당</p>
 <button class="home" type="button" id="home">‹ 처음으로</button>
-<nav class="vt" aria-label="시안 전환"><a href="?v=a" id="va">A</a><a href="?v=b" id="vb">B</a></nav>
 
 <main id="stage" tabindex="-1" inert>
   <h1 class="sr-only">어떤 일로 오셨나요?</h1>
@@ -208,17 +207,15 @@ input:focus{outline:3px solid var(--primary-20);border-color:var(--primary-50)}
 
 <script>
 (function(){
-  var q=new URLSearchParams(location.search).get('v');
-  var v=(q==='a')?'a':'b';
-  document.body.classList.add('v'+v);
-  document.getElementById('v'+v).setAttribute('aria-current','true');
+  document.body.classList.add('vb');
+  var demo={admin:['sa-admin','Temp1234!'],biz:['info01','demo1234'],eval:['김가상','010-0000-0001']};
   var body=document.body,stage=document.getElementById('stage'),msg=document.getElementById('msg'),f=document.getElementById('f');
   var picks=document.querySelectorAll('.pick'),cur=null;
   function setForm(role){
     var t=role==='eval'?[['이름','text'],['전화번호','tel']]:[['아이디','text'],['비밀번호','password']];
     f.querySelectorAll('label').forEach(function(l,i){
       l.querySelector('.lt').textContent=t[i][0];
-      var inp=l.querySelector('input');inp.type=t[i][1];inp.value='';
+      var inp=l.querySelector('input');inp.type=t[i][1];inp.value=demo[role][i];
       if(t[i][1]==='tel'){inp.setAttribute('inputmode','numeric');inp.placeholder='010-0000-0000'}
       else{inp.removeAttribute('inputmode');inp.placeholder=''}
     });
@@ -246,7 +243,9 @@ input:focus{outline:3px solid var(--primary-20);border-color:var(--primary-50)}
   document.getElementById('back').addEventListener('click',back);
   document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;if(body.classList.contains('picked'))back();else if(body.classList.contains('s-pick'))toIntro()});
   f.addEventListener('submit',function(e){
-    e.preventDefault();msg.textContent='시안입니다 · 실제 로그인은 연결되지 않아요';msg.classList.add('show');
+    e.preventDefault();
+    if(cur&&cur.dataset.role==='admin'){location.href='../../총괄관리자/SA-01-대시보드/시안/dashboard.html';return}
+    msg.textContent=(cur&&cur.dataset.role==='biz'?'사업담당자':'평가위원')+' 화면은 시안 준비 중이에요';msg.classList.add('show');
   });
 })();
 </script>
