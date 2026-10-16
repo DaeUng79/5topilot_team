@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>자료 관리 · 심사임당 총괄관리자</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../_shell.css">
+<style>
+.acts{display:flex;align-items:center;gap:8px}
+.acts .why{color:var(--text-3);font-size:var(--t-base);margin-right:4px}
+td.file{max-width:210px}td.strong{max-width:200px}td{padding:0 12px}th{padding:12px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <button class="brand" type="button" data-href="../../SA-01-대시보드/시안/dashboard.html" aria-label="심사임당 대시보드로"><span class="brand-mark">심</span><span>심사임당</span></button>
+  <p class="role">총괄관리자</p>
+  <nav aria-label="주 메뉴">
+    <a href="../../SA-01-대시보드/시안/dashboard.html">대시보드</a>
+    <a href="../../SA-02-부서-관리/시안/departments.html">부서 관리</a>
+    <a href="../../SA-03-전체-사업-현황/시안/projects.html">전체 사업</a>
+    <a href="../../SA-04-자료-관리/시안/data.html" aria-current="page">자료 관리</a>
+  </nav>
+  <div class="bottom">
+    <a href="../../SA-00-로그인-권한/시안/login.html#account" data-account>내 계정</a>
+    <a href="../../SA-00-로그인-권한/시안/login.html" data-logout>로그아웃</a>
+  </div>
+</aside>
+<div class="main">
+  <header class="head">
+    <div><h1>자료 관리</h1><p class="sub" id="sub"></p></div>
+    <div class="acts" id="acts">
+      <span class="why" id="why">규칙 정해지면 사용</span>
+      <button class="btn" type="button" disabled aria-describedby="why">보관 규칙 설정</button>
+      <button class="btn" type="button" disabled aria-describedby="why">폐기</button>
+    </div>
+  </header>
+  <div class="body">
+    <section class="card">
+      <div class="tabs" role="tablist" aria-label="자료 종류">
+        <button class="tab" role="tab" id="t-files" aria-selected="true" aria-controls="panel" type="button">사업 파일</button>
+        <button class="tab" role="tab" id="t-pool" aria-selected="false" aria-controls="panel" type="button" tabindex="-1">위원 풀</button>
+      </div>
+      <div class="toolbar" id="tb"></div>
+      <div class="tbl-wrap" id="panel" role="tabpanel" tabindex="-1">
+        <table><thead id="th"></thead><tbody id="rows"></tbody></table>
+        <div class="state" id="none" hidden><div class="ico" aria-hidden="true">?</div><strong>맞는 자료가 없어요</strong><p>검색어를 지우거나 다른 부서를 골라 보세요.</p></div>
+      </div>
+    </section>
+  </div>
+  <div class="demo"><b>시안 보기</b><span class="muted">보관·폐기는 칸과 버튼 자리만 있고, 규칙이 정해지면 쓸 수 있어요</span></div>
+</div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="scrim" id="scrim"></div><div class="scrim top" id="scrim2"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const h=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3200)}
+const stack=[];
+function openLayer(el,focusSel){const sc=el.classList.contains('dlg')?$('#scrim2'):$('#scrim');stack.push({el,sc,from:document.activeElement});sc.classList.add('on');el.classList.add('on');
+  setTimeout(()=>{const f=(focusSel&&$(focusSel,el))||el.querySelector('input:not([disabled]),select,button:not([disabled])');f&&f.focus()},60)}
+function closeLayer(el){const i=stack.findIndex(l=>l.el===el);if(i<0)return;const l=stack.splice(i,1)[0];l.el.classList.remove('on');l.sc.classList.remove('on');
+  if(l.from&&document.contains(l.from)&&l.from.focus)l.from.focus()}
+document.addEventListener('keydown',e=>{
+  if(!stack.length)return;const top=stack[stack.length-1].el;
+  if(e.key==='Escape'){e.preventDefault();closeLayer(top)}
+  if(e.key==='Tab'){const f=$$('input:not([disabled]),select,button:not([disabled]),[tabindex="0"]',top).filter(x=>x.offsetParent!==null||x===document.activeElement);
+    if(!f.length)return;const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
+});
+$('#scrim')&&$('#scrim').addEventListener('click',()=>{const l=stack.filter(x=>x.sc.id==='scrim').pop();l&&closeLayer(l.el)});
+$('#scrim2')&&$('#scrim2').addEventListener('click',()=>{const l=stack.filter(x=>x.sc.id==='scrim2').pop();l&&closeLayer(l.el)});
+$$('[data-close]').forEach(b=>b.addEventListener('click',()=>closeLayer(b.closest('.drawer,.dlg'))));
+$$('[data-href]').forEach(b=>b.addEventListener('click',()=>{location.href=b.dataset.href}));
+function rowKey(tr,fn){tr.addEventListener('click',fn);tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}})}
+function confirmDlg({title,body,ok,danger=true,onOk}){const d=$('#dlg');$('#dlg-t').textContent=title;$('#dlg-b').textContent=body;const b=$('#dlg-ok');b.textContent=ok;b.className='btn '+(danger?'danger':'primary');
+  b.onclick=()=>{closeLayer(d);onOk&&onOk()};openLayer(d,'#dlg-cancel')}
+
+const F=[
+ ['(가상) 통합 민원 시스템 구축 용역','제안요청서','—','통합민원_제안요청서.hwpx','1.8 MB','2026-10-08','보관'],
+ ['(가상) 통합 민원 시스템 구축 용역','제안서','(가상)가나다시스템','가나다시스템_제안서.hwpx','4.2 MB','2026-10-11','보관'],
+ ['(가상) 통합 민원 시스템 구축 용역','제안서','(가상)라마바소프트','라마바소프트_제안서.hwpx','3.9 MB','2026-10-11','보관'],
+ ['(가상) 청사 CCTV 교체 사업','제안요청서','—','CCTV교체_제안요청서.hwpx','1.2 MB','2026-10-02','보관'],
+ ['(가상) 청사 CCTV 교체 사업','제안서','(가상)사아자전자','사아자전자_제안서.hwpx','5.6 MB','2026-10-09','보관'],
+ ['(가상) 시민 앱 고도화 용역','제안서','(가상)차카타랩','차카타랩_제안서.hwpx','6.1 MB','2026-10-05','보관'],
+ ['(가상) 복지 대상자 통합 관리 시스템','제안요청서','—','복지통합_제안요청서.hwpx','2.3 MB','2026-08-20','폐기 예정'],
+ ['(가상) 복지 대상자 통합 관리 시스템','제안서','(가상)파하나다시스템','파하나다시스템_제안서.hwpx','4.8 MB','2026-08-27','폐기 예정'],
+ ['(가상) 전자문서 보관소 구축','제안요청서','—','전자문서_제안요청서.hwpx','2.0 MB','2026-07-14','폐기됨'],
+ ['(가상) 전자문서 보관소 구축','제안서','(가상)가나다시스템','가나다시스템_제안서_v2.hwpx','3.3 MB','2026-07-21','폐기됨'],
+ ['(가상) 시설 안전 점검 앱 개발','제안요청서','—','안전점검_제안요청서.hwpx','1.5 MB','2026-08-05','보관'],
+ ['(가상) 버스 정보 안내 단말 구매','제안요청서','—','버스단말_제안요청서.hwpx','1.1 MB','2026-10-13','보관'],
+];
+const R=[
+ ['(가상)대학교','컴퓨터공학과','김가상','교수','정보시스템','(가상)정보화담당관',6],
+ ['(가상)대학교','경영학과','이나상','교수','회계·재무','(가상)기획예산담당관',4],
+ ['(가상)연구원','소프트웨어연구실','박다상','책임연구원','정보보안','(가상)정보화담당관',5],
+ ['(가상)시청','건축과','최라상','팀장','시설·건축','(가상)시설관리과',3],
+ ['(가상)대학교','사회복지학과','정마상','교수','복지','(가상)복지정책과',2],
+ ['(가상)공사','교통계획처','강바상','부장','교통','(가상)교통행정과',3],
+ ['(가상)연구원','데이터연구실','윤사상','선임연구원','데이터 분석','(가상)정보화담당관',4],
+ ['(가상)대학교','행정학과','장아상','교수','공공행정','(가상)총무과',1],
+ ['(가상)회계법인','공공사업부','임자상','회계사','회계·재무','(가상)기획예산담당관',2],
+ ['(가상)시청','안전총괄과','한차상','주무관','안전','(가상)시설관리과',1],
+ ['(가상)연구원','정보보호센터','오카상','수석연구원','정보보안','(가상)정보화담당관',7],
+ ['(가상)대학교','도시공학과','서타상','교수','교통','(가상)교통행정과',2],
+ ['(가상)협회','소프트웨어산업협회','권파상','이사','정보시스템','(가상)총무과',0],
+ ['(가상)대학교','디자인학과','문하상','교수','사용성(UX)','(가상)정보화담당관',3],
+];
+const bd={'보관':'<span class="badge success">✓ 보관</span>','폐기 예정':'<span class="badge warning">! 폐기 예정</span>','폐기됨':'<span class="badge">✕ 폐기됨</span>'};
+let tab='files',q='',fd='';
+const pools=[...new Set(R.map(r=>r[5]))];
+function tabs(t){tab=t;q='';fd='';$('#t-files').setAttribute('aria-selected',t==='files');$('#t-pool').setAttribute('aria-selected',t==='pool');$('#t-files').tabIndex=t==='files'?0:-1;$('#t-pool').tabIndex=t==='pool'?0:-1;
+  $('#acts').hidden=t!=='files';$('#sub').textContent=t==='files'?'모든 사업의 제안요청서와 제안서를 볼 수 있어요':'모든 부서가 등록한 평가위원 후보예요';
+  $('#tb').innerHTML=(t==='pool'?`<label class="sel-wrap">등록 부서<select id="fd" aria-label="등록 부서로 거르기"><option value="">전체 부서</option>${pools.map(p=>`<option>${p}</option>`).join('')}</select></label>`:'')+
+   `<div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input type="search" id="q" placeholder="${t==='files'?'사업·업체·파일명 검색':'이름·기관·분야 검색'}" aria-label="검색"></div><span class="count" id="count"></span>`;
+  $('#q').oninput=e=>{q=e.target.value.trim();draw()};$('#fd')&&($('#fd').onchange=e=>{fd=e.target.value;draw()});
+  $('#th').innerHTML=t==='files'?'<tr><th>사업</th><th>종류</th><th>업체</th><th>파일명</th><th class="num">크기</th><th>올린 날</th><th>보관 상태</th></tr>':'<tr><th>기관</th><th>부서</th><th>이름</th><th>직책</th><th>분야</th><th>등록 부서</th><th class="num">참여 횟수</th></tr>';
+  draw()}
+function draw(){let L;
+  if(tab==='files'){L=F.filter(r=>!q||r.slice(0,4).join(' ').includes(q));$('#rows').innerHTML=L.map(r=>`<tr><td class="strong">${h(r[0])}</td><td>${r[1]}</td><td>${h(r[2])}</td><td class="file">${h(r[3])}</td><td class="num tnum">${r[4]}</td><td class="tnum">${r[5]}</td><td>${bd[r[6]]}</td></tr>`).join('')}
+  else{L=R.filter(r=>(!fd||r[5]===fd)&&(!q||r.slice(0,5).join(' ').includes(q)));$('#rows').innerHTML=L.map(r=>`<tr><td>${h(r[0])}</td><td>${h(r[1])}</td><td class="strong">${h(r[2])}</td><td>${r[3]}</td><td>${r[4]}</td><td>${h(r[5])}</td><td class="num tnum">${r[6]}회</td></tr>`).join('')}
+  $('#count').textContent=L.length+'건';$('#none').hidden=L.length>0;$('table').hidden=!L.length}
+$('#t-files').onclick=()=>tabs('files');$('#t-pool').onclick=()=>tabs('pool');
+[$('#t-files'),$('#t-pool')].forEach(b=>b.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const t=tab==='files'?'pool':'files';tabs(t);$('#t-'+t).focus()}}));
+tabs(location.hash==='#pool'?'pool':'files');
+</script>
+</body>
+</html>

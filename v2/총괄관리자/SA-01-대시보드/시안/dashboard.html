@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>대시보드 · 심사임당 총괄관리자</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../_shell.css">
+<style>
+.pane{flex:1;min-height:0;display:flex}
+.pane[hidden]{display:none}
+.sched{display:grid;grid-template-columns:minmax(440px,5fr) 6fr;gap:0;flex:1;min-height:0}
+.calwrap{padding:16px 20px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px;min-height:0}
+.calnav{display:flex;align-items:center;gap:8px}
+.calnav select{width:auto;min-width:96px;min-height:44px}
+.calnav .btn{min-width:44px;padding:0 12px}
+.calnav .today{margin-left:auto}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;flex:1;min-height:0;grid-auto-rows:minmax(0,1fr)}
+.dow{font-size:var(--t-base);font-weight:700;color:var(--text-3);text-align:center;padding:4px 0;min-height:0}
+.dow:first-child{color:var(--danger-60)}
+.day{appearance:none;border:1px solid transparent;background:var(--gray-0);border-radius:var(--radius-sm);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;padding:4px 2px;font-size:var(--t-base);min-height:0;position:relative}
+.day:hover{background:var(--gray-5)}
+.day.out{color:var(--gray-50)}
+.day.has{background:var(--primary-5);border-color:var(--primary-10);font-weight:700}
+.day.today .n{background:var(--gray-90);color:#fff;border-radius:var(--radius-full);min-width:28px}
+.day.pick{border-color:var(--primary-50);box-shadow:inset 0 0 0 2px var(--primary-50)}
+.day .n{display:inline-grid;place-items:center;height:28px;min-width:28px;padding:0 4px}
+.day .ev{font-size:var(--t-sm);color:var(--primary-60);font-weight:700;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.day .ev::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary-50);flex:none}
+.lists{overflow:auto;padding:12px 24px 16px;display:flex;flex-direction:column;gap:20px;min-height:0}
+.lh{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.lh h3{font-size:var(--t-lg)}
+.lh span{color:var(--text-3);font-size:var(--t-base)}
+.lrow{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;min-height:52px;padding:6px 12px;margin:0 -12px;border-radius:var(--radius-sm);text-decoration:none;color:inherit;border-bottom:1px solid var(--line)}
+.lrow:hover{background:var(--primary-5)}
+.lrow.dim{opacity:.45}
+.lrow.hl{background:var(--primary-5);box-shadow:inset 3px 0 0 var(--primary-50)}
+.lrow .t{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lrow .d{color:var(--text-3);font-size:var(--t-base);white-space:nowrap}
+.lempty{color:var(--text-3);padding:12px 0}
+.filt{display:flex;align-items:center;gap:8px;background:var(--primary-5);border-radius:var(--radius-sm);padding:6px 6px 6px 14px;font-size:var(--t-base);font-weight:700;color:var(--primary-60)}
+.filt button{margin-left:auto;min-height:36px}
+.todo{flex:1;min-height:0;display:grid;grid-template-columns:6fr 5fr;overflow:hidden}
+.todo>section{padding:16px 24px;overflow:auto;min-height:0}
+.todo>section+section{border-left:1px solid var(--line)}
+.grp{margin-bottom:20px}
+.titem{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.titem p{font-weight:700}
+.titem small{display:block;font-weight:400;color:var(--text-3);font-size:var(--t-base)}
+.titem a{color:var(--primary-60);font-weight:700;white-space:nowrap;text-decoration:none;min-height:44px;display:inline-flex;align-items:center;padding:0 8px;border-radius:var(--radius-sm)}
+.titem a:hover{background:var(--primary-5);text-decoration:underline}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:104px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:var(--t-base)}
+.log time{color:var(--text-3)}
+.log b{display:block}
+.log span{color:var(--text-3)}
+.dept{flex:1;overflow:auto;padding:16px 24px}
+.drow{display:grid;grid-template-columns:200px 1fr 64px;gap:16px;align-items:center;min-height:44px;text-decoration:none;color:inherit;border-radius:var(--radius-sm);padding:0 8px}
+.drow:hover{background:var(--primary-5)}
+.drow .bar{height:20px;background:var(--gray-5);border-radius:var(--radius-full);overflow:hidden}
+.drow .bar i{display:block;height:100%;background:var(--primary-50);border-radius:var(--radius-full);min-width:0}
+.drow .v{font-weight:700;text-align:right;font-size:var(--t-body)}
+.drow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sum{color:var(--text-3);margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <button class="brand" type="button" data-href="../../SA-01-대시보드/시안/dashboard.html" aria-label="심사임당 대시보드로"><span class="brand-mark">심</span><span>심사임당</span></button>
+  <p class="role">총괄관리자</p>
+  <nav aria-label="주 메뉴">
+    <a href="../../SA-01-대시보드/시안/dashboard.html" aria-current="page">대시보드</a>
+    <a href="../../SA-02-부서-관리/시안/departments.html">부서 관리</a>
+    <a href="../../SA-03-전체-사업-현황/시안/projects.html">전체 사업</a>
+    <a href="../../SA-04-자료-관리/시안/data.html">자료 관리</a>
+  </nav>
+  <div class="bottom">
+    <a href="../../SA-00-로그인-권한/시안/login.html#account" data-account>내 계정</a>
+    <a href="../../SA-00-로그인-권한/시안/login.html" data-logout>로그아웃</a>
+  </div>
+</aside>
+<div class="main">
+  <header class="head"><div><h1>대시보드</h1><p class="sub">오늘은 2026년 10월 16일이에요</p></div></header>
+  <div class="body">
+    <section class="card">
+      <div class="tabs" role="tablist" aria-label="대시보드">
+        <button class="tab" role="tab" id="t-sched" aria-selected="true" aria-controls="p-sched" type="button">일정</button>
+        <button class="tab" role="tab" id="t-todo" aria-selected="false" aria-controls="p-todo" type="button" tabindex="-1">확인할 일 <span class="badge danger" aria-label="3건">3</span></button>
+        <button class="tab" role="tab" id="t-dept" aria-selected="false" aria-controls="p-dept" type="button" tabindex="-1">부서별</button>
+      </div>
+
+      <div class="pane" id="p-sched" role="tabpanel" aria-labelledby="t-sched">
+        <div class="sched">
+          <div class="calwrap">
+            <div class="calnav">
+              <button class="btn" type="button" id="prev" aria-label="이전 달">‹</button>
+              <select id="yy" aria-label="연도"></select><select id="mm" aria-label="월"></select>
+              <button class="btn" type="button" id="next" aria-label="다음 달">›</button>
+              <button class="btn today" type="button" id="goto">오늘</button>
+            </div>
+            <div class="cal" id="cal" role="grid" aria-label="평가 일정 달력"></div>
+          </div>
+          <div class="lists" id="lists"></div>
+        </div>
+      </div>
+
+      <div class="pane" id="p-todo" role="tabpanel" aria-labelledby="t-todo" hidden>
+        <div class="todo">
+          <section aria-labelledby="h-act">
+            <h2 class="sec-h" id="h-act">필요한 조치 <span class="muted" style="font-weight:400">3건</span></h2>
+            <div class="grp"><div class="titem"><span class="badge danger">잠김</span><p>(가상)시설관리과 계정이 잠겼어요<small>비밀번호를 5번 틀렸어요 · 오늘 09:05</small></p><a href="../../SA-02-부서-관리/시안/departments.html">부서 관리에서 풀기 →</a></div></div>
+            <div class="grp"><div class="titem"><span class="badge warning">변환 실패</span><p>사아자전자_제안서.hwpx를 읽지 못했어요<small>(가상) 청사 CCTV 교체 사업 · 어제 17:40</small></p><a href="../../SA-04-자료-관리/시안/data.html">자료 관리에서 보기 →</a></div></div>
+            <div class="grp"><div class="titem"><span class="badge info">일정 지연</span><p>위원 명단 확정이 늦어지고 있어요<small>(가상) 버스 정보 안내 단말 구매 · 평가일 11-12</small></p><a href="../../SA-03-전체-사업-현황/시안/projects.html#open=5">사업 보기 →</a></div></div>
+          </section>
+          <section aria-labelledby="h-log">
+            <h2 class="sec-h" id="h-log">최근 변경 기록</h2>
+            <ul class="log">
+              <li><time>오늘 09:12</time><div><b>총괄 로그인</b><span>김가상 (총괄)</span></div></li>
+              <li><time>10-15 16:30</time><div><b>사업 평가일 변경: 통합 민원 시스템 구축 용역</b><span>김가상 (정보화담당관)</span></div></li>
+              <li><time>10-14 11:02</time><div><b>평가 시작: 청사 CCTV 교체 사업</b><span>이나상 (시설관리과)</span></div></li>
+              <li><time>10-13 15:48</time><div><b>부서 등록: 문화관광과</b><span>김가상 (총괄)</span></div></li>
+              <li><time>10-12 10:20</time><div><b>부서 비활성: 감사담당관</b><span>김가상 (총괄)</span></div></li>
+              <li><time>10-10 14:05</time><div><b>사업 삭제(폐기): 구형 단말 교체 검토</b><span>김가상 (총괄)</span></div></li>
+            </ul>
+          </section>
+        </div>
+      </div>
+
+      <div class="pane" id="p-dept" role="tabpanel" aria-labelledby="t-dept" hidden style="flex-direction:column">
+        <div class="dept"><p class="sum" id="sum"></p><div id="bars"></div></div>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="scrim" id="scrim"></div><div class="scrim top" id="scrim2"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const h=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3200)}
+const stack=[];
+function openLayer(el,focusSel){const sc=el.classList.contains('dlg')?$('#scrim2'):$('#scrim');stack.push({el,sc,from:document.activeElement});sc.classList.add('on');el.classList.add('on');
+  setTimeout(()=>{const f=(focusSel&&$(focusSel,el))||el.querySelector('input:not([disabled]),select,button:not([disabled])');f&&f.focus()},60)}
+function closeLayer(el){const i=stack.findIndex(l=>l.el===el);if(i<0)return;const l=stack.splice(i,1)[0];l.el.classList.remove('on');l.sc.classList.remove('on');
+  if(l.from&&document.contains(l.from)&&l.from.focus)l.from.focus()}
+document.addEventListener('keydown',e=>{
+  if(!stack.length)return;const top=stack[stack.length-1].el;
+  if(e.key==='Escape'){e.preventDefault();closeLayer(top)}
+  if(e.key==='Tab'){const f=$$('input:not([disabled]),select,button:not([disabled]),[tabindex="0"]',top).filter(x=>x.offsetParent!==null||x===document.activeElement);
+    if(!f.length)return;const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
+});
+$('#scrim')&&$('#scrim').addEventListener('click',()=>{const l=stack.filter(x=>x.sc.id==='scrim').pop();l&&closeLayer(l.el)});
+$('#scrim2')&&$('#scrim2').addEventListener('click',()=>{const l=stack.filter(x=>x.sc.id==='scrim2').pop();l&&closeLayer(l.el)});
+$$('[data-close]').forEach(b=>b.addEventListener('click',()=>closeLayer(b.closest('.drawer,.dlg'))));
+$$('[data-href]').forEach(b=>b.addEventListener('click',()=>{location.href=b.dataset.href}));
+function rowKey(tr,fn){tr.addEventListener('click',fn);tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}})}
+function confirmDlg({title,body,ok,danger=true,onOk}){const d=$('#dlg');$('#dlg-t').textContent=title;$('#dlg-b').textContent=body;const b=$('#dlg-ok');b.textContent=ok;b.className='btn '+(danger?'danger':'primary');
+  b.onclick=()=>{closeLayer(d);onOk&&onOk()};openLayer(d,'#dlg-cancel')}
+
+const TODAY=new Date(2026,9,16);
+const P=[ // [id,name,dept,date,stage]
+ [1,'(가상) 통합 민원 시스템 구축 용역','정보화담당관','2026-11-05','준비'],[2,'(가상) 청사 CCTV 교체 사업','시설관리과','2026-10-28','평가 중'],
+ [3,'(가상) 시민 앱 고도화 용역','정보화담당관','2026-10-20','평가 중'],[4,'(가상) 복지 대상자 통합 관리 시스템','복지정책과','2026-09-30','완료'],
+ [5,'(가상) 버스 정보 안내 단말 구매','교통행정과','2026-11-12','준비'],[6,'(가상) 예산 편성 시스템 개선','기획예산담당관','2026-11-18','준비'],
+ [7,'(가상) 전자문서 보관소 구축','총무과','2026-09-14','완료'],[8,'(가상) 공공 와이파이 확대 사업','정보화담당관','2026-10-24','평가 중'],
+ [9,'(가상) 주차 정보 시스템 개선','교통행정과','2026-12-02','준비'],[10,'(가상) 시설 안전 점검 앱 개발','시설관리과','2026-08-27','완료'],
+ [11,'(가상) 업무 포털 개편 용역','총무과','2026-11-25','준비'],[12,'(가상) 돌봄 서비스 신청 시스템','복지정책과','2026-10-22','평가 중']];
+const tone={'준비':'info','평가 중':'primary','완료':'success'},mk={'준비':'○','평가 중':'●','완료':'✓'};
+let Y=2026,M=9,pick=null;
+const pad=n=>String(n).padStart(2,'0'),key=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
+const inMonth=(y,m)=>P.filter(p=>p[3].startsWith(y+'-'+pad(m+1)+'-'));
+$('#yy').innerHTML=[2025,2026,2027].map(y=>`<option value="${y}">${y}년</option>`).join('');
+$('#mm').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i}">${i+1}월</option>`).join('');
+function row(p,cls=''){return `<a class="lrow ${cls}" href="../../SA-03-전체-사업-현황/시안/projects.html#open=${p[0]}" aria-label="${h(p[1])} 자세히 보기"><span class="t">${h(p[1])}</span><span class="d">${p[2]}</span><span class="badge ${tone[p[4]]}">${mk[p[4]]} ${p[4]}</span></a>`}
+function sec(title,sub,arr,empty){const body=arr.length?arr.map(p=>row(p,pick&&p[3]===pick?'hl':pick?'dim':'')).join(''):`<p class="lempty">${empty}</p>`;return `<section><div class="lh"><h3>${title}</h3><span>${sub}</span></div>${body}</section>`}
+function draw(){
+  $('#yy').value=Y;$('#mm').value=M;
+  const first=new Date(Y,M,1).getDay(),dim=new Date(Y,M+1,0).getDate(),prevDim=new Date(Y,M,0).getDate();
+  let html=['일','월','화','수','목','금','토'].map(d=>`<div class="dow" role="columnheader">${d}</div>`).join('');
+  const total=Math.ceil((first+dim)/7)*7;
+  for(let i=0;i<total;i++){let d=i-first+1,y=Y,m=M,out=false;if(d<1){out=true;d=prevDim+d;m=M-1;if(m<0){m=11;y--}}else if(d>dim){out=true;d=d-dim;m=M+1;if(m>11){m=0;y++}}
+    const k=key(y,m,d),ev=P.filter(p=>p[3]===k),t=y===TODAY.getFullYear()&&m===TODAY.getMonth()&&d===TODAY.getDate();
+    html+=`<button type="button" class="day${out?' out':''}${ev.length?' has':''}${t?' today':''}${pick===k?' pick':''}" data-k="${k}" role="gridcell" aria-pressed="${pick===k}" aria-label="${m+1}월 ${d}일${t?' 오늘':''}${ev.length?', 평가 '+ev.length+'건':''}"><span class="n">${d}</span>${ev.length?`<span class="ev">평가 ${ev.length}건</span>`:''}</button>`}
+  $('#cal').innerHTML=html;$('#cal').style.gridTemplateRows=`auto repeat(${total/7},minmax(0,1fr))`;
+  $$('#cal .day').forEach(b=>b.onclick=()=>{pick=pick===b.dataset.k?null:b.dataset.k;if(b.dataset.k.slice(0,7)!==Y+'-'+pad(M+1)){const[y,m]=b.dataset.k.split('-');Y=+y;M=+m-1}draw();const n=$(`#cal [data-k="${pick}"]`);n&&n.focus()});
+  const nm=(M+1)%12,ny=M===11?Y+1:Y,cur=Y===TODAY.getFullYear()&&M===TODAY.getMonth();
+  const run=P.filter(p=>p[4]==='평가 중');
+  $('#lists').innerHTML=(pick?`<div class="filt">${pick.slice(5).replace('-','월 ')}일 평가 사업을 강조했어요<button class="btn" type="button" id="clr">모두 보기</button></div>`:'')+
+    sec('진행 중 사업','평가 중 · '+run.length+'건',run,'지금 평가 중인 사업이 없어요')+
+    sec(cur?'이번 달 평가':(M+1)+'월 평가',(M+1)+'월 · '+inMonth(Y,M).length+'건',inMonth(Y,M),'이 달에는 평가가 없어요')+
+    sec(cur?'다음 달 평가':(nm+1)+'월 평가',(nm+1)+'월 · '+inMonth(ny,nm).length+'건',inMonth(ny,nm),'이 달에는 평가가 없어요');
+  $('#clr')&&($('#clr').onclick=()=>{pick=null;draw()})}
+const go=(dm)=>{M+=dm;if(M<0){M=11;Y--}if(M>11){M=0;Y++}pick=null;draw()};
+$('#prev').onclick=()=>go(-1);$('#next').onclick=()=>go(1);$('#goto').onclick=()=>{Y=2026;M=9;pick=null;draw()};
+$('#yy').onchange=e=>{Y=+e.target.value;pick=null;draw()};$('#mm').onchange=e=>{M=+e.target.value;pick=null;draw()};
+// 부서별
+const DP=[['감사담당관 (비활성)',6],['시설관리과',5],['정보화담당관',4],['기획예산담당관',3],['총무과',2],['교통행정과',2],['복지정책과',1],['홍보담당관',1],['문화관광과',0],['환경정책과',0]];
+const tot=DP.reduce((a,b)=>a+b[1],0),mx=Math.max(...DP.map(x=>x[1]));
+$('#sum').textContent='전체 '+tot+'개 사업 · 부서 '+DP.length+'곳';
+$('#bars').innerHTML=DP.map(d=>`<a class="drow" href="../../SA-03-전체-사업-현황/시안/projects.html" aria-label="${d[0]} 사업 ${d[1]}개"><span class="nm">(가상)${d[0]}</span><span class="bar" aria-hidden="true"><i style="width:${d[1]/mx*100}%"></i></span><span class="v tnum">${d[1]}개</span></a>`).join('');
+// 탭
+const TB={sched:$('#t-sched'),todo:$('#t-todo'),dept:$('#t-dept')};
+function tab(k){Object.entries(TB).forEach(([n,b])=>{b.setAttribute('aria-selected',n===k);b.tabIndex=n===k?0:-1;$('#p-'+n).hidden=n!==k})}
+Object.entries(TB).forEach(([n,b])=>b.addEventListener('click',()=>tab(n)));
+Object.keys(TB).forEach((n,i,a)=>TB[n].addEventListener('keydown',e=>{const j=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!j)return;const t=a[(i+j+3)%3];tab(t);TB[t].focus()}));
+draw();const hh=location.hash.slice(1);if(TB[hh])tab(hh);
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>부서 관리 · 심사임당 총괄관리자</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../_shell.css">
+<style>
+.pw-box{background:var(--gray-5);border-radius:var(--radius-sm);padding:12px 16px;font-size:var(--t-base);color:var(--text-2)}
+.zone{border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:12px}
+.zone .why{color:var(--text-3);font-size:var(--t-base)}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+td .sub{display:block;font-size:var(--t-base);color:var(--text-3);font-weight:400}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <button class="brand" type="button" data-href="../../SA-01-대시보드/시안/dashboard.html" aria-label="심사임당 대시보드로"><span class="brand-mark">심</span><span>심사임당</span></button>
+  <p class="role">총괄관리자</p>
+  <nav aria-label="주 메뉴">
+    <a href="../../SA-01-대시보드/시안/dashboard.html">대시보드</a>
+    <a href="../../SA-02-부서-관리/시안/departments.html" aria-current="page">부서 관리</a>
+    <a href="../../SA-03-전체-사업-현황/시안/projects.html">전체 사업</a>
+    <a href="../../SA-04-자료-관리/시안/data.html">자료 관리</a>
+  </nav>
+  <div class="bottom">
+    <a href="../../SA-00-로그인-권한/시안/login.html#account" data-account>내 계정</a>
+    <a href="../../SA-00-로그인-권한/시안/login.html" data-logout>로그아웃</a>
+  </div>
+</aside>
+<div class="main">
+  <header class="head">
+    <div><h1>부서 관리</h1><p class="sub">시스템을 쓸 부서에 계정을 만들어 드려요</p></div>
+    <button class="btn primary" id="btn-new" type="button">부서 등록</button>
+  </header>
+  <div class="body">
+    <section class="card" aria-label="부서 목록">
+      <div class="toolbar" id="toolbar">
+        <span class="count" style="margin-left:0" id="count"></span>
+      </div>
+      <div class="tbl-wrap" id="wrap">
+        <table>
+          <thead><tr><th>기관·부서명</th><th>아이디</th><th>대표 연락처</th><th class="num">사업 수</th><th>상태</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="state" id="empty" hidden>
+        <div class="ico" aria-hidden="true">＋</div>
+        <strong>아직 등록한 부서가 없어요</strong>
+        <p>부서를 등록하면 그 부서가 로그인해서 사업을 만들 수 있어요.</p>
+        <button class="btn primary" type="button" id="btn-new2">부서 등록</button>
+      </div>
+    </section>
+  </div>
+  <div class="demo"><b>시안 보기</b>
+    <button type="button" id="d-list" aria-pressed="true">목록 있음</button>
+    <button type="button" id="d-empty" aria-pressed="false">빈 목록</button>
+    <span class="muted">· 행을 누르면 수정 칸이 열려요 · 사업이 있는 부서는 삭제 대신 비활성</span>
+  </div>
+</div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="scrim top" id="scrim2"></div>
+
+<!-- 등록 -->
+<aside class="drawer" id="p-new" role="dialog" aria-modal="true" aria-labelledby="p-new-t">
+  <header><h2 id="p-new-t">부서 등록</h2><button class="x" type="button" data-close aria-label="닫기">×</button></header>
+  <form class="dbody" id="f-new" novalidate>
+    <label class="field">기관·부서명
+      <input id="n-name" autocomplete="off" placeholder="예) (가상)시청 정보화담당관" aria-describedby="n-name-e">
+      <span class="err" id="n-name-e" hidden></span></label>
+    <label class="field">아이디 <span class="hint">영문 소문자와 숫자 4~16자</span>
+      <input id="n-id" autocomplete="off" placeholder="예) info01" aria-describedby="n-id-e">
+      <span class="err" id="n-id-e" hidden></span></label>
+    <div class="field"><label for="n-pw">초기 비밀번호</label>
+      <div class="with-btn"><input id="n-pw" autocomplete="off" aria-describedby="n-pw-e n-pw-h"><button class="btn" type="button" id="n-gen">생성</button></div>
+      <span class="hint" id="n-pw-h">처음 로그인할 때 부서가 직접 바꿔요. 등록한 뒤에는 다시 볼 수 없으니 전달할 곳에 적어 두세요.</span>
+      <span class="err" id="n-pw-e" hidden></span></div>
+    <label class="field">대표 연락처
+      <input id="n-tel" type="tel" autocomplete="off" placeholder="010-0000-0000" aria-describedby="n-tel-e">
+      <span class="err" id="n-tel-e" hidden></span></label>
+  </form>
+  <footer><button class="btn" type="button" data-close>취소</button><button class="btn primary" type="submit" form="f-new">등록</button></footer>
+</aside>
+
+<!-- 수정 -->
+<aside class="drawer" id="p-edit" role="dialog" aria-modal="true" aria-labelledby="p-edit-t">
+  <header><h2 id="p-edit-t">부서 수정</h2><button class="x" type="button" data-close aria-label="닫기">×</button></header>
+  <div class="dbody">
+    <div id="e-status"></div>
+    <label class="field">기관·부서명
+      <input id="e-name" autocomplete="off" aria-describedby="e-name-e"><span class="err" id="e-name-e" hidden></span></label>
+    <label class="field">아이디 <span class="hint">아이디는 바꿀 수 없어요</span>
+      <input id="e-id" disabled></label>
+    <label class="field">대표 연락처
+      <input id="e-tel" type="tel" autocomplete="off" aria-describedby="e-tel-e"><span class="err" id="e-tel-e" hidden></span></label>
+    <dl class="kv"><dt>사업 수</dt><dd id="e-cnt"></dd></dl>
+    <div class="zone">
+      <h3 class="sec-h" style="margin:0">계정 관리</h3>
+      <div class="row-btns"><button class="btn" type="button" id="e-reset">비밀번호 초기화</button></div>
+      <div id="e-zone" class="row-btns" style="flex-direction:column;align-items:flex-start"></div>
+    </div>
+  </div>
+  <footer><button class="btn" type="button" data-close>닫기</button><button class="btn primary" type="button" id="e-save">저장</button></footer>
+</aside>
+
+<!-- 확인 -->
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t" aria-describedby="dlg-b">
+  <h2 id="dlg-t"></h2><p id="dlg-b"></p>
+  <div class="acts"><button class="btn" type="button" id="dlg-cancel" data-close>취소</button><button class="btn danger" type="button" id="dlg-ok"></button></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const h=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),3200)}
+const stack=[];
+function openLayer(el,focusSel){const sc=el.classList.contains('dlg')?$('#scrim2'):$('#scrim');stack.push({el,sc,from:document.activeElement});sc.classList.add('on');el.classList.add('on');
+  setTimeout(()=>{const f=(focusSel&&$(focusSel,el))||el.querySelector('input:not([disabled]),select,button:not([disabled])');f&&f.focus()},60)}
+function closeLayer(el){const i=stack.findIndex(l=>l.el===el);if(i<0)return;const l=stack.splice(i,1)[0];l.el.classList.remove('on');l.sc.classList.remove('on');
+  if(l.from&&document.contains(l.from)&&l.from.focus)l.from.focus()}
+document.addEventListener('keydown',e=>{
+  if(!stack.length)return;const top=stack[stack.length-1].el;
+  if(e.key==='Escape'){e.preventDefault();closeLayer(top)}
+  if(e.key==='Tab'){const f=$$('input:not([disabled]),select,button:not([disabled]),[tabindex="0"]',top).filter(x=>x.offsetParent!==null||x===document.activeElement);
+    if(!f.length)return;const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}
+});
+$('#scrim')&&$('#scrim').addEventListener('click',()=>{const l=stack.filter(x=>x.sc.id==='scrim').pop();l&&closeLayer(l.el)});
+$('#scrim2')&&$('#scrim2').addEventListener('click',()=>{const l=stack.filter(x=>x.sc.id==='scrim2').pop();l&&closeLayer(l.el)});
+$$('[data-close]').forEach(b=>b.addEventListener('click',()=>closeLayer(b.closest('.drawer,.dlg'))));
+$$('[data-href]').forEach(b=>b.addEventListener('click',()=>{location.href=b.dataset.href}));
+function rowKey(tr,fn){tr.addEventListener('click',fn);tr.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fn()}})}
+function confirmDlg({title,body,ok,danger=true,onOk}){const d=$('#dlg');$('#dlg-t').textContent=title;$('#dlg-b').textContent=body;const b=$('#dlg-ok');b.textContent=ok;b.className='btn '+(danger?'danger':'primary');
+  b.onclick=()=>{closeLayer(d);onOk&&onOk()};openLayer(d,'#dlg-cancel')}
+
+let depts=[
+ {name:'(가상)시청 정보화담당관',id:'info01',tel:'010-0000-1101',n:4,on:true},
+ {name:'(가상)시청 기획예산담당관',id:'plan01',tel:'010-0000-1102',n:3,on:true},
+ {name:'(가상)시청 총무과',id:'gen01',tel:'010-0000-1103',n:2,on:true},
+ {name:'(가상)시청 시설관리과',id:'fac01',tel:'010-0000-1104',n:5,on:true},
+ {name:'(가상)시청 복지정책과',id:'wel01',tel:'010-0000-1105',n:1,on:true},
+ {name:'(가상)시청 교통행정과',id:'trf01',tel:'010-0000-1106',n:2,on:true},
+ {name:'(가상)시청 문화관광과',id:'cul01',tel:'010-0000-1107',n:0,on:true},
+ {name:'(가상)시청 환경정책과',id:'env01',tel:'010-0000-1108',n:0,on:true},
+ {name:'(가상)시청 감사담당관',id:'aud01',tel:'010-0000-1109',n:6,on:false},
+ {name:'(가상)시청 홍보담당관',id:'pr01',tel:'010-0000-1110',n:1,on:true},
+];
+const full=depts.slice();let cur=null;
+const badge=d=>d.on?'<span class="badge success">✓ 사용</span>':'<span class="badge">― 비활성</span>';
+function render(){
+  const has=depts.length>0;$('#wrap').hidden=!has;$('#empty').hidden=has;$('#toolbar').hidden=!has;$('#btn-new').hidden=!has;
+  $('#count').textContent='전체 '+depts.length+'개 부서';
+  $('#rows').innerHTML=depts.map((d,i)=>`<tr tabindex="0" data-i="${i}" aria-label="${h(d.name)} 수정"><td class="strong">${h(d.name)}</td><td>${h(d.id)}</td><td class="tnum">${h(d.tel)}</td><td class="num tnum">${d.n}</td><td>${badge(d)}</td></tr>`).join('');
+  $$('#rows tr').forEach(tr=>rowKey(tr,()=>openEdit(+tr.dataset.i)));
+}
+const show=(id,msg)=>{const e=$('#'+id);e.textContent=msg||'';e.hidden=!msg;const inp=e.previousElementSibling&&e.previousElementSibling.tagName==='INPUT'?e.previousElementSibling:(e.closest('.field')||document).querySelector('input');if(inp&&inp.tagName==='INPUT'){msg?inp.setAttribute('aria-invalid','true'):inp.removeAttribute('aria-invalid')}return !msg};
+const vName=(v,e)=>show(e,v.trim()?'':'기관·부서명을 입력해 주세요');
+const vId=v=>{v=v.trim();let m='';if(!v)m='아이디를 입력해 주세요';else if(!/^[a-z0-9]{4,16}$/.test(v))m='영문 소문자와 숫자로 4~16자로 적어 주세요';else if(full.some(d=>d.id===v))m='이미 쓰고 있는 아이디예요. 다른 아이디를 입력해 주세요';return show('n-id-e',m)};
+const vPw=v=>show('n-pw-e',!v?'초기 비밀번호를 만들어 주세요. [생성]을 누르면 만들어 드려요':(v.length<8?'8자 이상으로 만들어 주세요':''));
+const vTel=(v,e)=>show(e,/^0\d{1,2}-\d{3,4}-\d{4}$/.test(v.trim())?'':'연락처를 000-0000-0000 모양으로 적어 주세요');
+$('#n-name').addEventListener('blur',e=>vName(e.target.value,'n-name-e'));
+$('#n-id').addEventListener('blur',e=>vId(e.target.value));
+$('#n-pw').addEventListener('blur',e=>e.target.value&&vPw(e.target.value));
+$('#n-tel').addEventListener('blur',e=>e.target.value&&vTel(e.target.value,'n-tel-e'));
+$('#n-gen').onclick=()=>{const c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';let p='';for(let i=0;i<10;i++)p+=c[Math.floor(Math.random()*c.length)];$('#n-pw').value=p;vPw(p)};
+function openNew(){$('#f-new').reset();['n-name-e','n-id-e','n-pw-e','n-tel-e'].forEach(x=>show(x,''));openLayer($('#p-new'),'#n-name')}
+$('#btn-new').onclick=openNew;$('#btn-new2').onclick=openNew;
+$('#f-new').addEventListener('submit',e=>{e.preventDefault();
+  const a=vName($('#n-name').value,'n-name-e'),b=vId($('#n-id').value),c=vPw($('#n-pw').value),d=vTel($('#n-tel').value,'n-tel-e');
+  if(!(a&&b&&c&&d)){const f=$$('#f-new input').find(i=>i.getAttribute('aria-invalid')==='true');f&&f.focus();return}
+  const nd={name:$('#n-name').value.trim(),id:$('#n-id').value.trim(),tel:$('#n-tel').value.trim(),n:0,on:true};depts.push(nd);full.push(nd);
+  closeLayer($('#p-new'));render();toast(nd.name+' 계정을 만들었어요');});
+function openEdit(i){cur=depts[i];$('#e-name').value=cur.name;$('#e-id').value=cur.id;$('#e-tel').value=cur.tel;$('#e-cnt').textContent=cur.n+'건';show('e-name-e','');show('e-tel-e','');
+  $('#p-edit-t').textContent=cur.name;
+  $('#e-status').innerHTML=cur.on?'<span class="badge success">✓ 사용 중</span>':'<span class="badge">― 비활성 · 로그인할 수 없어요</span>';
+  const z=$('#e-zone');
+  if(!cur.on){z.innerHTML='<button class="btn" type="button" id="z-on">다시 사용하기</button>'}
+  else if(cur.n>0){z.innerHTML='<button class="btn text-danger" type="button" id="z-off">비활성으로 바꾸기</button><button class="btn" type="button" disabled aria-describedby="z-why">삭제</button><p class="why" id="z-why">사업이 있어 삭제 대신 비활성으로 바꿀 수 있어요</p>'}
+  else{z.innerHTML='<button class="btn text-danger" type="button" id="z-del">삭제</button><p class="why">사업이 없어서 삭제할 수 있어요</p>'}
+  const g=id=>document.getElementById(id);
+  g('z-on')&&(g('z-on').onclick=()=>{cur.on=true;closeLayer($('#p-edit'));render();toast('다시 사용할 수 있게 바꿨어요')});
+  g('z-off')&&(g('z-off').onclick=()=>confirmDlg({title:'‘'+cur.name+'’을 비활성으로 바꿀까요?',body:'이 부서는 로그인할 수 없게 돼요. 사업과 기록은 그대로 남아요. 언제든 다시 사용할 수 있어요.',ok:'비활성으로 바꾸기',onOk:()=>{cur.on=false;closeLayer($('#p-edit'));render();toast('비활성으로 바꾸고 기록을 남겼어요')}}));
+  g('z-del')&&(g('z-del').onclick=()=>confirmDlg({title:'‘'+cur.name+'’을 삭제할까요?',body:'삭제하면 되돌릴 수 없어요. 이 부서의 계정도 함께 없어져요.',ok:'삭제',onOk:()=>{const c=cur;depts=depts.filter(x=>x!==c);const k=full.indexOf(c);full.splice(k,1);closeLayer($('#p-edit'));render();toast('삭제하고 기록을 남겼어요')}}));
+  openLayer($('#p-edit'),'#e-name')}
+$('#e-reset').onclick=()=>confirmDlg({title:'비밀번호를 초기화할까요?',body:'새 임시 비밀번호가 만들어지고, 이 부서는 다음 로그인 때 비밀번호를 새로 정해요.',ok:'초기화',danger:false,onOk:()=>toast('임시 비밀번호를 만들었어요: Tmp'+Math.floor(1000+Math.random()*9000)+'!ab (이 화면을 닫으면 다시 볼 수 없어요)')});
+$('#e-save').onclick=()=>{const a=vName($('#e-name').value,'e-name-e'),b=vTel($('#e-tel').value,'e-tel-e');if(!(a&&b))return;cur.name=$('#e-name').value.trim();cur.tel=$('#e-tel').value.trim();closeLayer($('#p-edit'));render();toast('저장했어요')};
+function mode(empty){depts=empty?[]:full.slice();$('#d-list').setAttribute('aria-pressed',!empty);$('#d-empty').setAttribute('aria-pressed',empty);render()}
+$('#d-list').onclick=()=>mode(false);$('#d-empty').onclick=()=>mode(true);
+if(location.hash==='#empty')mode(true);else render();
+</script>
+</body>
+</html>
