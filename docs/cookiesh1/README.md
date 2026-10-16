@@ -31,7 +31,9 @@
 | 날짜 | Issue / PR | 기능·파일 | 상태 | 실행 명령·결과 | 동료 리뷰 / 남은 작업 |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-10 | 아직 없음 | 역할·코드 경로·문서 체계 등록 | 문서 작성 | 제품 검증 미실행 | 기능별 작은 이슈와 PR 등록 |
+| 2026-10-11 | 브랜치 `feat/web-interview-track` | 인터뷰로 방향 결정([UI_DIRECTION](UI_DIRECTION.md)) → 적대적 검토 반영 → 6단계 화면·공통 UI·상태 표시·제안 계약 mock 구현 (`apps/web_cookiesh1/src/**`) | 로컬 완료 | typecheck·build 통과, `npm test` 16개 통과, mock 브라우저 시나리오 21개 통과 | 실제 API 연결 미실행, 인수 시나리오 미실행. 제안 계약 담당자 합의 필요, 동료 리뷰 필요 |
 | 2026-10-11 | [PR #3](https://github.com/DaeUng79/5topilot_team/pull/3) | PR #1 웹 시작 앱을 `apps/web_cookiesh1/`로 이관, mock 모드(`src/api/mock.ts`) 추가 | main 병합 | `npm run typecheck`·`npm run build` 통과, mock 흐름 스크립트 통과 | 브라우저 확인 미실행, 실제 API 연결 미실행. PR #1 병합 시 `apps/web/` 제외 협의 |
+| 2026-10-12~13 | 이번 PR | 디자인 시안 반영, 첫 화면·Toss식 로그인(가상 위원 바로 입장), 평가위원 왼쪽 칸, 관리자 사업 화면을 공동 흐름 7단계로 재구성(제안요청서·제안서 등록 포함), 업체·일정·완료 제안 계약 mock 추가 | PR 검토 대기 | typecheck·build 통과, `npm test` 21개 통과, mock 브라우저 시나리오 28개 통과, 실제 빌드에 시연 문구 없음 확인 | 실제 API 연결 미실행(공동 API 서버 없음), 인수 시나리오 미실행. 제안 계약 담당자 합의 필요 |
 
 ```text
 담당 기능:
