@@ -220,13 +220,18 @@ def _split_reference_elements(value):
 
 
 def _summary_groups(requirement_result):
-    """요구사항 총괄표의 구분/유형 열에서 중복 없는 그룹과 설명을 읽는다."""
+    """요구사항 총괄표의 분류 열에서 중복 없는 그룹과 설명을 읽는다.
+
+    건수 열이 없는 '분류·번호·명칭' 목록형 표도 지원한다. 병합된 분류 셀은
+    첫 요구사항 행에 한 번만 나타나므로 번호 열의 실제 ID를 함께 확인한다.
+    """
     for block in requirement_result.get("requirement_list", {}).get("blocks", []):
         if block.get("type") != "table":
             continue
         rows = block.get("table", {}).get("cells", [])
         group_col = None
         count_col = None
+        id_col = None
         groups = []
         seen = set()
         for row in rows:
@@ -236,13 +241,18 @@ def _summary_groups(requirement_result):
                              if value in {"구분", "유형", "요구사항유형", "요구사항분류", "분류"}), None)
             count_detected = next((col for col, value in header.items()
                                    if value in {"요구사항수", "요구사항건수", "요구건수"}), None)
-            if detected is not None and count_detected is not None:
+            id_detected = next((col for col, value in header.items()
+                                if value in {"요구사항번호", "요구사항고유번호", "요구사항ID", "고유번호", "ID"}), None)
+            if detected is not None and (count_detected is not None or id_detected is not None):
                 group_col = detected
                 count_col = count_detected
+                id_col = id_detected
                 continue
             if group_col is None:
                 continue
-            if not re.fullmatch(r"\d+", cells.get(count_col, "").strip()):
+            if count_col is not None and not re.fullmatch(r"\d+", cells.get(count_col, "").strip()):
+                continue
+            if count_col is None and (id_col is None or not requirements.CODE_PATTERN.search(cells.get(id_col, ""))):
                 continue
             name = re.sub(r"\s*\([^)]*\)\s*$", "", cells.get(group_col, "")).strip()
             name = re.sub(r"\s+", " ", name)
@@ -251,9 +261,10 @@ def _summary_groups(requirement_result):
             if len(name) > 80 or name in seen:
                 continue
             seen.add(name)
-            description = " ".join(value for col, value in cells.items()
-                                   if col not in {group_col, count_col} and value
-                                   and not re.fullmatch(r"\d+", value))
+            description = (" ".join(value for col, value in cells.items()
+                                    if col not in {group_col, count_col} and value
+                                    and not re.fullmatch(r"\d+", value))
+                           if count_col is not None else "")
             groups.append({"name": name, "description": description[:500]})
         if groups:
             return groups

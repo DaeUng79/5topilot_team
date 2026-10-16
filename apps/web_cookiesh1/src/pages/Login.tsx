@@ -162,8 +162,8 @@ function AdminLogin({ view, inputRef, error, setError, onDone }: {
   view: View; inputRef: InputRef; error: unknown; setError: (e: unknown) => void; onDone: (s: Session) => void;
 }) {
   // mock 빌드에서만 데모 계정이 미리 채워집니다(실제 빌드에서는 빈 칸).
-  const [username, setUsername] = useState(import.meta.env.VITE_USE_MOCK === '1' ? 'gansa' : '');
-  const [password, setPassword] = useState(import.meta.env.VITE_USE_MOCK === '1' ? 'demo' : '');
+  const [username, setUsername] = useState(import.meta.env.VITE_USE_MOCK === '1' ? 'admin' : '');
+  const [password, setPassword] = useState(import.meta.env.VITE_USE_MOCK === '1' ? 'admin' : '');
   const [busy, setBusy] = useState(false);
   const ready = username.trim() !== '' && password !== '';
   async function submit(e: FormEvent) {

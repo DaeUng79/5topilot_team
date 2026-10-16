@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { ApiError, request } from '../../api/client';
+import { ApiError, request, rfpRequest, useRfpApi } from '../../api/client';
 import type { DocumentRead, ProjectClosed, ScheduleRead, VendorRead } from '../../api/contract';
 import { useLoad } from '../../lib/useLoad';
 import { fallbackVendors, loadProject, loadSummary, stepStates, type ProjectSummary } from './common';
@@ -36,12 +36,16 @@ async function optional<T>(p: Promise<T>): Promise<T | null> {
 
 async function loadAll(pid: string): Promise<ProjectData & { pid: string }> {
   const summary = await loadSummary(await loadProject(pid));
-  const [docs, vendors, schedule, closedInfo] = await Promise.all([
+  const [allDocs, realRfp, vendors, schedule, closedInfo] = await Promise.all([
     request<DocumentRead[]>('GET', `/api/v1/projects/${pid}/documents`),
+    useRfpApi ? rfpRequest(pid) : Promise.resolve(null),
     optional(request<VendorRead[]>('GET', `/api/v1/projects/${pid}/vendors`)),
     optional(request<ScheduleRead>('GET', `/api/v1/projects/${pid}/schedule`)),
     optional(request<ProjectClosed>('GET', `/api/v1/projects/${pid}/close`)),
   ]);
+  const docs = useRfpApi
+    ? [...allDocs.filter(d => d.kind !== 'rfp'), ...(realRfp ? [realRfp] : [])]
+    : allDocs;
   const list = vendors ?? fallbackVendors(summary.project);
   return {
     pid, summary, docs, vendors: list, schedule, closedInfo,

@@ -164,8 +164,10 @@ async function handle(req: Request): Promise<Response> {
 
   // ── 인증 (제안 계약) ──
   if (pathname === '/api/v1/auth/login' && method === 'POST') {
-    if (body?.username !== 'gansa' || body?.password !== 'demo') return fail(401, '아이디 또는 비밀번호가 맞지 않습니다.');
-    return json({ token: 'local-admin', role: 'admin', user_id: 'admin-1', name: '이간사' } satisfies Session);
+    const addedAdmin = body?.username === 'admin' && body?.password === 'admin';
+    const previousDemo = body?.username === 'gansa' && body?.password === 'demo';
+    if (!addedAdmin && !previousDemo) return fail(401, '아이디 또는 비밀번호가 맞지 않습니다.');
+    return json({ token: 'local-admin', role: 'admin', user_id: 'admin-1', name: addedAdmin ? '관리자' : '이간사' } satisfies Session);
   }
   if (pathname === '/api/v1/auth/evaluator/otp' && method === 'POST') {
     const digits = String(body?.phone ?? '').replace(/\D/g, '');

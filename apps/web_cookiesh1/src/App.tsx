@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, Link, Navigate, Outlet, RouterProvider, useLocation } from 'react-router';
 import type { Role } from './api/contract';
 import { useSession } from './lib/session';
+import { useRfpApi } from './api/client';
 import { AdminLayout } from './layouts/AdminLayout';
 import { EvalLayout } from './layouts/EvalLayout';
 import { LoginPage } from './pages/Login';
@@ -31,7 +32,9 @@ const DemoPanel = import.meta.env.VITE_USE_MOCK === '1' ? lazy(() => import('./d
 
 function Root() {
   return <>
-    {import.meta.env.VITE_USE_MOCK === '1' && <div className="mock-banner" role="note">MOCK · 실제 서버 아님 — 합성 데이터로 화면을 확인하는 모드입니다</div>}
+    {import.meta.env.VITE_USE_MOCK === '1' && <div className="mock-banner" role="note">{useRfpApi
+      ? '시연 데이터 · 제안요청서 파일은 로컬 SQLite에 실제 저장됩니다'
+      : 'MOCK · 실제 서버 아님 — 합성 데이터로 화면을 확인하는 모드입니다'}</div>}
     <Outlet />
     {DemoPanel && <Suspense fallback={null}><DemoPanel /></Suspense>}
   </>;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { describeError, request } from '../../../api/client';
+import { describeError, request, rfpRequest, useRfpApi } from '../../../api/client';
 import type { CriteriaConfirm, CriteriaRead, CriterionDraft, DocumentRead, DocumentUpload, JobStatus } from '../../../api/contract';
 import { formatDateTime, pageLabel } from '../../../lib/format';
 import { Empty } from '../../../ui/states';
@@ -27,9 +27,9 @@ export function usePendingPoll(pending: boolean, data: unknown, reload: () => Pr
 }
 export const isPending = (docs?: DocumentRead[]) => !!docs?.some(d => d.job.status === 'queued' || d.job.status === 'parsing');
 
-export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded }: {
+export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded, projectName }: {
   pid: string; slot: { kind: 'rfp' | 'proposal'; vendor: string | null; label: string; info?: VendorRead }; doc?: DocumentRead; locked: boolean;
-  highlight: boolean; focused: boolean; onUploaded: () => void;
+  highlight: boolean; focused: boolean; onUploaded: () => void; projectName?: string;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -38,11 +38,20 @@ export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded 
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   async function upload(file: File) {
+    if (!file.name.toLowerCase().endsWith('.hwpx') || file.size === 0 || file.size > 50 * 1024 * 1024) {
+      setError(new Error('50MB 이하의 HWPX 파일을 선택해 주세요.'));
+      if (input.current) input.current.value = '';
+      return;
+    }
     setBusy(true); setError(null);
     try {
-      // 제안 계약: 실제 서버는 multipart 업로드. mock은 파일 이름·크기만 받습니다.
-      await request<DocumentRead>('POST', `/api/v1/projects/${pid}/documents`,
-        { kind: slot.kind, vendor_id: slot.vendor, filename: file.name, size: file.size } satisfies DocumentUpload);
+      if (slot.kind === 'rfp' && useRfpApi) {
+        await rfpRequest(pid, file, projectName);
+      } else {
+        // 제안서 등 기존 제안 계약은 아직 파일명·크기만 전달합니다.
+        await request<DocumentRead>('POST', `/api/v1/projects/${pid}/documents`,
+          { kind: slot.kind, vendor_id: slot.vendor, filename: file.name, size: file.size } satisfies DocumentUpload);
+      }
       onUploaded();
     } catch (e) { setError(e); } finally { setBusy(false); if (input.current) input.current.value = ''; }
   }
@@ -53,6 +62,7 @@ export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded 
       <strong>{slot.info ? <><VendorTag vendor={slot.info} /> 제안서</> : slot.label}</strong>
       {doc ? <span className="muted">{doc.filename} · v{doc.revision} · {formatDateTime(doc.uploaded_at)}</span>
         : <span className="doc-empty">{slot.vendor ? '제안서를 올려 주세요' : '제안요청서를 올려 주세요'}<small className="muted">아직 올리지 않았어요 · HWPX 파일</small></span>}
+      {doc?.parse && <span className="muted">파싱 결과: {doc.parse.pages}쪽 · {doc.parse.blocks}개 블록{doc.parse.warnings > 0 && ` · 확인할 경고 ${doc.parse.warnings}건`}</span>}
       {doc && (doc.job.status === 'queued' || doc.job.status === 'parsing') && <ol className="job-steps" aria-label="처리 단계">
         {(['queued', 'parsing', 'done'] as const).map(s => <li key={s} className={s === doc.job.status ? 'current' : ''}>{jobInfo[s].label}</li>)}
       </ol>}
@@ -63,7 +73,7 @@ export function DocRow({ pid, slot, doc, locked, highlight, focused, onUploaded 
       {job && <Badge tone={job.tone}>{job.label}</Badge>}
       <input ref={input} type="file" accept=".hwpx" hidden onChange={e => { const f = e.target.files?.[0]; if (f) void upload(f); }} />
       <button ref={button} className={`btn ${empty && highlight ? 'primary' : 'sm'}`} disabled={busy || locked} title={locked ? '지금은 바꿀 수 없어요' : undefined}
-        onClick={() => input.current?.click()}>{busy ? '올리는 중…' : doc ? '새 버전 올리기' : '파일 올리기'}</button>
+        onClick={() => input.current?.click()}>{busy ? (slot.kind === 'rfp' && useRfpApi ? '파싱·저장 중…' : '올리는 중…') : doc ? '새 버전 올리기' : '파일 올리기'}</button>
     </div>
   </li>;
 }

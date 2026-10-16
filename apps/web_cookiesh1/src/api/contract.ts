@@ -58,8 +58,67 @@ export interface DocumentRead {
   sha256: string;
   uploaded_at: string;
   job: { id: string; status: JobStatus; error: string | null; updated_at: string };
+  parse?: { pages: number; blocks: number; warnings: number };
 }
 export interface DocumentUpload { kind: DocKind; vendor_id: string | null; filename: string; size: number }
+
+export interface RequirementBlock {
+  id: string;
+  type: 'paragraph' | 'table';
+  pages: number[];
+  text?: string;
+  rows?: { text: string; row_span: number; col_span: number }[][];
+}
+export interface RequirementsRead {
+  status: 'none' | 'queued' | 'running' | 'done' | 'failed';
+  revision: number | null;
+  error: string | null;
+  result: {
+    status: 'complete' | 'needs_review';
+    created_at: string;
+    warnings: string[];
+    business_status: Record<'current_status' | 'background_and_need' | 'scope', { text: string; pages: number[] }[]>;
+    requirement_list: RequirementBlock[];
+    details: { label: string; codes: string[]; pages: number[]; blocks: RequirementBlock[] }[];
+  } | null;
+}
+
+export interface SqliteCriteriaRead {
+  status: 'none' | 'queued' | 'running' | 'done' | 'failed';
+  revision: number | null;
+  requirements_ready: boolean;
+  error: string | null;
+  result: {
+    created_at: string;
+    template_source: 'request_document' | 'generated_from_summary';
+    reference_filename: string;
+    total_score: number;
+    rows: {
+      row_id: string;
+      evaluation_division: string;
+      division_score: number;
+      evaluation_item: string;
+      evaluation_criteria: string;
+      evaluation_elements: string[];
+      score: number;
+    }[];
+    selection_rationale: {
+      current_status: string;
+      background_and_need: string;
+      scope: string;
+      evaluation_links: { evaluation_division: string; reason: string }[];
+    };
+    supplemental_items: {
+      guideline_area: string;
+      evaluation_item: string;
+      evaluation_criteria: string;
+      evaluation_elements: string[];
+      source_id: string;
+      source_quote: string;
+    }[];
+    guideline_url: string;
+  } | null;
+}
 
 export interface Block { block_id: string; physical_page: number | null; printed_page: string | null; heading: string | null; text: string }
 /** GET /api/v1/projects/{id}/documents/{doc_id} — 원문 블록 */

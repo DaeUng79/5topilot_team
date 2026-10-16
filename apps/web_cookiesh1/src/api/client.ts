@@ -1,5 +1,6 @@
 import createClient from 'openapi-fetch';
 import type { paths, components } from './schema';
+import type { DocumentRead, RequirementsRead, SqliteCriteriaRead } from './contract';
 
 export type Project = components['schemas']['ProjectRead'];
 export type Candidate = components['schemas']['CandidateRead'];
@@ -9,6 +10,7 @@ export type Results = components['schemas']['ResultsRead'];
 export type Score = components['schemas']['ScoreEntry'];
 
 export const useMock = import.meta.env.VITE_USE_MOCK === '1';
+export const useRfpApi = import.meta.env.VITE_RFP_API === '1';
 
 // mock 코드는 VITE_USE_MOCK=1 빌드에서만 번들에 포함됩니다(조건이 빌드 시 상수로 치환됨).
 const transport: (req: Request) => Promise<Response> = import.meta.env.VITE_USE_MOCK === '1'
@@ -54,6 +56,54 @@ export async function request<T>(method: 'GET' | 'POST' | 'PUT', path: string, b
   const data = await res.json().catch(() => undefined);
   if (!res.ok) throw new ApiError(res.status, detailOf(data, res.status));
   return data as T;
+}
+
+/** 문서 전용 로컬 API. 파일 바이트를 multipart로 보내고 SQLite 저장 결과를 받습니다. */
+export async function rfpRequest(projectId: string, file?: File, projectName?: string): Promise<DocumentRead | null> {
+  const body = file ? new FormData() : undefined;
+  if (file && body) {
+    body.append('file', file);
+    body.append('project_name', projectName ?? projectId);
+  }
+  let res: Response;
+  try {
+    res = await fetch(new Request(new URL(`/document-api/projects/${encodeURIComponent(projectId)}/rfp`, location.origin), {
+      method: file ? 'POST' : 'GET', body,
+    }));
+  } catch {
+    throw new ApiError(0, '문서 API에 연결하지 못했습니다.');
+  }
+  const data = await res.json().catch(() => undefined);
+  if (!res.ok) throw new ApiError(res.status, detailOf(data, res.status));
+  return data as DocumentRead | null;
+}
+
+export async function requirementsRequest(projectId: string, retry = false): Promise<RequirementsRead> {
+  let res: Response;
+  try {
+    res = await fetch(new URL(`/document-api/projects/${encodeURIComponent(projectId)}/requirements`, location.origin), {
+      method: retry ? 'POST' : 'GET',
+    });
+  } catch {
+    throw new ApiError(0, '문서 API에 연결하지 못했습니다.');
+  }
+  const data = await res.json().catch(() => undefined);
+  if (!res.ok) throw new ApiError(res.status, detailOf(data, res.status));
+  return data as RequirementsRead;
+}
+
+export async function sqliteCriteriaRequest(projectId: string, generate = false): Promise<SqliteCriteriaRead> {
+  let res: Response;
+  try {
+    res = await fetch(new URL(`/document-api/projects/${encodeURIComponent(projectId)}/criteria`, location.origin), {
+      method: generate ? 'POST' : 'GET',
+    });
+  } catch {
+    throw new ApiError(0, '문서 API에 연결하지 못했습니다.');
+  }
+  const data = await res.json().catch(() => undefined);
+  if (!res.ok) throw new ApiError(res.status, detailOf(data, res.status));
+  return data as SqliteCriteriaRead;
 }
 
 /** 오류 매핑표: 상태 코드별 사용자 문구와 다음 행동 */
