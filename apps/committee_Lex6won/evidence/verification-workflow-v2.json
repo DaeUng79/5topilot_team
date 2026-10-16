@@ -1,0 +1,146 @@
+{
+  "generated_at": "2026-10-13T11:17:13.587358+00:00",
+  "iteration": "workflow-v2",
+  "requirements": "Excel/manual pool -> PDF proposal creates project -> union 3x draw -> 7/8/9 final + 3 reserves -> name/contact demo login",
+  "pytest": {
+    "passed": 35,
+    "failed": 0,
+    "coverage_rounded_percent": 94,
+    "third_party_deprecation_warnings": 1
+  },
+  "ruff": "passed",
+  "mypy": {
+    "status": "passed",
+    "source_files": 10
+  },
+  "javascript_syntax": "passed",
+  "openapi_matches_generated": true,
+  "live_http": [
+    {
+      "port": 5187,
+      "candidates": 129,
+      "assets": {
+        "/": 200,
+        "/assets/app.js": 200,
+        "/assets/app.css": 200,
+        "/assets/style.css": 200
+      },
+      "verification_mode": "demo",
+      "candidate_data_unchanged": true,
+      "schema_revision": 2
+    },
+    {
+      "port": 5188,
+      "candidates": 48,
+      "assets": {
+        "/": 200,
+        "/assets/app.js": 200,
+        "/assets/app.css": 200,
+        "/assets/style.css": 200
+      },
+      "verification_mode": "demo",
+      "candidate_data_unchanged": true,
+      "schema_revision": 2
+    }
+  ],
+  "security": {
+    "report": "security-workflow-v2",
+    "exit_code": 1,
+    "summary": {
+      "finding_count": 48,
+      "by_severity": {
+        "critical": 0,
+        "high": 10,
+        "medium": 29,
+        "low": 9
+      },
+      "by_decision": {
+        "block": 0,
+        "warn": 48,
+        "allow": 0
+      },
+      "highest_severity": "high",
+      "blocked": false,
+      "has_block_level_findings": false,
+      "location_count": 47,
+      "block_location_count": 0,
+      "by_confidence": {
+        "confirmed": 0,
+        "likely": 0,
+        "pattern-only": 48
+      },
+      "block_by_confidence": {
+        "confirmed": 0,
+        "likely": 0,
+        "pattern-only": 0
+      },
+      "by_path_class": {
+        "runtime": {
+          "total": 23,
+          "block": 0
+        },
+        "test": {
+          "total": 25,
+          "block": 0
+        },
+        "sample": {
+          "total": 0,
+          "block": 0
+        },
+        "upload-data": {
+          "total": 0,
+          "block": 0
+        },
+        "build-tool": {
+          "total": 0,
+          "block": 0
+        }
+      }
+    },
+    "gate": {
+      "verdict": "conditional",
+      "blocked": false,
+      "conditional": true,
+      "requires_action": true,
+      "block_reasons": [],
+      "conditional_criteria": [
+        "source"
+      ],
+      "exposure": {
+        "secret": 0,
+        "pii": 6,
+        "secret_live": 0,
+        "secret_attenuated": 0,
+        "pii_live": 0,
+        "pii_attenuated": 6
+      },
+      "blocked_source": false,
+      "blocked_dependency": false,
+      "source_block_count": 0,
+      "dependency_vulnerable": 0,
+      "dependency_unchecked": 0,
+      "dependency_not_found": 0,
+      "coverage_gap": "",
+      "reason": "차단 사유는 없습니다. 확인이 필요한 항목이 있습니다(확인할 항목). 해소하거나, 해소하지 않는 사유를 남긴 뒤 배포하세요. 비밀값·개인정보 모양 6건이 있으나 테스트·문서로 추정돼 낮췄습니다 — 진짜 값이 섞여 있지 않은지만 확인하세요."
+    },
+    "review": "docs/Lex6won/PROCESS_REVIEW.md",
+    "suppressed": false
+  },
+  "browser_ui": {
+    "status": "blocked_before_page_interaction",
+    "reason": "Computer Use stopped because current browser URL could not be determined with sufficient confidence to enforce policy. No further UI actions were attempted."
+  },
+  "tablet_physical_device": "not_run; private LAN host/admin boundary checked with TestClient only",
+  "gg_verify": {
+    "status": "indeterminate",
+    "exit_code": 1,
+    "reason": "Harness not initialized; known runner initialization source missing. Hooks and CI unchanged."
+  },
+  "real_sms": "not_connected",
+  "production_auth": false,
+  "proposal_formats": [
+    "PDF, max 8 MiB"
+  ],
+  "team_evaluation_integration": "pending",
+  "live_servers_bind": "127.0.0.1 only"
+}

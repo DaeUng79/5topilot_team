@@ -1,0 +1,36 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+files = ["committee_app", "run.py", "candidate_pool.py", "candidate_import.py", "committee_selection.py", "committee_roster.py"]
+[project]
+name = "simsaimdang-committee"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.142.2", "uvicorn==0.54.0", "python-multipart==0.0.32",
+  "openpyxl==3.1.5", "msoffcrypto-tool==5.4.2", "cryptography==50.0.2"
+]
+
+[tool.setuptools.packages.find]
+include = ["committee_app*"]
+
+[tool.setuptools]
+py-modules = ["candidate_pool", "candidate_import", "committee_selection", "committee_roster"]
+
+[tool.setuptools.data-files]
+"migrations" = ["migrations/20261016_lex_001.sql"]
+"fixtures" = ["fixtures/shared_parents.sql"]
+"contracts" = ["contracts/committee_schema_v2.json"]
