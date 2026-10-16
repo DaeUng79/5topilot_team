@@ -118,3 +118,12 @@ git switch -c feat/<작업 이름> upstream/main
 
 팀 저장소: [https://github.com/DaeUng79/5topilot_team](https://github.com/DaeUng79/5topilot_team) ·
 [목표 화면 예시](https://simsa-ai.lovable.app/admin/projects/p1?tab=progress)
+
+## 기반 PR #1 구조 안내 (이 브랜치 한정)
+
+이 작업 브랜치에는 [PR #1](https://github.com/DaeUng79/5topilot_team/pull/1)의 공동 API·웹 기반이 함께 들어 있습니다.
+PR #1이 main에 병합되기 전까지는 아래 문서와 경로를 따릅니다.
+
+- [처음 실행하기](docs/QUICKSTART.md) · [4인 팀 작업 방법](docs/TEAM_WORKFLOW.md) · [아키텍처와 현재 구현 범위](docs/ARCHITECTURE.md)
+- 업무 API: `apps/api` / 프론트: `apps/web` / API 명세: `contracts/openapi.json` / 자동검증: `.github/workflows/ci.yml`
+- 원본 데모는 `npm run demo`, 새 웹은 `npm run dev`로 각각 실행합니다.

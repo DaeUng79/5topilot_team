@@ -1,0 +1,17 @@
+/* 로그인 화면과 상단 사용자 영역. 기존 헤더·패널·탭·버튼 스타일을 그대로 쓴다. */
+.login-main{margin:0 auto;max-width:520px;padding:110px 24px 48px}
+.login-card h1{margin-top:0}
+.login-tabs{border-bottom:1px solid var(--border);margin:8px 0 18px}
+.login-form{display:flex;flex-direction:column;gap:14px}
+.login-form input{width:100%}
+.login-form .code-input{font-family:ui-monospace,monospace;font-size:20px;letter-spacing:.3em;text-align:center}
+.login-form button{align-self:flex-start;min-width:160px}
+.login-form .muted{margin:0}
+
+.user-box{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:13px;color:#bac8db;white-space:nowrap}
+.user-box strong{color:white;font-size:14px}
+.user-box button{padding:7px 12px;font-size:12px;background:transparent;color:white;border-color:#415065}
+.user-box button:hover{background:#1b2d44}
+header .user-box .badge{margin-left:0}
+
+@media(max-width:650px){.login-main{padding:24px 16px}.user-box{width:100%;flex-wrap:wrap;margin-left:0}}

@@ -1,0 +1,65 @@
+/* 사업 상세 탭과 평가 설정(평가항목·업체) 화면. 공통 패널·표·버튼·배지 스타일을 그대로 쓰고 필요한 것만 더한다. */
+.tabs{display:flex;gap:2px}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;padding:8px 14px;color:#5d6f85}
+.tabs button:hover{background:#edf3fc}
+.tabs button.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+.setup-status{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px}
+.setup-project-name{font-size:16px}
+.lock-note{padding:11px 14px;background:#fff8ec;border:1px solid #f0dcb0;border-radius:6px;color:#8a5a00;font-size:13px;margin:0 0 14px}
+
+.setup-table .col-order{width:130px;white-space:nowrap}
+.setup-table .col-score{width:110px;text-align:right}
+.setup-table .col-manage{width:160px;text-align:right;white-space:nowrap}
+.setup-table tfoot td{background:#f8fafc;font-weight:600;border-bottom:0}
+.order-no{display:inline-block;min-width:22px;font-weight:600;color:#5d6f85}
+.order-buttons{display:inline-flex;gap:2px;margin-left:6px}
+.setup-table button.icon{padding:4px 7px;font-size:11px;line-height:1;border-radius:5px}
+.setup-table .col-manage button{padding:6px 10px;font-size:12px;margin-left:6px}
+.setup-table button.danger{color:#922d2d}
+.setup-table button.danger:hover:not(:disabled){background:#fff0ef}
+
+/* 모달: 어두운 배경 위 가운데 패널. 기존 .panel(테두리·흰 배경·둥근 모서리) 위에 폭·그림자만 더한다. */
+.modal-backdrop{position:fixed;inset:0;z-index:30;background:#09182b80;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{width:min(480px,100%);margin:0;box-shadow:0 20px 50px #09182b40;animation:modal-in .15s ease-out}
+@keyframes modal-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.modal .section-heading{margin-bottom:6px}
+.modal h2{margin-bottom:0}
+.modal-close{border:0;background:transparent;font-size:22px;line-height:1;padding:2px 8px;color:#5d6f85;border-radius:6px}
+.modal-close:hover{background:#edf3fc;color:#14243b}
+.modal-form{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.modal-form input{width:100%}
+.modal-form .muted{margin:0}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+
+/* 총배점 설정·제안요청서 반영 버튼·출처 배지 */
+.actions-inline{display:flex;gap:8px;flex-wrap:wrap}
+.total-form{display:flex;align-items:center;gap:8px}
+.total-form label{flex-direction:row;align-items:center;gap:8px;font-size:13px}
+.total-form input{width:90px;padding:7px 10px}
+.total-form button{padding:7px 12px;font-size:12px}
+.crit-name{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.crit-meta{font-size:12px;margin-top:3px}
+.badge.origin-rfp{background:#e3f8ec;color:#176b42}
+.badge.origin-ai{background:#fff3df;color:#8a5a00}
+.badge.status-new{background:#e8f1ff;color:#1b5eb9}
+.badge.status-changed{background:#fff3df;color:#8a5a00}
+.badge.status-same{background:#edf1f6;color:#5b6b80}
+.badge.warn{background:#fff0ef;color:#922d2d}
+button.link{border:0;background:transparent;color:var(--blue);padding:0 4px;text-decoration:underline;font-weight:600}
+
+/* 제안요청서 반영 미리보기 모달 */
+.modal.wide{width:min(1120px,100%);max-height:92vh;overflow:auto}
+.modal h3{margin:20px 0 8px}
+.rfp-summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.rfp-table .col-check{width:56px}
+.rfp-table .col-status{width:150px;white-space:nowrap}
+.rfp-table .col-status .badge{margin-right:4px}
+.rfp-table tr.excluded td{opacity:.55}
+.rfp-name{width:100%;min-width:180px;padding:7px 10px}
+.rfp-desc{margin:6px 0 0;font-size:12px;color:#5d6f85;line-height:1.5}
+.rfp-elements{margin:4px 0 0;padding-left:16px;font-size:12px;color:#5d6f85}
+.rfp-quote{margin:4px 0 0;font-size:12px;color:#8a5a00}
+.rfp-source{font-size:12px;max-width:220px}
+
+@media(max-width:650px){.tabs button{padding:8px 10px}.setup-table .col-order{width:110px}.setup-table .col-manage{width:auto}.setup-table .col-manage button{margin-left:4px;padding:6px 8px}}

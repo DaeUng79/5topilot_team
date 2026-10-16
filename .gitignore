@@ -26,3 +26,14 @@ node_modules/
 dist/
 .env.*
 !.env.example
+
+# Team application generated/local data (PR #1 foundation)
+Thumbs.db
+*.db
+*.db-*
+*.sqlite*
+.ruff_cache/
+*.egg-info/
+artifacts/
+uploads/
+*.log

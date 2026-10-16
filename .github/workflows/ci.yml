@@ -1,0 +1,86 @@
+name: team-ci
+on:
+  pull_request:
+  push:
+    branches: [main, 'feat/**', 'fix/**', 'chore/**']
+permissions:
+  contents: read
+concurrency:
+  group: team-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: simsa
+          POSTGRES_PASSWORD: ci_only_password
+          POSTGRES_DB: simsa_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U simsa -d simsa_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install API
+        run: |
+          python -m pip install -r apps/api/requirements-dev.lock
+          python -m pip install --no-deps -e 'apps/api[dev]'
+      - run: npm ci
+      - name: Python style
+        working-directory: apps/api
+        run: |
+          ruff check app tests migrations ../../scripts/export_openapi.py
+          ruff format --check app tests migrations ../../scripts/export_openapi.py
+      - name: SQLite integration
+        working-directory: apps/api
+        run: pytest -q
+      - name: PostgreSQL integration including concurrent draw
+        working-directory: apps/api
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://simsa:ci_only_password@localhost:5432/simsa_test
+        run: pytest -q
+      - name: Migrations and model drift
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql+psycopg://simsa:ci_only_password@localhost:5432/simsa_test
+        run: |
+          alembic upgrade 0001
+          alembic upgrade head
+          alembic downgrade -1
+          alembic upgrade head
+          alembic check
+          test "$(alembic heads | wc -l)" -eq 1
+      - name: API contract drift
+        working-directory: apps/api
+        run: python ../../scripts/export_openapi.py
+      - run: npm run contracts:types
+      - run: git diff --exit-code -- contracts/openapi.json apps/web/src/api/schema.d.ts
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run docs:check
+      - run: npm run test:e2e
+      - name: Legacy Python syntax (does not operate a desktop)
+        run: |
+          if [ -f computer_agent.py ]; then
+            python -m py_compile computer_agent.py
+          else
+            echo "computer_agent.py not present (removed on main); skipped"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-evidence
+          path: |
+            artifacts/
+            test-results/
+          if-no-files-found: ignore

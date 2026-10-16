@@ -1,0 +1,31 @@
+{
+  "criteria": [
+    {
+      "id": "crit-a1b2c3d4",
+      "name": "사업 이해도",
+      "max_score": 15,
+      "division": "전략 및 방법론",
+      "description": "사업의 목표·범위·현황을 정확히 이해하는지 평가한다.",
+      "elements": [
+        "사업 목표와 범위의 이해",
+        "현황 분석"
+      ],
+      "origin": "rfp",
+      "source_ref": "sample-rfp-document:R01",
+      "source_label": "예시_제안요청서(테스트용).hwpx · R01 · 원문 평가표"
+    },
+    {
+      "name": "수행 방법론",
+      "max_score": 20,
+      "division": "전략 및 방법론",
+      "origin": "rfp",
+      "source_ref": "sample-rfp-document:R02",
+      "source_label": "예시_제안요청서(테스트용).hwpx · R02 · 원문 평가표"
+    },
+    {
+      "name": "가격 적정성",
+      "max_score": 65,
+      "origin": "manual"
+    }
+  ]
+}

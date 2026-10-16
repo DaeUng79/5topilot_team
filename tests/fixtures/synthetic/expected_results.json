@@ -1,0 +1,103 @@
+{
+  "_note": "사람이 손으로 계산한 기대값. 코드 출력으로 덮어쓰지 않는다. 현행 정책은 trimmed_mean_v1(2026-10-11 u-jing 지시, PM 확인 대기)이며 technical_mean_v1은 비교·기록용.",
+  "cases": [
+    {
+      "case": "three_members_full",
+      "policy": "technical_mean_v1",
+      "approved": true,
+      "sheet_ids": [
+        "fx-sheet-a-1",
+        "fx-sheet-a-2",
+        "fx-sheet-a-3"
+      ],
+      "working": {
+        "vendor-a": "(80+70+75)/3 = 75",
+        "vendor-b": "(40+60.5+50)/3 = 50.1666… → 50.17",
+        "vendor-c": "(0+10.25+20)/3 = 10.0833… → 10.08"
+      },
+      "expected": {
+        "vendor-a": 75.0,
+        "vendor-b": 50.17,
+        "vendor-c": 10.08
+      }
+    },
+    {
+      "case": "rounding_half_up",
+      "policy": "technical_mean_v1",
+      "approved": true,
+      "sheet_ids": [
+        "fx-sheet-r-1",
+        "fx-sheet-r-2"
+      ],
+      "working": {
+        "all": "(10.01+10.04)/2 = 10.025 → ROUND_HALF_UP → 10.03 (HALF_EVEN이면 10.02)"
+      },
+      "expected": {
+        "vendor-a": 10.03,
+        "vendor-b": 10.03,
+        "vendor-c": 10.03
+      }
+    },
+    {
+      "case": "three_members_full",
+      "policy": "trimmed_mean_v1",
+      "approved": true,
+      "sheet_ids": [
+        "fx-sheet-a-1",
+        "fx-sheet-a-2",
+        "fx-sheet-a-3"
+      ],
+      "working": {
+        "rule": "제안사별 위원 총점 중 최고 1개·최저 1개 제외 후 평균(위원 3명 이상)",
+        "vendor-a": "[80, 70, 75] → 80·70 제외 → 75",
+        "vendor-b": "[40, 60.5, 50] → 60.5·40 제외 → 50",
+        "vendor-c": "[0, 10.25, 20] → 20·0 제외 → 10.25"
+      },
+      "expected": {
+        "vendor-a": 75.0,
+        "vendor-b": 50.0,
+        "vendor-c": 10.25
+      }
+    },
+    {
+      "case": "two_members_no_trim",
+      "policy": "trimmed_mean_v1",
+      "approved": true,
+      "sheet_ids": [
+        "fx-sheet-r-1",
+        "fx-sheet-r-2"
+      ],
+      "working": {
+        "rule": "위원 2명 이하면 제외하지 않고 전체 평균",
+        "all": "(10.01+10.04)/2 = 10.025 → ROUND_HALF_UP → 10.03"
+      },
+      "expected": {
+        "vendor-a": 10.03,
+        "vendor-b": 10.03,
+        "vendor-c": 10.03
+      }
+    },
+    {
+      "case": "five_members_trim",
+      "policy": "trimmed_mean_v1",
+      "approved": true,
+      "sheet_ids": [
+        "fx-sheet-a-1",
+        "fx-sheet-a-2",
+        "fx-sheet-a-3",
+        "fx-sheet-r-1",
+        "fx-sheet-r-2"
+      ],
+      "working": {
+        "vendor-a": "[80, 70, 75, 10.01, 10.04] → 80·10.01 제외 → (70+75+10.04)/3 = 155.04/3 = 51.68",
+        "vendor-b": "[40, 60.5, 50, 10.01, 10.04] → 60.5·10.01 제외 → (40+50+10.04)/3 = 100.04/3 = 33.3466… → 33.35",
+        "vendor-c": "[0, 10.25, 20, 10.01, 10.04] → 20·0 제외 → (10.25+10.01+10.04)/3 = 30.30/3 = 10.10"
+      },
+      "expected": {
+        "vendor-a": 51.68,
+        "vendor-b": 33.35,
+        "vendor-c": 10.1
+      }
+    }
+  ]
+}
