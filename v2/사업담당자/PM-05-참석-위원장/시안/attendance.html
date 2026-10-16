@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>참석·위원장 · 심사임당 사업담당자</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../../총괄관리자/_shell.css">
+<link rel="stylesheet" href="../../_steps.css">
+<style>
+.seg{display:inline-flex;border:1px solid var(--gray-30);border-radius:var(--radius-sm);overflow:hidden;background:var(--gray-0)}
+.seg button{appearance:none;border:0;background:none;min-height:44px;padding:0 18px;font-weight:700;color:var(--text-2);cursor:pointer;border-right:1px solid var(--gray-20);font-size:var(--t-base)}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--gray-5)}
+.seg button[aria-pressed="true"]{background:var(--primary-5);color:var(--primary-60);box-shadow:inset 0 -3px 0 var(--primary-50)}
+.seg button[aria-pressed="true"]::before{content:"✓ "}
+.xl-top{display:flex;gap:8px;flex-wrap:wrap}
+.xl-sum{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:16px 0 8px;font-size:var(--t-base)}
+.xl-tbl{border:1px solid var(--line);border-radius:var(--radius-sm);overflow:auto;max-height:290px}
+.xl-tbl td{height:48px;padding:0 12px}
+.xl-sum{margin:12px 0 8px!important}
+.xl-tbl tr.r-err td:first-child{box-shadow:inset 4px 0 0 var(--danger-50)}
+.xl-tbl tr.r-dup td:first-child{box-shadow:inset 4px 0 0 var(--warning-50)}
+.xl-act{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.cb{width:22px;height:22px;min-height:0;padding:0;accent-color:var(--primary-50);cursor:pointer}
+.pane{flex:1;min-height:0;display:flex;flex-direction:column}
+.foot{display:flex;align-items:center;gap:12px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--line);flex:none}
+.foot .why{margin-right:auto;color:var(--text-2);font-size:var(--t-base)}
+td input.cell,td select.cell{min-height:40px;font-size:var(--t-base)}
+.demo .grp{display:inline-flex;gap:6px;align-items:center;margin-right:12px}
+.proj{color:var(--text-3)}
+.drawer.wide{width:min(760px,100vw)}
+.btn.sm{min-height:40px;padding:0 14px;font-size:var(--t-base)}
+@media print{.side,.demo,.head .acts,.steps{display:none!important}.app{display:block}.main,.body,.card{height:auto;overflow:visible;box-shadow:none}body{overflow:visible}}
+
+.cbar{display:flex;align-items:center;gap:20px;padding:16px 20px;border-bottom:1px solid var(--line);flex:none;flex-wrap:wrap}
+.cbar .chk{flex-direction:row;gap:24px;flex:1;flex-wrap:wrap}
+.cbar .chk li{align-items:center}
+.chk{list-style:none;margin:0;padding:0;display:flex}
+.chk li{display:flex;gap:10px;font-size:var(--t-base)}
+.chk .ic{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700}
+.chk .okc .ic{background:var(--success-5);color:var(--success-60)}
+.chk .badc .ic{background:var(--danger-5);color:var(--danger-60)}
+.chk b{font-weight:700}
+.chk small{display:block;color:var(--text-3);font-size:var(--t-base)}
+.chk .badc small{color:var(--danger-60);font-weight:700}
+.cbar .go{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.lockbar{display:flex;gap:12px;align-items:center;padding:12px 16px;border-radius:var(--radius-sm);background:var(--warning-5);border:1px solid var(--warning-10);font-weight:700;font-size:var(--t-body);flex:1}
+.rd{width:24px;height:24px;min-height:0;accent-color:var(--primary-50);cursor:pointer}
+.rd:disabled{cursor:not-allowed}
+tr.chair td{background:var(--primary-5)}
+
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <button class="brand" type="button" data-href="../../PM-01-사업-목록-등록/시안/projects.html" aria-label="심사임당 사업 목록으로"><span class="brand-mark">심</span><span>심사임당</span></button>
+  <p class="role">(가상) 정보화담당관</p>
+  <nav aria-label="주 메뉴">
+    <a href="../../PM-01-사업-목록-등록/시안/projects.html" aria-current="page">사업 목록</a>
+    <a href="../../PM-07-위원-풀/시안/pool.html">위원 풀</a>
+  </nav>
+  <div class="bottom">
+    <a href="../../PM-00-로그인/시안/login.html#account" data-account>내 계정</a>
+    <a href="../../PM-00-로그인/시안/login.html" data-logout>로그아웃</a>
+  </div>
+</aside>
+<div class="main">
+  <div class="pj-head">
+    <a class="pj-back" href="../../PM-01-사업-목록-등록/시안/projects.html">← 사업 목록</a>
+    <div class="pj-row">
+      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge info" id="pst">○ 준비</span></div>
+      <div class="pj-act"><span class="hint">평가일 2026-11-05</span></div>
+    </div>
+  </div>
+  <nav class="steps" id="steps" aria-label="사업 진행 단계"></nav>
+  <div class="body">
+    <section class="card" aria-label="참석 현황과 위원장">
+      <div class="cbar" id="cbar"></div>
+      <div class="toolbar" id="tb"></div>
+      <div class="tbl-wrap"><table><thead id="th"></thead><tbody id="rows"></tbody></table></div>
+      <div class="foot" id="foot" hidden></div>
+    </section>
+  </div>
+  <div class="demo"><b>시안 보기</b>
+    <span class="grp" id="presets"></span>
+    <span class="muted">(가상 데이터)</span></div>
+
+</div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="scrim top" id="scrim2"></div>
+<aside class="drawer" id="p" role="dialog" aria-modal="true" aria-labelledby="p-t">
+  <header><h2 id="p-t"></h2><button class="x" type="button" data-close aria-label="닫기">×</button></header>
+  <div class="dbody" id="p-body"></div>
+  <footer id="p-foot"></footer>
+</aside>
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t" aria-describedby="dlg-b">
+  <h2 id="dlg-t"></h2><p id="dlg-b"></p>
+  <div class="acts"><button class="btn" type="button" id="dlg-cancel" data-close>취소</button><button class="btn primary" type="button" id="dlg-ok"></button></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="../../_ui.js"></script>
+<script>
+/* 가상 데이터 */
+const FIELDS=['시스템 구축','정보보안','데이터·AI','사업관리'];
+const POOL=[
+ [1,'(가상)한빛대학교','컴퓨터공학과','한도윤','교수',0,'doyun.han@example.com','010-0000-3001',3],
+ [2,'(가상)한빛대학교','정보보호학과','이서연','부교수',1,'seoyeon.lee@example.com','010-0000-3002',2],
+ [3,'(가상)누리연구원','AI연구실','박지호','책임연구원',2,'jiho.park@example.com','010-0000-3003',4],
+ [4,'(가상)새솔대학교','경영학과','최유나','교수',3,'yuna.choi@example.com','010-0000-3004',1],
+ [5,'(가상)푸른대학교','소프트웨어학과','정민재','교수',0,'minjae.jung@example.com','010-0000-3005',5],
+ [6,'(가상)다온연구원','보안연구실','강예린','선임연구원',1,'yerin.kang@example.com','010-0000-3006',2],
+ [7,'(가상)한빛대학교','데이터사이언스과','윤태오','조교수',2,'taeo.yoon@example.com','010-0000-3007',0],
+ [8,'(가상)새솔대학교','산업공학과','장하은','교수',3,'haeun.jang@example.com','010-0000-3008',3],
+ [9,'(가상)푸른대학교','컴퓨터공학과','임건우','교수',0,'gunwoo.lim@example.com','010-0000-3009',1],
+ [10,'(가상)누리연구원','클라우드센터','오수아','책임연구원',0,'sua.oh@example.com','010-0000-3010',2],
+ [11,'(가상)다온연구원','정보보호팀','신주원','수석연구원',1,'juwon.shin@example.com','010-0000-3011',6],
+ [12,'(가상)한빛대학교','통계학과','배도하','교수',2,'doha.bae@example.com','010-0000-3012',1],
+ [13,'(가상)새솔대학교','행정학과','조은서','부교수',3,'eunseo.cho@example.com','010-0000-3013',2],
+ [14,'(가상)푸른대학교','정보보호학과','문시현','교수',1,'sihyun.moon@example.com','010-0000-3014',0],
+ [15,'(가상)누리연구원','빅데이터팀','양지안','선임연구원',2,'jian.yang@example.com','010-0000-3015',3],
+ [16,'(가상)다온연구원','SW공학팀','홍라온','책임연구원',0,'raon.hong@example.com','010-0000-3016',1],
+ [17,'(가상)새솔대학교','공공정책대학원','서이준','교수',3,'ijun.seo@example.com','010-0000-3017',4],
+ [18,'(가상)푸른대학교','시스템공학과','노아린','조교수',0,'arin.no@example.com','010-0000-3018',0]
+].map(r=>({id:r[0],org:r[1],dept:r[2],name:r[3],pos:r[4],field:FIELDS[r[5]],email:r[6],tel:r[7],n:r[8]}));
+const XLS=[
+ ['(가상)한빛대학교','컴퓨터공학과','권도현','교수','시스템 구축','dohyun.kwon@example.com','010-0000-3101'],
+ ['(가상)누리연구원','AI연구실','서하린','책임연구원','데이터·AI','harin.seo@example.com','010-0000-3102'],
+ ['(가상)한빛대학교','컴퓨터공학과','한도윤','교수','시스템 구축','doyun.han@example.com','010-0000-3001'],
+ ['(가상)새솔대학교','경영학과','문지후','교수','사업관리','jihu.moon.example.com','010-0000-3104'],
+ ['(가상)푸른대학교','소프트웨어학과','배서윤','부교수','정보보안','seoyun.bae@example.com',''],
+ ['(가상)다온연구원','보안연구실','류시우','선임연구원','정보보안','siwoo.ryu@example.com','010-0000-3106']
+];
+function checkRow(r,have){
+  if(!r[2]||!r[0])return {k:'err',m:'기관·이름이 비었어요'};
+  if(!FIELDS.includes(r[4]))return {k:'err',m:'분야를 확인해 주세요'};
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r[5]))return {k:'err',m:'이메일 형식이 아니에요'};
+  if(!/^010-\d{4}-\d{4}$/.test(r[6]))return {k:'err',m:'전화번호가 없거나 형식이 달라요'};
+  if(have(r[5]))return {k:'dup',m:'이미 있는 사람이에요'};
+  return {k:'ok',m:'넣을 수 있어요'}}
+function downloadTemplate(){const head=['기관','부서','이름','직책','분야('+FIELDS.join('/')+')','이메일','전화(010-0000-0000)'];
+  const csv='﻿'+head.join(',')+'\n'+XLS[0].join(',')+'\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='위원_올리기_양식.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);toast('양식을 내려받았어요')}
+/* 엑셀 올리기: box 안에 그리고, 정상 행만 onAdd로 넘긴다 */
+function excelBox(box,have,onAdd,primary=true){
+  box.innerHTML=`<div class="xl-top"><button class="btn" type="button" data-xl="tpl">양식 내려받기</button><label class="btn" tabindex="0" data-xl="pick">파일 고르기<input type="file" class="sr-only" accept=".xlsx,.xls,.csv" tabindex="-1"></label><button class="btn" type="button" data-xl="demo">예시 파일로 미리보기</button></div>
+  <div class="xl-prev"></div>`;
+  const prev=$('.xl-prev',box);
+  function show(name){const R=XLS.map(r=>({r,c:checkRow(r,have)}));const ok=R.filter(x=>x.c.k==='ok'),er=R.filter(x=>x.c.k==='err').length,du=R.filter(x=>x.c.k==='dup').length;
+    prev.innerHTML=`<div class="xl-sum"><b>${h(name)}</b><span class="badge success">✓ 정상 ${ok.length}</span><span class="badge danger">! 오류 ${er}</span><span class="badge warning">= 중복 ${du}</span></div>
+    <div class="xl-tbl"><table><thead><tr><th>줄</th><th>이름</th><th>분야</th><th>전화</th><th>확인 결과</th></tr></thead><tbody>${R.map((x,i)=>`<tr class="r-${x.c.k}"><td class="tnum">${i+2}</td><td class="strong">${h(x.r[2]||'(빈칸)')}</td><td>${h(x.r[4])}</td><td class="tnum">${h(x.r[6]||'(빈칸)')}</td><td><span class="badge ${x.c.k==='ok'?'success':x.c.k==='dup'?'warning':'danger'}">${x.c.k==='ok'?'✓ 정상':x.c.k==='dup'?'= 중복':'! 오류'}</span> <span class="muted">${x.c.k==='ok'?'':x.c.m}</span></td></tr>`).join('')}</tbody></table></div>
+    <div class="xl-act"><span class="muted">오류·중복 줄은 빼고 정상인 ${ok.length}명만 넣어요.</span><button class="btn${primary?' primary':''}" type="button" id="xl-go" ${ok.length?'':'disabled'}>정상 ${ok.length}명 넣기</button></div>`;
+    $('#xl-go',prev).onclick=()=>{onAdd(ok.map(x=>x.r));prev.innerHTML='<div class="note" style="margin-top:16px"><span>✓</span><span>'+ok.length+'명을 넣었어요. 오류·중복 '+(er+du)+'줄은 넣지 않았어요.</span></div>'}}
+  $('[data-xl=tpl]',box).onclick=downloadTemplate;
+  $('[data-xl=demo]',box).onclick=()=>show('예시_위원목록.xlsx');
+  const inp=$('input[type=file]',box);inp.onchange=()=>{if(inp.files[0])show(inp.files[0].name)};
+  $('[data-xl=pick]',box).addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
+  return {show}}
+
+const MIN=5;
+/* 이름, 구분, 참석 응답(참석/불참/응답 전), 동의 */
+const NAMES=[['한도윤','본'],['이서연','본'],['박지호','본'],['정민재','본'],['강예린','본'],['신주원','본'],['양지안','본'],['최유나','예비'],['조은서','예비']];
+const SC={
+  ok:[['참석',1],['참석',1],['참석',1],['참석',0],['참석',1],['불참',0],['응답 전',0],['참석',1],['응답 전',0]],
+  few:[['참석',1],['참석',1],['응답 전',0],['응답 전',0],['참석',1],['불참',0],['응답 전',0],['응답 전',0],['응답 전',0]]};
+let scn='ok',started=false,chair=null,pick=null;
+const M=()=>NAMES.map((n,i)=>({id:i,name:n[0],kind:n[1],ans:SC[scn][i][0],agree:SC[scn][i][1]}));
+const confirmed=m=>m.ans==='참석'&&m.agree;
+function checks(){const c=M().filter(confirmed).length;
+  return [{ok:c>=MIN,t:'최소 인원',s:`참석 확정 ${c}명 (최소 ${MIN}명)`},{ok:true,t:'평가표 확정',s:'평가항목 5개 · 합계 100점'},{ok:true,t:'업체 문서 준비',s:'업체 3곳 · 문서 3/3'}]}
+function render(){
+  const L=M(),C=checks(),ok=C.every(x=>x.ok);
+  renderSteps($('#steps'),['done','done','done','done','current','locked']);
+  $('#pst').className='badge '+(started?'primary':'info');$('#pst').textContent=started?'● 평가 중':'○ 준비';
+  $('#cbar').innerHTML=started
+   ?`<div class="lockbar"><span role="img" aria-label="잠김">🔒</span> 평가를 시작했어요 · 참여자·업체·기준이 잠겼어요</div>`
+   :`<ul class="chk" aria-label="평가 시작 전 점검">${C.map(x=>`<li class="${x.ok?'okc':'badc'}"><span class="ic" aria-hidden="true">${x.ok?'✓':'!'}</span><span><b>${x.t}</b><small>${x.ok?'':'모자라요 · '}${x.s}</small></span></li>`).join('')}</ul>
+   <div class="go"><button class="btn primary lg" type="button" id="start" ${ok?'':'disabled'}>평가 시작</button>${ok?'':'<span class="err">점검에서 막혔어요</span>'}</div>`;
+  const a=L.filter(m=>m.ans==='참석').length,b=L.filter(m=>m.ans==='불참').length,c=L.filter(m=>m.ans==='응답 전').length;
+  $('#tb').innerHTML=`<strong>위원 ${L.length}명</strong><span class="badge success">✓ 참석 ${a}</span><span class="badge danger">× 불참 ${b}</span><span class="badge">… 응답 전 ${c}</span><span class="count">위원이 직접 응답해요. 여기서는 볼 수만 있어요.</span>`;
+  $('#th').innerHTML=`<tr>${started?'<th style="width:72px">위원장</th>':''}<th>이름</th><th>구분</th><th>참석 상태</th><th>동의 여부</th></tr>`;
+  $('#rows').innerHTML=L.map(m=>{const can=confirmed(m);const isCh=chair===m.id;
+   return `<tr class="${isCh?'chair':''}">${started?`<td>${chair==null?`<input class="rd" type="radio" name="chair" value="${m.id}" aria-label="${m.name} 위원장으로 고르기" ${can?'':'disabled'} ${pick===m.id?'checked':''}>`:isCh?'<span class="badge primary">★ 위원장</span>':''}</td>`:''}
+   <td class="strong">${m.name}</td><td><span class="badge ${m.kind==='본'?'info':''}">${m.kind==='본'?'본위원':'예비'}</span></td>
+   <td><span class="badge ${m.ans==='참석'?'success':m.ans==='불참'?'danger':''}">${m.ans==='참석'?'✓ 참석':m.ans==='불참'?'× 불참':'… 응답 전'}</span></td>
+   <td>${m.ans==='불참'?'<span class="muted">—</span>':m.agree?'<span class="badge success">✓ 동의함</span>':'<span class="badge warning">아직 안 함</span>'}${started&&m.ans==='참석'&&!can&&chair==null?' <span class="muted">동의 뒤에 고를 수 있어요</span>':''}${started&&!can&&m.ans!=='참석'&&chair==null?' <span class="muted">참석 확정이 아니에요</span>':''}</td></tr>`}).join('');
+  const f=$('#foot');
+  if(started){f.hidden=false;
+    f.innerHTML=chair==null?`<span class="why">참석을 확정한 위원 중 한 명을 위원장으로 지정해 주세요.</span><button class="btn primary" type="button" id="setchair" ${pick==null?'disabled':''}>지정</button>`
+      :`<span class="why">위원장 <b>${L[chair].name}</b> 위원이 지정됐어요. 위원장이 평가를 확인하면 결과가 열려요.</span><a class="btn" href="../../PM-06-평가-결과/시안/results.html">결과 화면 보기</a>`}
+  else f.hidden=true;
+  $('#start')&&($('#start').onclick=()=>confirmDlg({title:'평가를 시작할까요?',body:'시작하면 참여자·업체·기준이 잠겨요. 되돌릴 수 없어요.',ok:'시작하기',onOk:()=>{started=true;render();toast('평가를 시작했어요')}}));
+  $$('input[name=chair]').forEach(r=>r.onchange=()=>{pick=+r.value;render();document.querySelector(`input[name=chair][value="${pick}"]`).focus()});
+  $('#setchair')&&($('#setchair').onclick=()=>{const nm=L[pick].name;confirmDlg({title:nm+' 위원을 위원장으로 지정할까요?',body:'위원장은 모든 위원이 점수를 낸 뒤 결과를 확인하고 제출해요.',ok:'지정하기',onOk:()=>{chair=pick;render();toast(nm+' 위원을 위원장으로 지정했어요')}})});
+}
+const PRE={ok:['시작 전 · 통과',()=>{scn='ok';started=false;chair=null;pick=null}],few:['시작 전 · 인원 모자람',()=>{scn='few';started=false;chair=null;pick=null}],run:['시작 후 · 위원장 고르기',()=>{scn='ok';started=true;chair=null;pick=null}],done:['위원장 지정 후',()=>{scn='ok';started=true;chair=0;pick=0}]};
+$('#presets').innerHTML=Object.entries(PRE).map(([k,v],i)=>`<button type="button" data-pre="${k}" aria-pressed="${i===0}">${v[0]}</button>`).join('');
+$$('[data-pre]').forEach(b=>b.onclick=()=>{PRE[b.dataset.pre][1]();$$('[data-pre]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+render();
+
+</script>
+</body>
+</html>

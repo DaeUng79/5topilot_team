@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사업 목록 · 심사임당 사업담당자</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../../총괄관리자/_shell.css">
+<style>
+td.nm{max-width:420px}
+.dots{display:inline-flex;gap:4px;margin-left:10px;vertical-align:middle}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--gray-20)}
+.dots i.on{background:var(--primary-50)}
+.form{display:flex;flex-direction:column;gap:18px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <button class="brand" type="button" data-href="../../PM-01-사업-목록-등록/시안/projects.html" aria-label="심사임당 사업 목록으로"><span class="brand-mark">심</span><span>심사임당</span></button>
+  <p class="role">(가상) 정보화담당관</p>
+  <nav aria-label="주 메뉴">
+    <a href="../../PM-01-사업-목록-등록/시안/projects.html" aria-current="page">사업 목록</a>
+    <a href="../../PM-07-위원-풀/시안/pool.html">위원 풀</a>
+  </nav>
+  <div class="bottom">
+    <a href="#" data-account>내 계정</a>
+    <a href="../../PM-00-로그인/시안/login.html">로그아웃</a>
+  </div>
+</aside>
+<div class="main">
+  <header class="head">
+    <div><h1>사업 목록</h1><p class="sub">우리 과 사업만 보여요. 사업을 누르면 단계별로 이어서 할 수 있어요.</p></div>
+    <button class="btn primary" type="button" id="b-new">사업 등록</button>
+  </header>
+  <div class="body">
+    <section class="card" aria-label="사업 목록">
+      <div class="toolbar">
+        <div class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input type="search" id="q" placeholder="사업명 검색" aria-label="사업명 검색"></div>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>사업명</th><th>담당자</th><th>평가일</th><th>진행 단계</th><th>상태</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div class="state" id="none" hidden></div>
+      </div>
+    </section>
+  </div>
+  <div class="demo" id="demo"><b>시안 보기</b>
+    <button type="button" data-st="base" aria-pressed="true">기본</button>
+    <button type="button" data-st="empty" aria-pressed="false">빈 목록</button>
+    <span class="muted" style="margin-left:auto">행을 누르면 그 사업의 단계 화면으로 가요</span></div>
+</div>
+</div>
+
+<div class="scrim" id="scrim"></div><div class="scrim top" id="scrim2"></div>
+<aside class="drawer" id="p" role="dialog" aria-modal="true" aria-labelledby="p-t">
+  <header><h2 id="p-t">사업 등록</h2><button class="x" type="button" data-close aria-label="닫기">×</button></header>
+  <form class="dbody form" id="f-new" novalidate>
+    <label class="field">사업명<input id="n-name" placeholder="예: 통합 민원 시스템 구축 용역" aria-describedby="n-name-e"><span class="err" id="n-name-e" hidden></span></label>
+    <div class="two">
+      <label class="field">담당자 이름<input id="n-owner" aria-describedby="n-owner-e"><span class="err" id="n-owner-e" hidden></span></label>
+      <label class="field">직급<input id="n-pos" placeholder="예: 주무관" aria-describedby="n-pos-e"><span class="err" id="n-pos-e" hidden></span></label>
+    </div>
+    <label class="field">소속<input id="n-org" value="(가상) 정보화담당관"></label>
+    <label class="field">전화<input id="n-tel" type="tel" inputmode="tel" placeholder="010-0000-0000" aria-describedby="n-tel-e"><span class="err" id="n-tel-e" hidden></span></label>
+    <label class="field"><span>이메일 <span class="hint">(선택)</span></span><input id="n-mail" type="email" placeholder="example@gov.test"></label>
+    <label class="field"><span>평가일 <span class="hint">(선택) 나중에 정해도 돼요</span></span><input id="n-date" type="date"></label>
+  </form>
+  <footer><button class="btn" type="button" data-close>취소</button><button class="btn primary" type="submit" form="f-new">등록</button></footer>
+</aside>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="../../_ui.js"></script>
+<script>
+const STEP=['사업 정보','문서','평가항목','평가위원','참석·위원장','결과'];
+let P=[
+ {id:1,name:'(가상) 통합 민원 시스템 구축 용역',owner:'김가상',date:'2026-11-05',step:2,s:'준비'},
+ {id:3,name:'(가상) 시민 앱 고도화 용역',owner:'박다상',date:'2026-10-20',step:6,s:'평가 중'},
+ {id:8,name:'(가상) 공공 와이파이 확대 사업',owner:'장아상',date:'2026-10-24',step:6,s:'평가 중'},
+ {id:13,name:'(가상) 업무 시스템 클라우드 전환',owner:'최가상',date:'2026-11-12',step:3,s:'준비'},
+ {id:14,name:'(가상) 정보보안 점검 용역',owner:'김가상',date:'2026-11-20',step:4,s:'준비'},
+ {id:15,name:'(가상) 홈페이지 개편 용역',owner:'이나상',date:'2026-09-18',step:6,s:'완료'},
+ {id:16,name:'(가상) 데이터 표준화 용역',owner:'박다상',date:'',step:1,s:'준비'},
+];
+let nextId=20,q='',empty=false;
+const st={'준비':'info','평가 중':'primary','완료':'success'},mark={'준비':'○','평가 중':'●','완료':'✓'};
+function render(){
+  const L=empty?[]:P.filter(r=>!q||r.name.includes(q));
+  $('#count').textContent=L.length+'개 사업';
+  $('table').hidden=!L.length;const n=$('#none');n.hidden=L.length>0;
+  if(!L.length)n.innerHTML=empty?'<div class="ico" aria-hidden="true">+</div><strong>아직 등록한 사업이 없어요</strong><p>[사업 등록]을 눌러 첫 사업을 만들어 보세요.</p>':'<div class="ico" aria-hidden="true">?</div><strong>맞는 사업이 없어요</strong><p>검색어를 바꾸거나 지워 보세요.</p>';
+  $('#rows').innerHTML=L.map(r=>`<tr tabindex="0" data-id="${r.id}" aria-label="${h(r.name)} 열기"><td class="strong nm">${h(r.name)}</td><td>${h(r.owner)}</td><td class="tnum">${r.date||'<span class="muted">아직 안 정함</span>'}</td><td>${r.s==='완료'?'6 결과 (끝)':r.step+' '+STEP[r.step-1]}<span class="dots" aria-hidden="true">${[1,2,3,4,5,6].map(i=>`<i class="${i<=r.step?'on':''}"></i>`).join('')}</span></td><td><span class="badge ${st[r.s]}">${mark[r.s]} ${r.s}</span></td></tr>`).join('');
+  $$('#rows tr').forEach(tr=>rowKey(tr,()=>{location.href='overview.html?id='+tr.dataset.id}));
+}
+$('#q').oninput=e=>{q=e.target.value.trim();render()};
+const sh=(id,m)=>{const e=$('#'+id+'-e'),i=$('#'+id);e.textContent=m||'';e.hidden=!m;m?i.setAttribute('aria-invalid','true'):i.removeAttribute('aria-invalid');return !m};
+$('#b-new').onclick=()=>{['n-name','n-owner','n-pos','n-tel','n-mail','n-date'].forEach(i=>{$('#'+i).value='';if($('#'+i+'-e'))sh(i,'')});openLayer($('#p'),'#n-name')};
+$('#f-new').addEventListener('submit',e=>{e.preventDefault();
+  const name=$('#n-name').value.trim(),owner=$('#n-owner').value.trim(),pos=$('#n-pos').value.trim(),tel=$('#n-tel').value.trim();
+  const ok=[sh('n-name',name?'':'사업명을 적어 주세요'),sh('n-owner',owner?'':'담당자 이름을 적어 주세요'),sh('n-pos',pos?'':'직급을 적어 주세요'),sh('n-tel',/^01\d-?\d{3,4}-?\d{4}$/.test(tel)?'':'전화번호를 010-0000-0000 모양으로 적어 주세요')];
+  if(ok.includes(false)){const f=$$('#f-new input').find(i=>i.getAttribute('aria-invalid')==='true');f&&f.focus();return}
+  P.unshift({id:nextId++,name:name.startsWith('(가상)')?name:'(가상) '+name,owner,date:$('#n-date').value,step:2,s:'준비'});
+  empty=false;sync('base');closeLayer($('#p'));render();toast('사업을 만들었어요. 다음은 문서 단계예요')});
+function sync(s){$$('#demo [data-st]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.st===s))}
+$$('#demo [data-st]').forEach(b=>b.onclick=()=>{empty=b.dataset.st==='empty';sync(b.dataset.st);render()});
+render();
+if(location.hash==='#new')$('#b-new').click();
+</script>
+</body>
+</html>

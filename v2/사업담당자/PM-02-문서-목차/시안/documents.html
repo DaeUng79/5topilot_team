@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>문서 · 심사임당 사업담당자</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../../총괄관리자/_shell.css">
+<link rel="stylesheet" href="../../_steps.css">
+<style>
+.body{gap:16px}
+.rfp{flex:none;flex-direction:row;align-items:center;gap:16px;padding:16px 24px;min-height:84px}
+.rfp .ic{flex:none;width:44px;height:44px;border-radius:var(--radius-sm);background:var(--primary-5);color:var(--primary-60);display:grid;place-items:center;font-weight:700;font-size:var(--t-base)}
+.rfp .tx{flex:1;min-width:0}
+.rfp .tx b{font-size:var(--t-lg);display:block}
+.rfp .tx span{font-size:var(--t-base);color:var(--text-3)}
+.rfp .tx .bad{color:var(--danger-60);font-weight:700}
+.rfp .acts{display:flex;align-items:center;gap:8px;flex:none}
+.vend{flex:1}
+.vend .toolbar{padding:12px 20px;min-height:64px}
+.vend h2{font-size:var(--t-xl)}
+.vend .toolbar .hintline{color:var(--text-3);font-size:var(--t-base)}
+td.fc{max-width:340px}
+td .sub{display:block;font-size:var(--t-base);color:var(--text-3);font-weight:400;line-height:1.35}
+td .sub.bad{color:var(--danger-60);font-weight:700}
+td.act{text-align:right}
+td.act .btn,.rfp .btn{min-height:40px;padding:0 14px;font-size:var(--t-base)}
+tbody td{height:58px}
+.code{display:inline-grid;place-items:center;min-width:44px;height:32px;border-radius:var(--radius-sm);background:var(--gray-10);font-weight:700}
+.two-lines{line-height:1.35}
+/* 목차 칸 */
+.drawer.wide{width:min(580px,100vw)}
+.toc{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.toc li{display:grid;grid-template-columns:1fr 84px 104px;gap:8px;align-items:center}
+.toc li.l2 input.tt{margin-left:20px;width:calc(100% - 20px)}
+.toc input{min-height:44px;font-size:var(--t-base)}
+.toc input.pg{text-align:right}
+.toc input.pg.miss{border-color:var(--warning-50);background:var(--warning-5)}
+.toc .mk{font-size:var(--t-base)}
+.toc-h{display:grid;grid-template-columns:1fr 84px 104px;gap:8px;font-size:var(--t-base);color:var(--text-3);font-weight:700}
+.dlg-foot-l{margin-right:auto;color:var(--text-3);font-size:var(--t-base);align-self:center}
+.form{display:flex;flex-direction:column;gap:18px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <button class="brand" type="button" data-href="../../PM-01-사업-목록-등록/시안/projects.html" aria-label="심사임당 사업 목록으로"><span class="brand-mark">심</span><span>심사임당</span></button>
+  <p class="role">(가상) 정보화담당관</p>
+  <nav aria-label="주 메뉴">
+    <a href="../../PM-01-사업-목록-등록/시안/projects.html" aria-current="page">사업 목록</a>
+    <a href="../../PM-07-위원-풀/시안/pool.html">위원 풀</a>
+  </nav>
+  <div class="bottom">
+    <a href="#" data-account>내 계정</a>
+    <a href="../../PM-00-로그인/시안/login.html">로그아웃</a>
+  </div>
+</aside>
+<div class="main">
+  <header class="pj-head">
+    <a class="pj-back" href="../../PM-01-사업-목록-등록/시안/overview.html">← 사업 정보</a>
+    <div class="pj-row">
+      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge info">○ 준비</span></div>
+      <div class="pj-act"><span class="hint" id="remain"></span><a class="btn primary" id="b-next" href="../../PM-03-평가항목/시안/criteria.html">다음: 평가항목</a></div>
+    </div>
+  </header>
+  <nav class="steps" id="steps" aria-label="진행 단계"></nav>
+  <div class="body">
+    <section class="card rfp" id="rfp" aria-label="제안요청서"></section>
+    <section class="card vend" aria-label="제안 업체">
+      <div class="toolbar">
+        <h2>제안 업체</h2><span class="count" id="vcount" style="margin-left:0"></span>
+        <span class="hintline">평가위원에게는 A사, B사…로 보여요. 평가 시작 뒤에는 표시 코드를 바꿀 수 없어요.</span>
+        <button class="btn" type="button" id="b-add" style="margin-left:auto">업체 추가</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>표시 코드</th><th>업체명</th><th>제안서 (HWPX·PDF)</th><th>처리 상태</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="demo" id="demo"><b>시안 보기</b> 제안요청서
+    <button type="button" data-r="none" aria-pressed="false">없음</button>
+    <button type="button" data-r="wait" aria-pressed="false">대기</button>
+    <button type="button" data-r="run" aria-pressed="false">처리 중</button>
+    <button type="button" data-r="fail" aria-pressed="false">실패</button>
+    <button type="button" data-r="done" aria-pressed="true">완료</button>
+    <span class="muted">·</span>
+    <button type="button" data-all="done" aria-pressed="false">모두 끝난 상태</button>
+    <button type="button" data-all="init" aria-pressed="false">처음 상태</button>
+  </div>
+</div>
+</div>
+<input type="file" id="file" hidden>
+
+<div class="scrim" id="scrim"></div><div class="scrim top" id="scrim2"></div>
+
+<aside class="drawer wide" id="toc" role="dialog" aria-modal="true" aria-labelledby="toc-t">
+  <header><h2 id="toc-t">목차 확인</h2><button class="x" type="button" data-close aria-label="닫기">×</button></header>
+  <div class="dbody">
+    <div class="note" id="toc-note">컴퓨터가 읽어 온 초안이에요. 제목과 쪽 번호를 고친 뒤 [확인 완료]를 눌러 주세요.</div>
+    <div class="toc-h" aria-hidden="true"><span>목차 제목</span><span style="text-align:right">쪽</span><span></span></div>
+    <ul class="toc" id="toc-list"></ul>
+  </div>
+  <footer><span class="dlg-foot-l" id="toc-left"></span><button class="btn" type="button" data-close>닫기</button><button class="btn primary" type="button" id="toc-ok">확인 완료</button></footer>
+</aside>
+
+<aside class="drawer" id="add" role="dialog" aria-modal="true" aria-labelledby="add-t">
+  <header><h2 id="add-t">업체 추가</h2><button class="x" type="button" data-close aria-label="닫기">×</button></header>
+  <form class="dbody form" id="f-add" novalidate>
+    <label class="field">업체명<input id="a-name" placeholder="예: (가상)하늘정보" aria-describedby="a-name-e"><span class="err" id="a-name-e" hidden></span></label>
+    <dl class="kv"><dt>표시 코드</dt><dd id="a-code"></dd></dl>
+    <div class="note warn">평가위원에게는 업체명 대신 이 코드가 보여요. 평가를 시작한 뒤에는 코드를 바꿀 수 없어요.</div>
+  </form>
+  <footer><button class="btn" type="button" data-close>취소</button><button class="btn primary" type="submit" form="f-add">추가</button></footer>
+</aside>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="../../_ui.js"></script>
+<script>
+const TPL=[['사업 개요',3,1],['추진 배경',3,2],['사업 범위',null,2],['제안 요청 내용',6,1],['기능 요구사항',null,2],['성능·보안 요구사항',11,2],['제안서 평가 방법',14,1],['평가 항목 및 배점',14,2],['제안서 작성 요령',17,1],['계약 조건',20,1],['별첨 서식',22,1]];
+const VT=[['회사 일반 현황',4,1],['사업 이해도',9,1],['추진 전략',10,2],['시스템 구성',15,1],['기능 설계',18,2],['보안 대책',27,1],['품질·시험 계획',33,1],['유지보수 계획',null,1]];
+const mk=(t,miss)=>t.map((e,i)=>({t:e[0],p:miss&&e[1]==null?null:e[1],l:e[2]}));
+const ent=(t)=>t.map(e=>({t:e[0],p:e[1],l:e[2]}));
+function initState(){return{
+ rfp:{file:'통합민원_제안요청서.hwpx',s:'done',toc:'draft',entries:ent(TPL),err:''},
+ v:[
+  {code:'A사',name:'(가상)하늘정보',file:'하늘정보_제안서.hwpx',s:'done',toc:'ok',entries:ent(VT).map(e=>({...e,p:e.p||40})),err:''},
+  {code:'B사',name:'(가상)누리시스템',file:'누리시스템_제안서.pdf',s:'run',toc:'none',entries:[],err:''},
+  {code:'C사',name:'(가상)한빛소프트',file:'한빛소프트_제안서.hwpx',s:'fail',toc:'none',entries:[],err:''},
+  {code:'D사',name:'(가상)미래데이터',file:'미래데이터_스캔본.pdf',s:'unsup',toc:'none',entries:[],err:'스캔·이미지 PDF는 지원하지 않아요'},
+  {code:'E사',name:'(가상)바른테크',file:'',s:'none',toc:'none',entries:[],err:''},
+ ]}}
+let S=initState(),target=null,timers=[];
+const BADGE={none:['','— 파일 없음'],wait:['','○ 대기'],run:['info','⟳ 처리 중'],done:['success','✓ 완료'],fail:['danger','! 실패'],unsup:['danger','! 지원 안 함']};
+const bd=s=>`<span class="badge ${BADGE[s][0]}">${BADGE[s][1]}</span>`;
+const idx=['A','B','C','D','E','F','G','H','I','J'];
+
+function remainCount(){let n=0;
+  if(S.rfp.s!=='done'||S.rfp.toc!=='ok')n++;
+  if(!S.v.length)n++;
+  S.v.forEach(v=>{if(v.s!=='done'||v.toc!=='ok')n++});return n}
+function paint(){
+  const r=S.rfp;
+  const stTxt={none:'',wait:'올렸어요. 처리를 기다리는 중이에요',run:'파일을 읽는 중이에요. 잠시만 기다려 주세요',done:r.toc==='ok'?'목차 확인까지 끝났어요':'목차를 확인해 주세요',fail:'파일을 읽지 못했어요'}[r.s];
+  $('#rfp').innerHTML=r.s==='none'
+   ?`<div class="ic" aria-hidden="true">RFP</div><div class="tx"><b>제안요청서</b><span class="${r.err?'bad':''}">${r.err||'HWPX 파일 1개를 올려 주세요 (50MB까지)'}</span></div><div class="acts"><button class="btn" type="button" data-up="rfp">파일 고르기</button></div>`
+   :`<div class="ic" aria-hidden="true">RFP</div><div class="tx"><b>제안요청서 · ${h(r.file)}</b><span class="${r.err?'bad':''}">${h(r.err||stTxt)}</span></div><div class="acts">${bd(r.s)}${r.s==='fail'?'<button class="btn" type="button" data-retry="rfp">다시 시도</button>':''}${r.s==='done'?`<button class="btn" type="button" data-toc="rfp">${r.toc==='ok'?'목차 보기':'목차 확인'}</button>`:''}<button class="btn" type="button" data-up="rfp">바꾸기</button></div>`;
+  $('#vcount').textContent=S.v.length+'곳';
+  $('#rows').innerHTML=S.v.map((v,i)=>{
+    const sub=v.err?`<span class="sub bad">${h(v.err)}</span>`:v.s==='done'?`<span class="sub">${v.toc==='ok'?'목차 확인 끝':'목차 확인 필요'}</span>`:v.s==='fail'?'<span class="sub bad">파일을 읽지 못했어요</span>':v.s==='run'?'<span class="sub">읽는 중이에요</span>':v.s==='wait'?'<span class="sub">처리를 기다리는 중이에요</span>':'';
+    const act=v.s==='none'?`<button class="btn" type="button" data-up="${i}">제안서 올리기</button>`
+      :v.s==='fail'?`<button class="btn" type="button" data-retry="${i}">다시 시도</button>`
+      :v.s==='unsup'?`<button class="btn" type="button" data-up="${i}">다시 올리기</button>`
+      :v.s==='done'?`<button class="btn" type="button" data-toc="${i}">${v.toc==='ok'?'목차 보기':'목차 확인'}</button>`:'';
+    return `<tr><td><span class="code">${v.code}</span></td><td class="strong">${h(v.name)}</td><td class="fc two-lines">${v.file?h(v.file):'<span class="muted">아직 안 올렸어요</span>'}${sub}</td><td>${bd(v.s)}</td><td class="act">${act}</td></tr>`}).join('');
+  $$('[data-up]').forEach(b=>b.onclick=()=>{target=b.dataset.up;$('#file').accept=target==='rfp'?'.hwpx':'.hwpx,.pdf';$('#file').value='';$('#file').click()});
+  $$('[data-retry]').forEach(b=>b.onclick=()=>{const o=b.dataset.retry==='rfp'?S.rfp:S.v[+b.dataset.retry];o.s='wait';o.err='';paint();flow(o)});
+  $$('[data-toc]').forEach(b=>b.onclick=()=>openToc(b.dataset.toc));
+  const n=remainCount(),ready=n===0;
+  $('#remain').textContent=ready?'':`남은 일 ${n}가지`;
+  const nx=$('#b-next');nx.toggleAttribute('aria-disabled',!ready);nx.classList.toggle('is-off',!ready);
+  renderSteps($('#steps'),['done','current',ready?'open':'locked','locked','locked','locked']);
+  $$('#demo [data-r]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.r===S.rfp.s));
+}
+$('#b-next').addEventListener('click',e=>{if(remainCount()){e.preventDefault();toast('남은 일을 끝내면 열려요 · 남은 일 '+remainCount()+'가지')}});
+function flow(o){timers.push(setTimeout(()=>{if(o.s!=='wait')return;o.s='run';paint();
+  timers.push(setTimeout(()=>{if(o.s!=='run')return;
+    if(/스캔|scan/i.test(o.file)&&/\.pdf$/i.test(o.file)){o.s='unsup';o.err='스캔·이미지 PDF는 지원하지 않아요'}
+    else{o.s='done';o.toc='draft';o.entries=o===S.rfp?ent(TPL):ent(VT)}
+    paint()},1800))},1000))}
+$('#file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;
+  const o=target==='rfp'?S.rfp:S.v[+target],ext=(f.name.split('.').pop()||'').toLowerCase();
+  const okExt=target==='rfp'?['hwpx']:['hwpx','pdf'];
+  if(!okExt.includes(ext)){o.err=target==='rfp'?'HWPX 파일만 올릴 수 있어요':'HWPX 또는 PDF만 올릴 수 있어요';if(o.s==='none')o.file='';paint();toast(o.err);return}
+  if(f.size>50*1024*1024){o.err='파일이 너무 커요. 50MB까지 올릴 수 있어요';paint();toast(o.err);return}
+  o.file=f.name;o.s='wait';o.toc='none';o.err='';o.entries=[];paint();flow(o)});
+
+/* 목차 칸 */
+let tocObj=null;
+function openToc(key){tocObj=key==='rfp'?S.rfp:S.v[+key];
+  $('#toc-t').textContent=(key==='rfp'?'제안요청서':S.v[+key].code+' 제안서')+' 목차 확인';
+  $('#toc-list').innerHTML=tocObj.entries.map((e,i)=>`<li class="${e.l===2?'l2':''}"><input class="tt" data-i="${i}" value="${h(e.t)}" aria-label="목차 ${i+1} 제목"><input class="pg tnum" data-i="${i}" inputmode="numeric" value="${e.p==null?'':e.p}" placeholder="쪽" aria-label="목차 ${i+1} 쪽 번호"><span class="mk"></span></li>`).join('');
+  $$('#toc-list .tt').forEach(i=>i.oninput=()=>{tocObj.entries[+i.dataset.i].t=i.value});
+  $$('#toc-list .pg').forEach(i=>i.oninput=()=>{const v=i.value.replace(/\D/g,'');i.value=v;tocObj.entries[+i.dataset.i].p=v?+v:null;tocMarks()});
+  tocMarks();openLayer($('#toc'),'#toc-list .tt')}
+function tocMarks(){let miss=0;
+  $$('#toc-list li').forEach((li,i)=>{const m=tocObj.entries[i].p==null;miss+=m;li.querySelector('.pg').classList.toggle('miss',m);li.querySelector('.mk').innerHTML=m?'<span class="badge warning">? 쪽 미확인</span>':''});
+  $('#toc-ok').disabled=miss>0;$('#toc-left').textContent=miss?`쪽 미확인 ${miss}개를 채워 주세요`:'모두 확인했어요'}
+$('#toc-ok').onclick=()=>{tocObj.toc='ok';closeLayer($('#toc'));paint();toast('목차 확인을 끝냈어요')};
+
+/* 업체 추가 */
+$('#b-add').onclick=()=>{$('#a-name').value='';$('#a-name-e').hidden=true;$('#a-name').removeAttribute('aria-invalid');$('#a-code').textContent=(idx[S.v.length]||'Z')+'사 (자동)';openLayer($('#add'),'#a-name')};
+$('#f-add').addEventListener('submit',e=>{e.preventDefault();const n=$('#a-name').value.trim(),er=$('#a-name-e');
+  const msg=!n?'업체명을 적어 주세요':S.v.some(v=>v.name===n||v.name==='(가상)'+n)?'이미 있는 업체예요':'';
+  if(msg){er.textContent=msg;er.hidden=false;$('#a-name').setAttribute('aria-invalid','true');$('#a-name').focus();return}
+  S.v.push({code:(idx[S.v.length]||'Z')+'사',name:n,file:'',s:'none',toc:'none',entries:[],err:''});closeLayer($('#add'));paint();toast(S.v[S.v.length-1].code+'로 추가했어요')});
+
+$$('#demo [data-r]').forEach(b=>b.onclick=()=>{timers.forEach(clearTimeout);const r=S.rfp,s=b.dataset.r;r.s=s;r.err='';
+  if(s==='none'){r.file='';r.toc='none'}else{r.file=r.file||'통합민원_제안요청서.hwpx'}
+  if(s==='done'){r.toc='draft';r.entries=ent(TPL)}paint()});
+$$('#demo [data-all]').forEach(b=>b.onclick=()=>{timers.forEach(clearTimeout);S=initState();
+  if(b.dataset.all==='done'){S.rfp.toc='ok';S.v.forEach((v,i)=>{v.file=v.file||'바른테크_제안서.hwpx';v.s='done';v.toc='ok';v.err='';v.entries=ent(VT).map(e=>({...e,p:e.p||40}))})}
+  paint()});
+paint();
+if(location.hash==='#toc'){openToc('rfp')}
+</script>
+<style>.btn.is-off{background:var(--gray-20);border-color:var(--gray-20);color:var(--gray-60);cursor:not-allowed}.btn.is-off:hover{background:var(--gray-20);border-color:var(--gray-20)}</style>
+</body>
+</html>

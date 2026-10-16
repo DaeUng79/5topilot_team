@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>평가위원 선정 · 심사임당 사업담당자</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../../총괄관리자/_shell.css">
+<link rel="stylesheet" href="../../_steps.css">
+<style>
+.seg{display:inline-flex;border:1px solid var(--gray-30);border-radius:var(--radius-sm);overflow:hidden;background:var(--gray-0)}
+.seg button{appearance:none;border:0;background:none;min-height:44px;padding:0 18px;font-weight:700;color:var(--text-2);cursor:pointer;border-right:1px solid var(--gray-20);font-size:var(--t-base)}
+.seg button:last-child{border-right:0}
+.seg button:hover{background:var(--gray-5)}
+.seg button[aria-pressed="true"]{background:var(--primary-5);color:var(--primary-60);box-shadow:inset 0 -3px 0 var(--primary-50)}
+.seg button[aria-pressed="true"]::before{content:"✓ "}
+.xl-top{display:flex;gap:8px;flex-wrap:wrap}
+.xl-sum{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:16px 0 8px;font-size:var(--t-base)}
+.xl-tbl{border:1px solid var(--line);border-radius:var(--radius-sm);overflow:auto;max-height:290px}
+.xl-tbl td{height:48px;padding:0 12px}
+.xl-sum{margin:12px 0 8px!important}
+.xl-tbl tr.r-err td:first-child{box-shadow:inset 4px 0 0 var(--danger-50)}
+.xl-tbl tr.r-dup td:first-child{box-shadow:inset 4px 0 0 var(--warning-50)}
+.xl-act{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.cb{width:22px;height:22px;min-height:0;padding:0;accent-color:var(--primary-50);cursor:pointer}
+.pane{flex:1;min-height:0;display:flex;flex-direction:column}
+.foot{display:flex;align-items:center;gap:12px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--line);flex:none}
+.foot .why{margin-right:auto;color:var(--text-2);font-size:var(--t-base)}
+td input.cell,td select.cell{min-height:40px;font-size:var(--t-base)}
+.demo .grp{display:inline-flex;gap:6px;align-items:center;margin-right:12px}
+.proj{color:var(--text-3)}
+.drawer.wide{width:min(760px,100vw)}
+.btn.sm{min-height:40px;padding:0 14px;font-size:var(--t-base)}
+@media print{.side,.demo,.head .acts,.steps{display:none!important}.app{display:block}.main,.body,.card{height:auto;overflow:visible;box-shadow:none}body{overflow:visible}}
+
+.main{height:100vh}
+.sub{list-style:none;margin:0;padding:8px 20px;display:flex;gap:8px;border-bottom:1px solid var(--line);flex:none}
+.sub button{appearance:none;flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:44px;padding:0 12px;border:0;border-radius:var(--radius-sm);background:none;font-size:var(--t-base);font-weight:700;color:var(--text-3);cursor:pointer;text-align:left}
+.sub button:hover{background:var(--gray-5)}
+.sub .n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--gray-10);color:var(--text-2);font-size:14px}
+.sub .done{color:var(--text-1)}
+.sub .done .n{background:var(--success-5);color:var(--success-60)}
+.sub .cur{color:var(--primary-60);background:var(--primary-5);box-shadow:inset 0 -3px 0 var(--primary-50)}
+.sub .cur .n{background:var(--primary-50);color:#fff}
+.sub .lock{font-weight:400;cursor:not-allowed}
+.sub .lock .n{background:none}
+.stg{flex:1;min-height:0;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px}
+.two{display:grid;grid-template-columns:1fr 300px;gap:20px;flex:1;min-height:0}
+.src{display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
+.srcbox{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+.box{border:1px solid var(--line);border-radius:var(--radius-sm);overflow:auto;flex:1;min-height:0}
+.tray{border:1px solid var(--line);border-radius:var(--radius-sm);display:flex;flex-direction:column;min-height:0;background:var(--gray-5)}
+.tray header{padding:14px 16px 10px;display:flex;flex-direction:column;gap:8px}
+.tray header strong{font-size:var(--t-lg)}
+.tray ul{list-style:none;margin:0;padding:0 8px 8px;overflow:auto;flex:1;min-height:0}
+.tray li{display:flex;align-items:center;gap:8px;min-height:48px;padding:0 8px;border-bottom:1px solid var(--line)}
+.tray li:last-child{border:0}
+.tray li .nm{font-weight:700;flex:none}
+.tray li .fd{color:var(--text-3);font-size:var(--t-base);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tray .rm{appearance:none;border:0;background:none;width:40px;height:40px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-2);font-size:var(--t-xl);flex:none}
+.tray .rm:hover{background:var(--gray-10)}
+.tray .empty{padding:32px 16px;text-align:center;color:var(--text-3)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px;max-width:760px}
+.fgrid .full{grid-column:1/-1}
+.cfg{display:flex;flex-direction:column;gap:16px;max-width:900px}
+.cfg td{height:50px}
+.cfg .box{overflow:visible}
+.cfg-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.cfg-row>b{width:104px;flex:none}
+.stp{display:inline-flex;align-items:center;gap:8px}
+.stp button{appearance:none;width:40px;height:40px;border-radius:var(--radius-sm);border:1px solid var(--gray-30);background:var(--gray-0);font-size:var(--t-xl);font-weight:700;cursor:pointer}
+.stp button:hover:not(:disabled){background:var(--gray-5)}
+.stp button:disabled{color:var(--gray-30);cursor:not-allowed}
+.stp output{min-width:36px;text-align:center;font-weight:700;font-size:var(--t-lg)}
+tr.sumrow td{font-weight:700;background:var(--gray-5);height:56px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dcard{border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.dcard h3{font-size:var(--t-lg);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dcard ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 8px}
+.dcard li{background:var(--gray-5);border-radius:var(--radius-full);padding:4px 14px;font-size:var(--t-base);font-weight:700}
+.dcard li span{font-weight:400;color:var(--text-3)}
+.ctr{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:16px}
+.ctr .ico{width:64px;height:64px;border-radius:50%;background:var(--primary-5);display:grid;place-items:center;font-size:var(--t-2xl)}
+.call .seg button{min-height:40px;padding:0 14px}
+.call .seg button[aria-pressed="true"]::before{content:"✓ "}
+.call td input{min-width:200px}
+.fin{display:grid;grid-template-columns:1fr 340px;gap:20px;flex:1;min-height:0}
+.chk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.chk li{display:flex;gap:10px;align-items:flex-start;font-size:var(--t-base)}
+.chk .ic{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;margin-top:1px}
+.chk .okc .ic{background:var(--success-5);color:var(--success-60)}
+.chk .badc .ic{background:var(--danger-5);color:var(--danger-60)}
+.chk b{display:block}
+.side2{border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;display:flex;flex-direction:column;gap:14px;align-self:start}
+.two-l{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.lstcard{border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;display:flex;flex-direction:column;gap:10px}
+.lstcard ol{margin:0;padding:0;list-style:none;display:flex;flex-direction:column}
+.lstcard li{display:flex;gap:10px;align-items:center;min-height:48px;border-bottom:1px solid var(--line)}
+.lstcard li:last-child{border:0}
+.lstcard li .nm{font-weight:700;font-size:var(--t-body)}
+
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <button class="brand" type="button" data-href="../../PM-01-사업-목록-등록/시안/projects.html" aria-label="심사임당 사업 목록으로"><span class="brand-mark">심</span><span>심사임당</span></button>
+  <p class="role">(가상) 정보화담당관</p>
+  <nav aria-label="주 메뉴">
+    <a href="../../PM-01-사업-목록-등록/시안/projects.html" aria-current="page">사업 목록</a>
+    <a href="../../PM-07-위원-풀/시안/pool.html">위원 풀</a>
+  </nav>
+  <div class="bottom">
+    <a href="../../PM-00-로그인/시안/login.html#account" data-account>내 계정</a>
+    <a href="../../PM-00-로그인/시안/login.html" data-logout>로그아웃</a>
+  </div>
+</aside>
+<div class="main">
+  <div class="pj-head">
+    <a class="pj-back" href="../../PM-01-사업-목록-등록/시안/projects.html">← 사업 목록</a>
+    <div class="pj-row">
+      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge info">○ 준비</span></div>
+      <div class="pj-act"><span class="hint">평가일 2026-11-05</span></div>
+    </div>
+  </div>
+  <nav class="steps" id="steps" aria-label="사업 진행 단계"></nav>
+  <div class="body">
+    <section class="card" aria-label="평가위원 선정">
+      <div class="sub" id="sub" role="group" aria-label="위원 선정 순서"></div>
+      <div class="pane" id="stage"></div>
+      <div class="foot" id="foot"></div>
+    </section>
+  </div>
+  <div class="demo"><b>시안 보기</b>
+    <span class="grp" id="presets"></span>
+    <span class="muted">(가상 데이터) 추첨한 뒤에는 후보·정원이 잠겨요</span></div>
+
+</div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="scrim top" id="scrim2"></div>
+<aside class="drawer" id="p" role="dialog" aria-modal="true" aria-labelledby="p-t">
+  <header><h2 id="p-t"></h2><button class="x" type="button" data-close aria-label="닫기">×</button></header>
+  <div class="dbody" id="p-body"></div>
+  <footer id="p-foot"></footer>
+</aside>
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t" aria-describedby="dlg-b">
+  <h2 id="dlg-t"></h2><p id="dlg-b"></p>
+  <div class="acts"><button class="btn" type="button" id="dlg-cancel" data-close>취소</button><button class="btn primary" type="button" id="dlg-ok"></button></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="../../_ui.js"></script>
+<script>
+/* 가상 데이터 */
+const FIELDS=['시스템 구축','정보보안','데이터·AI','사업관리'];
+const POOL=[
+ [1,'(가상)한빛대학교','컴퓨터공학과','한도윤','교수',0,'doyun.han@example.com','010-0000-3001',3],
+ [2,'(가상)한빛대학교','정보보호학과','이서연','부교수',1,'seoyeon.lee@example.com','010-0000-3002',2],
+ [3,'(가상)누리연구원','AI연구실','박지호','책임연구원',2,'jiho.park@example.com','010-0000-3003',4],
+ [4,'(가상)새솔대학교','경영학과','최유나','교수',3,'yuna.choi@example.com','010-0000-3004',1],
+ [5,'(가상)푸른대학교','소프트웨어학과','정민재','교수',0,'minjae.jung@example.com','010-0000-3005',5],
+ [6,'(가상)다온연구원','보안연구실','강예린','선임연구원',1,'yerin.kang@example.com','010-0000-3006',2],
+ [7,'(가상)한빛대학교','데이터사이언스과','윤태오','조교수',2,'taeo.yoon@example.com','010-0000-3007',0],
+ [8,'(가상)새솔대학교','산업공학과','장하은','교수',3,'haeun.jang@example.com','010-0000-3008',3],
+ [9,'(가상)푸른대학교','컴퓨터공학과','임건우','교수',0,'gunwoo.lim@example.com','010-0000-3009',1],
+ [10,'(가상)누리연구원','클라우드센터','오수아','책임연구원',0,'sua.oh@example.com','010-0000-3010',2],
+ [11,'(가상)다온연구원','정보보호팀','신주원','수석연구원',1,'juwon.shin@example.com','010-0000-3011',6],
+ [12,'(가상)한빛대학교','통계학과','배도하','교수',2,'doha.bae@example.com','010-0000-3012',1],
+ [13,'(가상)새솔대학교','행정학과','조은서','부교수',3,'eunseo.cho@example.com','010-0000-3013',2],
+ [14,'(가상)푸른대학교','정보보호학과','문시현','교수',1,'sihyun.moon@example.com','010-0000-3014',0],
+ [15,'(가상)누리연구원','빅데이터팀','양지안','선임연구원',2,'jian.yang@example.com','010-0000-3015',3],
+ [16,'(가상)다온연구원','SW공학팀','홍라온','책임연구원',0,'raon.hong@example.com','010-0000-3016',1],
+ [17,'(가상)새솔대학교','공공정책대학원','서이준','교수',3,'ijun.seo@example.com','010-0000-3017',4],
+ [18,'(가상)푸른대학교','시스템공학과','노아린','조교수',0,'arin.no@example.com','010-0000-3018',0]
+].map(r=>({id:r[0],org:r[1],dept:r[2],name:r[3],pos:r[4],field:FIELDS[r[5]],email:r[6],tel:r[7],n:r[8]}));
+const XLS=[
+ ['(가상)한빛대학교','컴퓨터공학과','권도현','교수','시스템 구축','dohyun.kwon@example.com','010-0000-3101'],
+ ['(가상)누리연구원','AI연구실','서하린','책임연구원','데이터·AI','harin.seo@example.com','010-0000-3102'],
+ ['(가상)한빛대학교','컴퓨터공학과','한도윤','교수','시스템 구축','doyun.han@example.com','010-0000-3001'],
+ ['(가상)새솔대학교','경영학과','문지후','교수','사업관리','jihu.moon.example.com','010-0000-3104'],
+ ['(가상)푸른대학교','소프트웨어학과','배서윤','부교수','정보보안','seoyun.bae@example.com',''],
+ ['(가상)다온연구원','보안연구실','류시우','선임연구원','정보보안','siwoo.ryu@example.com','010-0000-3106']
+];
+function checkRow(r,have){
+  if(!r[2]||!r[0])return {k:'err',m:'기관·이름이 비었어요'};
+  if(!FIELDS.includes(r[4]))return {k:'err',m:'분야를 확인해 주세요'};
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r[5]))return {k:'err',m:'이메일 형식이 아니에요'};
+  if(!/^010-\d{4}-\d{4}$/.test(r[6]))return {k:'err',m:'전화번호가 없거나 형식이 달라요'};
+  if(have(r[5]))return {k:'dup',m:'이미 있는 사람이에요'};
+  return {k:'ok',m:'넣을 수 있어요'}}
+function downloadTemplate(){const head=['기관','부서','이름','직책','분야('+FIELDS.join('/')+')','이메일','전화(010-0000-0000)'];
+  const csv='﻿'+head.join(',')+'\n'+XLS[0].join(',')+'\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='위원_올리기_양식.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);toast('양식을 내려받았어요')}
+/* 엑셀 올리기: box 안에 그리고, 정상 행만 onAdd로 넘긴다 */
+function excelBox(box,have,onAdd,primary=true){
+  box.innerHTML=`<div class="xl-top"><button class="btn" type="button" data-xl="tpl">양식 내려받기</button><label class="btn" tabindex="0" data-xl="pick">파일 고르기<input type="file" class="sr-only" accept=".xlsx,.xls,.csv" tabindex="-1"></label><button class="btn" type="button" data-xl="demo">예시 파일로 미리보기</button></div>
+  <div class="xl-prev"></div>`;
+  const prev=$('.xl-prev',box);
+  function show(name){const R=XLS.map(r=>({r,c:checkRow(r,have)}));const ok=R.filter(x=>x.c.k==='ok'),er=R.filter(x=>x.c.k==='err').length,du=R.filter(x=>x.c.k==='dup').length;
+    prev.innerHTML=`<div class="xl-sum"><b>${h(name)}</b><span class="badge success">✓ 정상 ${ok.length}</span><span class="badge danger">! 오류 ${er}</span><span class="badge warning">= 중복 ${du}</span></div>
+    <div class="xl-tbl"><table><thead><tr><th>줄</th><th>이름</th><th>분야</th><th>전화</th><th>확인 결과</th></tr></thead><tbody>${R.map((x,i)=>`<tr class="r-${x.c.k}"><td class="tnum">${i+2}</td><td class="strong">${h(x.r[2]||'(빈칸)')}</td><td>${h(x.r[4])}</td><td class="tnum">${h(x.r[6]||'(빈칸)')}</td><td><span class="badge ${x.c.k==='ok'?'success':x.c.k==='dup'?'warning':'danger'}">${x.c.k==='ok'?'✓ 정상':x.c.k==='dup'?'= 중복':'! 오류'}</span> <span class="muted">${x.c.k==='ok'?'':x.c.m}</span></td></tr>`).join('')}</tbody></table></div>
+    <div class="xl-act"><span class="muted">오류·중복 줄은 빼고 정상인 ${ok.length}명만 넣어요.</span><button class="btn${primary?' primary':''}" type="button" id="xl-go" ${ok.length?'':'disabled'}>정상 ${ok.length}명 넣기</button></div>`;
+    $('#xl-go',prev).onclick=()=>{onAdd(ok.map(x=>x.r));prev.innerHTML='<div class="note" style="margin-top:16px"><span>✓</span><span>'+ok.length+'명을 넣었어요. 오류·중복 '+(er+du)+'줄은 넣지 않았어요.</span></div>'}}
+  $('[data-xl=tpl]',box).onclick=downloadTemplate;
+  $('[data-xl=demo]',box).onclick=()=>show('예시_위원목록.xlsx');
+  const inp=$('input[type=file]',box);inp.onchange=()=>{if(inp.files[0])show(inp.files[0].name)};
+  $('[data-xl=pick]',box).addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
+  return {show}}
+
+const STAGES=['후보 모으기','정원 정하기','추첨','전화 확인','명단 확정'];
+const NEXT=['정원 정하기','추첨','전화 확인','명단 확정'];
+const fresh=()=>({stage:0,tab:0,sel:new Set(),cands:POOL.slice(0,8).map(p=>({...p,src:'풀'})),quota:7,reserve:2,by:[2,2,2,1],drawn:null,drawAt:'',calls:{},memo:{},role:{},manual:false,locked:false,confirmAt:'',err:{}});
+let S=fresh();let nid=100;
+const sum=()=>S.by.reduce((a,b)=>a+b,0);
+const V=[()=>S.cands.length>0,()=>sum()===S.quota,()=>!!S.drawn,()=>true];
+const canGo=i=>{for(let j=0;j<i;j++)if(!V[j]())return false;return true};
+const cnt=f=>S.cands.filter(c=>c.field===f).length;
+const haveEmail=e=>S.cands.some(c=>c.email===e);
+let fkey=null;
+
+function renderSub(){
+  $('#sub').innerHTML=STAGES.map((t,i)=>{
+    const st=S.locked||i<S.stage?'done':i===S.stage?'cur':!canGo(i)?'lock':'';
+    const frozen=!S.locked&&S.drawn&&i<2;
+    return `<button type="button" class="${st}" data-i="${i}" ${i===S.stage?'aria-current="step"':''} ${st==='lock'?'aria-disabled="true"':''}><span class="n" aria-hidden="true">${st==='done'?'✓':st==='lock'?'🔒':i+1}</span><span>${t}${frozen?' <span class="sr-only">(잠김)</span>':''}</span></button>`}).join('');
+  $$('#sub button').forEach(b=>b.onclick=()=>go(+b.dataset.i));
+  renderSteps($('#steps'),['done','done','done','current',S.locked?'open':'locked','locked']);
+}
+function go(i){
+  if(S.locked){return}
+  if(i===S.stage)return;
+  if(S.drawn&&i<2){toast('추첨한 뒤에는 후보·정원을 바꿀 수 없어요');return}
+  if(!canGo(i)){toast(i>=1&&!V[0]()?'후보를 먼저 넣어 주세요':!V[1]()&&i>=2?'분야별 인원 합계를 정원에 맞춰 주세요':'앞 단계를 먼저 끝내 주세요');return}
+  if(i===4&&!S.manual)autoAssign();
+  S.stage=i;render()}
+function foot(label,enabled,why,onClick,prevOk=true){
+  const f=$('#foot');
+  f.innerHTML=`${why?`<span class="why">${why}</span>`:''}${S.stage>0&&!S.locked?`<button class="btn" type="button" id="prev" ${prevOk?'':'disabled'}>이전</button>`:''}${label?`<button class="btn ${enabled?'primary':''}" type="button" id="next" ${enabled?'':'disabled'}>${label}</button>`:''}`;
+  $('#prev')&&($('#prev').onclick=()=>go(S.stage-1));
+  $('#next')&&($('#next').onclick=onClick)}
+function render(){renderSub();const m=[stage0,stage1,stage2,stage3,stage4][S.stage];$('#stage').innerHTML='';m();
+  if(fkey){const e=document.querySelector(fkey);e&&e.focus();fkey=null}}
+
+/* ① 후보 모으기 */
+function tray(){
+  const n=S.cands.length;
+  return `<aside class="tray" aria-label="지금 후보"><header><strong>지금 후보 <span class="tnum">${n}</span>명</strong><div class="chips" aria-label="분야별 후보 수">${FIELDS.map(f=>`<span class="badge">${f} ${cnt(f)}</span>`).join('')}</div></header>
+  ${n?`<ul>${S.cands.map(c=>`<li><span class="nm">${h(c.name)}</span><span class="fd">${h(c.field)} · ${h(c.src)}</span><button class="rm" type="button" data-rm="${c.id}" aria-label="${h(c.name)} 후보에서 빼기">×</button></li>`).join('')}</ul>`:`<div class="empty">아직 후보가 없어요.<br>왼쪽에서 넣어 주세요.</div>`}</aside>`}
+function stage0(){
+  const st=$('#stage');
+  st.innerHTML=`<div class="stg"><div class="two"><div class="src"><div class="seg" role="group" aria-label="후보 모으는 방법">${['풀에서 가져오기','직접 추가','엑셀로 올리기'].map((t,i)=>`<button type="button" data-tab="${i}" aria-pressed="${i===S.tab}">${t}</button>`).join('')}</div><div class="srcbox" id="srcbox"></div></div><div id="tray">${tray()}</div></div></div>`;
+  $$('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=+b.dataset.tab;fkey=`[data-tab="${S.tab}"]`;render()});
+  const box=$('#srcbox');
+  if(S.tab===0)poolTab(box);else if(S.tab===1)formTab(box);else{
+    box.innerHTML='<div class="xlbox" style="overflow:auto"></div>';
+    excelBox($('.xlbox',box),haveEmail,rows=>{addRows(rows,'엑셀');refreshTray()},false)}
+  bindTray();
+  foot('다음: 정원 정하기',V[0](),V[0]()?'':'후보를 한 명 이상 넣어 주세요',()=>go(1))}
+function bindTray(){$$('[data-rm]').forEach(b=>b.onclick=()=>{S.cands=S.cands.filter(c=>c.id!==+b.dataset.rm);S.sel.delete(+b.dataset.rm);refreshTray();if(S.tab===0)poolTab($('#srcbox'));syncFoot()})}
+function refreshTray(){$('#tray').innerHTML=tray();bindTray();syncFoot()}
+function syncFoot(){renderSub();foot('다음: 정원 정하기',V[0](),V[0]()?'':'후보를 한 명 이상 넣어 주세요',()=>go(1))}
+function addRows(rows,src){rows.forEach(r=>S.cands.push({id:nid++,org:r[0],dept:r[1],name:r[2],pos:r[3],field:r[4],email:r[5],tel:r[6],src}));toast(rows.length+'명을 후보에 넣었어요')}
+function poolTab(box){
+  const free=POOL.filter(p=>!S.cands.some(c=>c.id===p.id));
+  box.innerHTML=`<div class="box"><table><thead><tr><th style="width:56px"><input class="cb" type="checkbox" id="all" aria-label="모두 선택" ${free.length?'':'disabled'}></th><th>이름</th><th>기관 · 부서</th><th>분야</th><th class="num">참여</th></tr></thead><tbody>${POOL.map(p=>{const inC=S.cands.some(c=>c.id===p.id);return `<tr><td><input class="cb" type="checkbox" data-p="${p.id}" aria-label="${h(p.name)} 선택" ${inC?'checked disabled':S.sel.has(p.id)?'checked':''}></td><td class="strong">${h(p.name)}${inC?' <span class="badge primary">후보</span>':''}</td><td>${h(p.org.replace('(가상)',''))} · ${h(p.dept)}</td><td>${h(p.field)}</td><td class="num tnum">${p.n}회</td></tr>`}).join('')}</tbody></table></div>
+  <div class="xl-act" style="margin:0"><span class="muted">우리 과 위원 풀에서 골라요. 이미 후보인 사람은 잠겨 있어요.</span><button class="btn" type="button" id="addsel" ${S.sel.size?'':'disabled'}>선택한 ${S.sel.size}명 후보에 넣기</button></div>`;
+  $$('[data-p]',box).forEach(c=>c.onchange=()=>{c.checked?S.sel.add(+c.dataset.p):S.sel.delete(+c.dataset.p);poolTab(box);const e=document.querySelector(`[data-p="${c.dataset.p}"]`);e&&e.focus()});
+  $('#all',box).onchange=e=>{free.forEach(p=>e.target.checked?S.sel.add(p.id):S.sel.delete(p.id));poolTab(box)};
+  $('#addsel',box).onclick=()=>{const add=POOL.filter(p=>S.sel.has(p.id)).map(p=>({...p,src:'풀'}));S.cands.push(...add);S.sel.clear();toast(add.length+'명을 후보에 넣었어요');refreshTray();poolTab(box)}}
+function formTab(box){
+  const E=S.err;
+  const f=(k,l,ph,t='text')=>`<label class="field">${l}<input id="f-${k}" type="${t}" placeholder="${ph}" ${E[k]?'aria-invalid="true" aria-describedby="e-'+k+'"':''}>${E[k]?`<span class="err" id="e-${k}">${E[k]}</span>`:''}</label>`;
+  box.innerHTML=`<div style="overflow:auto;flex:1;min-height:0"><div class="fgrid">${f('org','기관','(가상)한빛대학교')}${f('dept','부서','컴퓨터공학과')}${f('name','이름','홍길동')}${f('pos','직책','교수')}${f('email','이메일','name@example.com','email')}${f('tel','전화','010-0000-0000','tel')}
+  <label class="field full">분야<select id="f-field">${FIELDS.map(x=>`<option>${x}</option>`).join('')}</select></label></div></div>
+  <div class="xl-act" style="margin:0"><span class="muted">직접 넣은 후보는 위원 풀에 저장되지 않아요.</span><button class="btn" type="button" id="addone">후보에 추가</button></div>`;
+  $('#addone',box).onclick=()=>{
+    const v=k=>$('#f-'+k).value.trim();const e={};
+    if(!v('org'))e.org='기관을 적어 주세요';if(!v('name'))e.name='이름을 적어 주세요';
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('email')))e.email='이메일 형식으로 적어 주세요';else if(haveEmail(v('email')))e.email='이미 후보에 있는 이메일이에요';
+    if(!/^010-\d{4}-\d{4}$/.test(v('tel')))e.tel='010-0000-0000 형식으로 적어 주세요';
+    S.err=e;if(Object.keys(e).length){const keep={};['org','dept','name','pos','email','tel'].forEach(k=>keep[k]=v(k));formTab(box);Object.entries(keep).forEach(([k,x])=>$('#f-'+k).value=x);const first=Object.keys(e)[0];$('#f-'+first).focus();return}
+    addRows([[v('org'),v('dept'),v('name'),v('pos'),$('#f-field').value,v('email'),v('tel')]],'직접');S.err={};formTab(box);refreshTray();$('#f-org').focus()}}
+
+/* ② 정원 정하기 */
+function stage1(){
+  const s=sum(),ok=s===S.quota;
+  $('#stage').innerHTML=`<div class="stg"><div class="cfg">
+  <div class="cfg-row"><b>정원</b><div class="seg" role="group" aria-label="본위원 정원">${[7,8,9].map(n=>`<button type="button" data-q="${n}" aria-pressed="${S.quota===n}">${n}명</button>`).join('')}</div><b style="width:auto;margin-left:24px">예비</b><div class="seg" role="group" aria-label="예비 인원">${[1,2,3].map(n=>`<button type="button" data-r="${n}" aria-pressed="${S.reserve===n}">${n}명</button>`).join('')}</div></div>
+  <div><div class="sec-h" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span>분야별 인원</span>${ok?'<span class="badge success">✓ 합계 '+s+'명 = 정원</span>':`<span class="err" role="alert">합계 ${s}명이 정원 ${S.quota}명과 달라요. ${s>S.quota?(s-S.quota)+'명 줄여':(S.quota-s)+'명 늘려'} 주세요.</span>`}</div>
+  <div class="box" style="flex:none"><table><thead><tr><th>분야</th><th>인원</th><th class="num">지금 후보</th><th class="num">3배수 필요</th><th>후보 충분한가</th></tr></thead><tbody>
+  ${FIELDS.map((f,i)=>{const c=cnt(f),need=S.by[i]*3,short=c<need;return `<tr><td class="strong">${f}</td><td><span class="stp"><button type="button" data-d="${i}:-1" aria-label="${f} 인원 줄이기" ${S.by[i]<=0?'disabled':''}>−</button><output class="tnum" aria-live="polite">${S.by[i]}</output><button type="button" data-d="${i}:1" aria-label="${f} 인원 늘리기">+</button></span></td><td class="num tnum">${c}명</td><td class="num tnum">${need}명</td><td>${short?`<span class="badge warning">! ${need-c}명 모자라요</span> <span class="muted">있는 만큼만 뽑아요</span>`:'<span class="badge success">✓ 충분해요</span>'}</td></tr>`}).join('')}
+  
+  </tbody></table></div></div></div></div>`;
+  $$('[data-q]').forEach(b=>b.onclick=()=>{S.quota=+b.dataset.q;fkey=`[data-q="${S.quota}"]`;render()});
+  $$('[data-r]').forEach(b=>b.onclick=()=>{S.reserve=+b.dataset.r;fkey=`[data-r="${S.reserve}"]`;render()});
+  $$('[data-d]').forEach(b=>b.onclick=()=>{const [i,d]=b.dataset.d.split(':').map(Number);S.by[i]=Math.max(0,S.by[i]+d);fkey=`[data-d="${b.dataset.d}"]`;render()});
+  foot('다음: 추첨',ok,ok?(FIELDS.some((f,i)=>cnt(f)<S.by[i]*3)?'후보가 모자란 분야가 있어요 (경고일 뿐, 계속할 수 있어요)':''):'분야별 합계를 정원에 맞춰 주세요',()=>go(2))}
+
+/* ③ 추첨 */
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function doDraw(){S.drawn=[];FIELDS.forEach((f,i)=>S.drawn.push(...shuffle(S.cands.filter(c=>c.field===f)).slice(0,S.by[i]*3)));S.drawAt='2026-10-16 14:02'}
+function stage2(){
+  const st=$('#stage');
+  if(!S.drawn){
+    const lack=FIELDS.map((f,i)=>({f,c:cnt(f),n:S.by[i]*3})).filter(x=>x.c<x.n);
+    st.innerHTML=`<div class="stg"><div class="ctr"><div class="ico" aria-hidden="true">🎲</div><strong style="font-size:var(--t-xl)">분야별로 정원의 3배수를 무작위로 뽑아요</strong>
+    <p class="muted">${FIELDS.map((f,i)=>f+' '+S.by[i]*3+'명').join(' · ')}</p>
+    ${lack.length?`<div class="note warn"><span>!</span><span>${lack.map(x=>`${x.f} 후보 ${x.c}명(필요 ${x.n}명)`).join(' · ')} — 있는 만큼만 뽑아요. 계속해도 괜찮아요.</span></div>`:''}
+    <button class="btn primary lg" type="button" id="draw">분야별 3배수 추첨</button><p class="muted">추첨은 한 번만 할 수 있어요.</p></div></div>`;
+    $('#draw').onclick=()=>confirmDlg({title:'추첨할까요?',body:'한 번만 할 수 있어요. 뽑은 뒤에는 다시 뽑거나 후보·정원을 바꿀 수 없어요.',ok:'추첨하기',onOk:()=>{doDraw();fkey='#next';render();toast('추첨했어요. 결과가 기록됐어요')}});
+    foot('다음: 전화 확인',false,'추첨을 먼저 해 주세요',null)}
+  else{
+    st.innerHTML=`<div class="stg"><div class="note"><span>✓</span><span><b>추첨 완료</b> · ${S.drawAt} · 모두 ${S.drawn.length}명 · 한 번만 할 수 있어서 다시 뽑을 수 없어요</span></div>
+    <div class="dgrid">${FIELDS.map((f,i)=>{const L=S.drawn.filter(c=>c.field===f),need=S.by[i]*3;return `<section class="dcard" aria-label="${f} 추첨 결과"><h3>${f} <span class="badge primary">${L.length}명</span>${L.length<need?`<span class="badge warning">! 후보 부족 (필요 ${need}명)</span>`:''}</h3><ul>${L.map(c=>`<li>${h(c.name)} <span>${h(c.org.replace('(가상)',''))}</span></li>`).join('')}</ul></section>`}).join('')}</div></div>`;
+    foot('다음: 전화 확인',true,'',()=>go(3),false)}}
+
+/* ④ 전화 확인 */
+const CALL=['가능','불가','부재'];
+function stage3(){
+  const L=S.drawn,done=L.filter(c=>S.calls[c.id]).length,k=x=>L.filter(c=>S.calls[c.id]===x).length;
+  $('#stage').innerHTML=`<div class="stg" style="padding-bottom:0"><div class="xl-sum" style="margin:0"><b>전화 확인 ${done}/${L.length}명</b><span class="badge success">✓ 가능 ${k('가능')}</span><span class="badge danger">× 불가 ${k('불가')}</span><span class="badge warning">… 부재 ${k('부재')}</span><span class="muted">통화한 결과를 눌러 기록해요. 메모는 선택이에요.</span></div>
+  <div class="box call" style="margin-bottom:20px"><table><thead><tr><th>이름</th><th>분야</th><th>전화</th><th>통화 결과</th><th>메모</th></tr></thead><tbody>${L.map(c=>`<tr><td class="strong">${h(c.name)}</td><td>${h(c.field)}</td><td class="tnum">${c.tel}</td><td><div class="seg" role="group" aria-label="${h(c.name)} 통화 결과">${CALL.map(x=>`<button type="button" data-c="${c.id}:${x}" aria-pressed="${S.calls[c.id]===x}">${x}</button>`).join('')}</div>${S.calls[c.id]?'':' <span class="muted">아직 안 함</span>'}</td><td><input class="cell" data-m="${c.id}" value="${h(S.memo[c.id]||'')}" placeholder="예: 오후 2시 이후 가능" aria-label="${h(c.name)} 메모"></td></tr>`).join('')}</tbody></table></div></div>`;
+  $$('[data-c]').forEach(b=>b.onclick=()=>{const [id,x]=b.dataset.c.split(':');S.calls[id]=x;S.manual=false;fkey=`[data-c="${b.dataset.c}"]`;const sc=$('.box.call').scrollTop;render();$('.box.call').scrollTop=sc});
+  $$('[data-m]').forEach(i=>i.oninput=()=>{S.memo[i.dataset.m]=i.value});
+  foot('다음: 명단 확정',true,done<L.length?'아직 전화하지 않은 후보가 '+(L.length-done)+'명 있어요':'',()=>go(4))}
+
+/* ⑤ 명단 확정 */
+function autoAssign(){
+  S.role={};const left=[];
+  FIELDS.forEach((f,i)=>{const ok=S.drawn.filter(c=>c.field===f&&S.calls[c.id]==='가능');ok.slice(0,S.by[i]).forEach(c=>S.role[c.id]='본');left.push(...ok.slice(S.by[i]))});
+  left.slice(0,S.reserve).forEach(c=>S.role[c.id]='예비');S.manual=false}
+const roleOf=c=>S.role[c.id]||'제외';
+function checks(){
+  const main=S.drawn.filter(c=>roleOf(c)==='본'),res=S.drawn.filter(c=>roleOf(c)==='예비');
+  const badF=FIELDS.map((f,i)=>({f,n:main.filter(c=>c.field===f).length,w:S.by[i]})).filter(x=>x.n!==x.w);
+  const badC=[...main,...res].filter(c=>S.calls[c.id]!=='가능');
+  return {main,res,list:[
+   {ok:main.length===S.quota&&res.length===S.reserve,t:'인원',m:`본위원 ${main.length}/${S.quota}명 · 예비 ${res.length}/${S.reserve}명`},
+   {ok:!badF.length,t:'분야',m:badF.length?badF.map(x=>`${x.f} ${x.n}/${x.w}명`).join(' · '):'분야별 인원이 맞아요'},
+   {ok:!badC.length,t:'연락',m:badC.length?badC.map(c=>c.name).join(', ')+'은 통화 결과가 가능이 아니에요':'모두 통화 결과가 가능이에요'}]}}
+function stage4(){
+  const C=checks(),all=C.list.every(x=>x.ok);
+  if(S.locked){
+    $('#stage').innerHTML=`<div class="stg"><div class="lockbar"><span role="img" aria-label="잠김">🔒</span> 명단을 확정했어요 · ${S.confirmAt} · 이제 바꿀 수 없어요</div>
+    <div class="two-l"><section class="lstcard" aria-label="본위원"><h3 class="sec-h" style="margin:0">본위원 ${C.main.length}명</h3><ol>${FIELDS.flatMap(f=>C.main.filter(c=>c.field===f)).map(c=>`<li><span class="nm">${h(c.name)}</span><span class="badge">${c.field}</span><span class="muted">${h(c.org.replace('(가상)',''))}</span></li>`).join('')}</ol></section>
+    <section class="lstcard" aria-label="예비"><h3 class="sec-h" style="margin:0">예비 ${C.res.length}명</h3><ol>${C.res.map(c=>`<li><span class="nm">${h(c.name)}</span><span class="badge">${c.field}</span><span class="muted">${h(c.org.replace('(가상)',''))}</span></li>`).join('')}</ol></section></div></div>`;
+    $('#foot').innerHTML=`<span class="why">다음은 위원이 참석 여부를 답하는 단계예요.</span><a class="btn primary" href="../../PM-05-참석-위원장/시안/attendance.html">다음: 참석·위원장</a>`;return}
+  $('#stage').innerHTML=`<div class="stg" style="padding-bottom:0"><div class="fin"><div class="box call" style="margin-bottom:20px"><table><thead><tr><th>이름</th><th>분야</th><th>통화</th><th>구분</th></tr></thead><tbody>${S.drawn.map(c=>`<tr><td class="strong">${h(c.name)}</td><td>${h(c.field)}</td><td><span class="badge ${S.calls[c.id]==='가능'?'success':S.calls[c.id]?'danger':'warning'}">${S.calls[c.id]==='가능'?'✓ 가능':S.calls[c.id]==='불가'?'× 불가':S.calls[c.id]==='부재'?'… 부재':'아직 안 함'}</span></td><td><select class="cell" data-r="${c.id}" aria-label="${h(c.name)} 구분" style="width:130px">${['본','예비','제외'].map(x=>`<option value="${x}" ${roleOf(c)===x?'selected':''}>${x==='본'?'본위원':x}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div>
+  <aside class="side2" aria-label="확정 전 점검"><h3 class="sec-h" style="margin:0">확정 전 점검</h3><ul class="chk">${C.list.map(x=>`<li class="${x.ok?'okc':'badc'}"><span class="ic" aria-hidden="true">${x.ok?'✓':'!'}</span><span><b>${x.t} ${x.ok?'맞음':'확인 필요'}</b><span class="${x.ok?'muted':''}">${h(x.m)}</span></span></li>`).join('')}</ul>
+  <button class="btn sm" type="button" id="re">통화 결과대로 자동으로 나누기</button></aside></div></div>`;
+  $$('select[data-r]').forEach(s=>s.onchange=()=>{S.role[s.dataset.r]=s.value;S.manual=true;fkey=`select[data-r="${s.dataset.r}"]`;const sc=$('.box.call').scrollTop;render();$('.box.call').scrollTop=sc});
+  $('#re').onclick=()=>{autoAssign();render();toast('통화 결과대로 다시 나눴어요')};
+  foot('명단 확정',all,all?'':'점검에서 막힌 곳을 고쳐 주세요',()=>confirmDlg({title:'명단을 확정할까요?',body:`본위원 ${C.main.length}명 · 예비 ${C.res.length}명. 확정하면 명단을 바꿀 수 없어요.`,ok:'확정하기',onOk:()=>{S.locked=true;S.confirmAt='2026-10-16 14:20';render();toast('명단을 확정했어요')}}))}
+
+/* 시안 보기: 상태 바로가기 */
+function setup(drawn){S=fresh();S.cands=POOL.map(p=>({...p,src:'풀'}));if(drawn){doDraw();S.drawn.forEach(c=>{const same=S.drawn.filter(x=>x.field===c.field),i=same.indexOf(c);S.calls[c.id]=i%4===3?'불가':i===5?'부재':'가능'})}}
+const PRE={start:['처음 상태',()=>{S=fresh()}],draw:['추첨 직전',()=>{setup(false);S.stage=2}],ready:['명단 확정 직전',()=>{setup(true);S.stage=4;autoAssign()}],locked:['확정한 뒤',()=>{setup(true);S.stage=4;autoAssign();S.locked=true;S.confirmAt='2026-10-16 14:20'}]};
+$('#presets').innerHTML=Object.entries(PRE).map(([k,v],i)=>`<button type="button" data-pre="${k}" aria-pressed="${i===0}">${v[0]}</button>`).join('');
+$$('[data-pre]').forEach(b=>b.onclick=()=>{PRE[b.dataset.pre][1]();$$('[data-pre]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+render();
+
+</script>
+</body>
+</html>

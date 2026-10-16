@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>평가항목 · 심사임당 사업담당자</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../../총괄관리자/_shell.css">
+<link rel="stylesheet" href="../../_steps.css">
+<style>
+.strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:12px 24px;border-bottom:1px solid var(--line);flex:none;min-height:64px}
+.strip .big{font-size:var(--t-xl);font-weight:700}
+.strip .src{color:var(--text-3);font-size:var(--t-base)}
+.strip .sum{margin-left:auto;display:flex;align-items:center;gap:12px}
+tbody td{height:54px;max-width:none}
+td input{min-height:42px;font-size:var(--t-base)}
+td input.pt{width:84px;text-align:right}
+td input.pg{width:84px;text-align:right}
+td.src{white-space:nowrap}
+td .why{color:var(--text-3);font-size:var(--t-base);margin-left:8px}
+.foot{flex:none;display:flex;align-items:center;gap:16px;padding:12px 24px;border-top:1px solid var(--line);min-height:68px}
+.foot .why{flex:1;color:var(--text-2);font-size:var(--t-base)}
+.foot .why.bad{color:var(--danger-60);font-weight:700}
+.lockbar{display:flex;gap:12px;align-items:center;padding:12px 24px;background:var(--success-5);border-bottom:1px solid var(--success-10);font-weight:700;flex:none}
+th.num,td.num{text-align:right}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <button class="brand" type="button" data-href="../../PM-01-사업-목록-등록/시안/projects.html" aria-label="심사임당 사업 목록으로"><span class="brand-mark">심</span><span>심사임당</span></button>
+  <p class="role">(가상) 정보화담당관</p>
+  <nav aria-label="주 메뉴">
+    <a href="../../PM-01-사업-목록-등록/시안/projects.html" aria-current="page">사업 목록</a>
+    <a href="../../PM-07-위원-풀/시안/pool.html">위원 풀</a>
+  </nav>
+  <div class="bottom">
+    <a href="#" data-account>내 계정</a>
+    <a href="../../PM-00-로그인/시안/login.html">로그아웃</a>
+  </div>
+</aside>
+<div class="main">
+  <header class="pj-head">
+    <a class="pj-back" href="../../PM-02-문서-목차/시안/documents.html">← 문서</a>
+    <div class="pj-row">
+      <div class="pj-title"><h1>(가상) 통합 민원 시스템 구축 용역</h1><span class="badge info">○ 준비</span></div>
+      <div class="pj-act" id="act"></div>
+    </div>
+  </header>
+  <nav class="steps" id="steps" aria-label="진행 단계"></nav>
+  <div class="body">
+    <section class="card" aria-label="평가표">
+      <div id="lockbar" class="lockbar" hidden><span role="img" aria-label="잠김">🔒</span> 확정했어요. 평가표는 이제 고칠 수 없어요.</div>
+      <div class="strip">
+        <span class="big">기술 배점 80점</span><span class="src">제안요청서 14쪽에서 읽었어요 · 가격 20점은 별도예요</span>
+        <div class="sum"><span>항목 합계 <b class="tnum" id="total"></b>점</span><span class="badge" id="tb"></span></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th style="width:56px">번호</th><th>평가 항목</th><th class="num" style="width:120px">배점</th><th>근거 (제안요청서)</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="foot" id="foot"><span class="why" id="why"></span><button class="btn primary" type="button" id="b-ok">확정</button></div>
+    </section>
+  </div>
+  <div class="demo" id="demo"><b>시안 보기</b>
+    <button type="button" data-st="base" aria-pressed="true">기본 (문제 2개)</button>
+    <button type="button" data-st="sum" aria-pressed="false">합계만 틀림</button>
+    <button type="button" data-st="src" aria-pressed="false">원문 확인만 필요</button>
+    <button type="button" data-st="clean" aria-pressed="false">문제 없음</button>
+    <button type="button" data-st="locked" aria-pressed="false">확정됨</button>
+  </div>
+</div>
+</div>
+
+<div class="scrim" id="scrim"></div><div class="scrim top" id="scrim2"></div>
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t" aria-describedby="dlg-b">
+  <h2 id="dlg-t"></h2><p id="dlg-b"></p>
+  <div class="acts"><button class="btn" type="button" id="dlg-cancel" data-close>취소</button><button class="btn primary" type="button" id="dlg-ok"></button></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="../../_ui.js"></script>
+<script>
+const LIMIT=80;
+const base=()=>[
+ {t:'사업 이해도 및 추진 전략',pt:10,pg:14,man:false},
+ {t:'시스템 구성 및 아키텍처',pt:20,pg:14,man:false},
+ {t:'기능 요구사항 충족도',pt:20,pg:14,man:false},
+ {t:'데이터 이전·연계 방안',pt:10,pg:15,man:false},
+ {t:'정보 보안 대책',pt:10,pg:15,man:false},
+ {t:'유지보수 및 교육 지원',pt:8,pg:null,man:false},
+];
+let R=base(),locked=false;
+const sum=()=>R.reduce((a,r)=>a+(+r.pt||0),0);
+function paint(){
+  const s=sum(),flag=R.filter(r=>r.pg==null).length,diff=s-LIMIT;
+  $('#total').textContent=s;
+  const tb=$('#tb');tb.className='badge '+(diff===0?'success':'danger');
+  tb.textContent=diff===0?'✓ 기술 배점과 같아요':`! 기술 배점(${LIMIT}점)과 ${Math.abs(diff)}점 ${diff<0?'모자라요':'넘쳐요'}`;
+  $('#rows').innerHTML=R.map((r,i)=>`<tr><td class="tnum">${i+1}</td>
+   <td class="strong">${locked?h(r.t):`<input class="tt" data-i="${i}" value="${h(r.t)}" aria-label="${i+1}번 평가 항목">`}</td>
+   <td class="num">${locked?`<b class="tnum">${r.pt}점</b>`:`<input class="pt tnum" data-i="${i}" inputmode="numeric" value="${r.pt}" aria-label="${i+1}번 배점"> 점`}</td>
+   <td class="src">${r.pg!=null?`<span class="tnum">${r.pg}쪽</span>${r.man?'<span class="why">직접 입력</span>':''}`:`<span class="badge danger">! 원문 확인 필요</span>${locked?'':`<span class="why">쪽 번호를 적어 주세요</span> <input class="pg tnum" data-i="${i}" inputmode="numeric" placeholder="쪽" aria-label="${i+1}번 근거 쪽">`}`}</td></tr>`).join('');
+  $$('#rows .tt').forEach(i=>i.oninput=()=>{R[+i.dataset.i].t=i.value});
+  $$('#rows .pt').forEach(i=>{i.oninput=()=>{i.value=i.value.replace(/\D/g,'');R[+i.dataset.i].pt=i.value===''?0:+i.value;head()};});
+  $$('#rows .pg').forEach(i=>{i.onchange=()=>{const v=i.value.replace(/\D/g,'');if(v){R[+i.dataset.i].pg=+v;R[+i.dataset.i].man=true;paint()}}});
+  head();
+}
+function head(){ // 입력 중에는 표를 다시 그리지 않고 합계·버튼만 갱신
+  const s=sum(),flag=R.filter(r=>r.pg==null).length,diff=s-LIMIT,ok=!flag&&diff===0;
+  $('#total').textContent=s;const tb=$('#tb');tb.className='badge '+(diff===0?'success':'danger');
+  tb.textContent=diff===0?'✓ 기술 배점과 같아요':`! 기술 배점(${LIMIT}점)과 ${Math.abs(diff)}점 ${diff<0?'모자라요':'넘쳐요'}`;
+  const why=$('#why'),b=$('#b-ok');
+  $('#lockbar').hidden=!locked;$('#foot').hidden=locked;
+  if(!locked){const m=[];if(diff!==0)m.push(`합계를 ${LIMIT}점에 맞춰 주세요`);if(flag)m.push(`‘원문 확인 필요’ ${flag}개를 해결해 주세요`);
+    why.textContent=ok?'모두 맞아요. 확정하면 평가위원 단계가 열려요.':'확정하려면: '+m.join(' · ');why.className='why'+(ok?'':' bad');b.disabled=!ok}
+  $('#act').innerHTML=locked?'<a class="btn primary" href="../../PM-04-평가위원-선정/시안/committee.html">다음: 평가위원</a>':'<span class="hint">원문 근거가 없는 항목은 확정할 수 없어요</span>';
+  renderSteps($('#steps'),['done','done','current',locked?'open':'locked','locked','locked']);
+}
+$('#b-ok').onclick=()=>confirmDlg({title:'평가표를 확정할까요?',body:'확정하면 항목과 배점을 고칠 수 없어요. 평가위원 단계가 열려요.',ok:'확정',danger:false,onOk:()=>{locked=true;paint();toast('평가표를 확정했어요')}});
+function setSt(s){locked=false;R=base();
+  if(s==='sum'){R[5].pg=24}
+  if(s==='src'){R[5].pt=10}
+  if(s==='clean'){R[5].pt=10;R[5].pg=24;R[5].man=true}
+  if(s==='locked'){R[5].pt=10;R[5].pg=24;R[5].man=true;locked=true}
+  $$('#demo [data-st]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.st===s));paint()}
+$$('#demo [data-st]').forEach(b=>b.onclick=()=>setSt(b.dataset.st));
+paint();
+</script>
+</body>
+</html>
