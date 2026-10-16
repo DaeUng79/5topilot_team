@@ -1,8 +1,0 @@
-/* 평가위원장 자필 서명: 입력 캔버스·미리보기·저장 기록 표시. 패널·버튼·안내문은 공통 스타일을 그대로 쓴다. */
-.signature-pad{margin:8px 0}
-.signature-canvas{display:block;width:100%;max-width:560px;height:180px;border:1px dashed var(--blue);border-radius:8px;background:#fff;touch-action:none;cursor:crosshair}
-.signature-canvas[aria-disabled=true]{opacity:.5;cursor:not-allowed}
-.signature-pad .actions{margin-top:8px;gap:12px}
-.signature-preview{margin:8px 0 0}
-.signature-preview img,.signature-image{display:block;max-width:320px;max-height:110px;background:#fff;border-bottom:1px solid var(--border);padding:4px 8px}
-.signature-record p{margin:6px 0}

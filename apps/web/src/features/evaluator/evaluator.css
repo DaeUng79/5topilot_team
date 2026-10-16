@@ -1,6 +1,0 @@
-main.evaluator-main{margin:0 auto;max-width:960px;padding:92px 24px 48px}
-.steps-inline{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:#5d6f85;margin:8px 0 4px}
-.steps-inline .on{color:var(--blue);font-weight:600}
-.code-input{font-family:ui-monospace,monospace;font-size:20px;letter-spacing:.3em;width:200px;text-align:center}
-.notices{margin:12px 0 0;padding-left:18px;color:#5d6f85;font-size:13px;line-height:1.7}
-@media(max-width:650px){main.evaluator-main{padding:20px 16px}}

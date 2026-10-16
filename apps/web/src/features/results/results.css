@@ -1,8 +1,0 @@
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:4px;font-size:13px;font-weight:500;border:1px solid var(--border);background:#f8fafc;color:#475569}
-.chip.submitted{border-color:#99f6e4;background:#f0fdfa;color:#115e59}
-.chip.draft{border-color:#fde68a;background:#fef3c7;color:#92400e}
-.notices{margin:12px 0 0;padding-left:18px;color:#5d6f85;font-size:13px;line-height:1.7}
-.error-text{color:#922d2d;font-weight:600}
-.report h3{margin:22px 0 10px}
-@media print{header,.sidebar,.no-print,.dev-note{display:none!important}main{margin:0!important;padding:0!important;max-width:none!important}.panel{border:0;box-shadow:none;padding:0}.table-scroll table{min-width:0}}
