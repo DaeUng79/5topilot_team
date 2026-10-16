@@ -1,9 +1,0 @@
-{
-  "criteria": [
-    { "id": "understanding", "name": "사업 이해도", "max_score": 20 },
-    { "name": "수행 방법론", "max_score": 20 },
-    { "name": "기술 적용 방안", "max_score": 20 },
-    { "name": "보안 대책", "max_score": 20 },
-    { "name": "유지보수·교육", "max_score": 20 }
-  ]
-}
