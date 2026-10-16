@@ -142,6 +142,7 @@ input:focus{outline:3px solid var(--primary-20);border-color:var(--primary-50)}
 .picked .home{visibility:hidden}
 @media (max-width:1100px){.cs-scene{height:250px;transform:scale(.9)}}
 @media (max-width:900px){.intro{padding:32px 24px}.intro h1{font-size:36px}.cs-scene{height:220px;transform:scale(.75);margin:-10px 0}.hero-start{width:100%}}
+.ev-link-note{margin:12px 0 0;font-size:16px;color:var(--text-3);line-height:1.5}
 </style>
 </head>
 <body class="s-intro">
@@ -201,6 +202,7 @@ input:focus{outline:3px solid var(--primary-20);border-color:var(--primary-50)}
       <label><span class="lt">비밀번호</span><input type="password" autocomplete="off"></label>
       <button class="go" type="submit">로그인</button>
       <p class="msg" id="msg" role="status"></p>
+      <p class="ev-link-note" id="evnote" hidden>평가위원은 받은 <b>사업 링크</b>로 들어와요. 시안에서는 [로그인]을 누르면 위원 로그인 화면(EV-00)으로 이어져요.</p>
     </form>
   </div>
 </main>
@@ -208,18 +210,19 @@ input:focus{outline:3px solid var(--primary-20);border-color:var(--primary-50)}
 <script>
 (function(){
   document.body.classList.add('vb');
-  var demo={admin:['sa-admin','Temp1234!'],biz:['info01','demo1234'],eval:['김가상','010-0000-0001']};
+  var demo={admin:['sa-admin','Temp1234!'],biz:['info01','demo1234'],eval:['김가상','0001']};
   var body=document.body,stage=document.getElementById('stage'),msg=document.getElementById('msg'),f=document.getElementById('f');
   var picks=document.querySelectorAll('.pick'),cur=null;
   function setForm(role){
-    var t=role==='eval'?[['이름','text'],['전화번호','tel']]:[['아이디','text'],['비밀번호','password']];
+    var t=role==='eval'?[['이름','text'],['휴대전화 뒤 4자리','tel']]:[['아이디','text'],['비밀번호','password']];
     f.querySelectorAll('label').forEach(function(l,i){
       l.querySelector('.lt').textContent=t[i][0];
       var inp=l.querySelector('input');inp.type=t[i][1];inp.value=demo[role][i];
-      if(t[i][1]==='tel'){inp.setAttribute('inputmode','numeric');inp.placeholder='010-0000-0000'}
+      if(t[i][1]==='tel'){inp.setAttribute('inputmode','numeric');inp.setAttribute('maxlength','4');inp.placeholder='0000'}
       else{inp.removeAttribute('inputmode');inp.placeholder=''}
     });
     msg.textContent='';msg.classList.remove('show');
+    document.getElementById('evnote').hidden=(role!=='eval');
   }
   function choose(btn){
     cur=btn;setForm(btn.dataset.role);
@@ -239,13 +242,16 @@ input:focus{outline:3px solid var(--primary-20);border-color:var(--primary-50)}
     picks.forEach(function(p){p.classList.remove('on')});
     if(cur)cur.focus();
   }
-  picks.forEach(function(p){p.addEventListener('click',function(){if(!body.classList.contains('picked'))choose(p)})});
+  var loginPage={admin:'../../총괄관리자/SA-00-로그인-권한/시안/login.html',biz:'../../사업담당자/PM-00-로그인/시안/login.html',eval:'../../위원/EV-00-로그인/시안/login.html'};
+  picks.forEach(function(p){p.addEventListener('click',function(){location.href=loginPage[p.dataset.role]})});
   document.getElementById('back').addEventListener('click',back);
   document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;if(body.classList.contains('picked'))back();else if(body.classList.contains('s-pick'))toIntro()});
   f.addEventListener('submit',function(e){
     e.preventDefault();
-    if(cur&&cur.dataset.role==='admin'){location.href='../../총괄관리자/SA-01-대시보드/시안/dashboard.html';return}
-    msg.textContent=(cur&&cur.dataset.role==='biz'?'사업담당자':'평가위원')+' 화면은 시안 준비 중이에요';msg.classList.add('show');
+    var r=cur&&cur.dataset.role;
+    if(r==='admin'){location.href='../../총괄관리자/SA-01-대시보드/시안/dashboard.html';return}
+    if(r==='biz'){location.href='../../사업담당자/PM-01-사업-목록-등록/시안/projects.html';return}
+    location.href='../../위원/EV-00-로그인/시안/login.html';
   });
 })();
 </script>

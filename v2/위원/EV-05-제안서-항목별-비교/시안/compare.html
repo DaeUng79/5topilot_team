@@ -29,7 +29,8 @@
 .cp-hd { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
 .cp-hd h2 { font-size: 24px; font-weight: 800; }
 .cp-hd span { color: var(--text-3); font-size: 16px; }
-.cp-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.cp-cols { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 14px; }
+.cp-tag { font-size: 14px; line-height: 22px; border: 1px solid var(--primary-20); background: var(--primary-5); color: var(--primary-70); border-radius: 20px; padding: 0 10px; font-weight: 700; white-space: nowrap; }
 .cp-col { background: var(--gray-0); border-radius: 16px; box-shadow: var(--shadow-1); padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 .cp-col h3 { font-size: 20px; font-weight: 800; }
 .cp-sec { font-size: 16px; color: var(--text-2); }
@@ -50,14 +51,18 @@
 .cp-chat-bar .sp { flex: 1; }
 .cp-chat-body { display: none; padding: 0 24px 14px; }
 .cp-chat.open .cp-chat-body { display: block; }
-.cp-ans { height: 218px; overflow: auto; margin-bottom: 10px; }
+.cp-ans { height: 170px; overflow: auto; margin-bottom: 10px; }
 .cp-sug { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 4px; }
 .cp-sug > span { font-size: 16px; color: var(--text-3); }
 .cp-chip { appearance: none; border: 1px solid var(--gray-30); background: var(--gray-0); border-radius: 999px; padding: 0 16px; min-height: 40px; cursor: pointer; font-size: 16px; }
 .cp-chip:hover { background: var(--primary-5); border-color: var(--primary-50); color: var(--primary-60); }
 .cp-q { font-weight: 700; font-size: 17px; margin: 0 0 8px; }
 .cp-q::before { content: "Q. "; color: var(--primary-60); }
-.cp-acols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cp-acols { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 12px; }
+.cp-tg { display: flex; align-items: center; gap: 16px; padding-bottom: 8px; font-size: 16px; color: var(--text-2); }
+.cp-tg label { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; font-weight: 700; color: var(--text-1); cursor: pointer; }
+.cp-tg input { width: 20px; height: 20px; accent-color: var(--primary-50); }
+.cp-rule { font-size: 15px; color: var(--text-3); margin: 6px 0 0; }
 .cp-acard { border: 1px solid var(--line); background: var(--gray-5); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
 .cp-acard h4 { margin: 0; font-size: 17px; font-weight: 800; }
 .cp-acard p { font-size: 16px; line-height: 1.5; }
@@ -99,10 +104,12 @@
         <div class="cp-right">
           <div class="cp-scroll" id="scroll"></div>
           <section class="cp-chat" id="chat" aria-label="문서에게 물어보기">
-            <div class="cp-chat-bar"><b>문서에게 물어보기</b><span class="note">이 사업 문서 안에서만 답해요 · 대화는 저장하지 않아요</span><span class="sp"></span><button type="button" class="ev-btn ghost sm" id="chat-t" aria-expanded="false" aria-controls="chat-b">열기</button></div>
+            <div class="cp-chat-bar"><b>문서에게 물어보기</b><span class="note">다른 사업 문서는 찾지 않아요 · 대화는 저장하지 않아요</span><span class="sp"></span><button type="button" class="ev-btn ghost sm" id="chat-t" aria-expanded="false" aria-controls="chat-b">열기</button></div>
             <div class="cp-chat-body" id="chat-b">
               <div class="cp-ans" id="ans" aria-live="polite"></div>
-              <form class="cp-ask" id="ask"><input id="q" type="text" autocomplete="off" placeholder="예: ML 구축 방법 알려줘" aria-label="궁금한 점"><button type="submit" class="ev-btn">묻기</button></form>
+              <div class="cp-tg" id="tg" role="group" aria-label="물어볼 업체"><span>물어볼 업체</span></div>
+              <form class="cp-ask" id="ask"><input id="q" type="text" autocomplete="off" placeholder="예: ML 구축 방법 알려줘" aria-label="궁금한 점"><button type="submit" class="ev-btn">묻기</button><button type="button" class="ev-btn ghost" id="reset">대화 초기화</button></form>
+              <p class="cp-rule" id="rule">문서 버전이 바뀌면 대화는 자동으로 초기화돼요</p>
             </div>
           </section>
         </div>
@@ -121,7 +128,9 @@
 <script src="../../_eval.js"></script>
 <script>
 (function () {
-  var D = window.PROPOSAL_DATA, V = ['A', 'B', 'C'], CRIT = D.CRIT;
+  var D = window.PROPOSAL_DATA, CRIT = D.CRIT;
+  var qs0 = new URLSearchParams(location.search), V = (qs0.get('vendors') || 'ABC').split('').filter(function (x) { return 'ABC'.indexOf(x) >= 0; });  // 업체 수는 사업마다 달라요 (시안: ?vendors=AB)
+  var tgt = V.slice();
   var $ = function (s) { return document.querySelector(s); };
   EvalShell.mount($('#hd'), { active: 'proposals' });
   var q = new URLSearchParams(location.search), sel = CRIT.some(function (c) { return c.id === q.get('c'); }) ? q.get('c') : 'c3';
@@ -135,9 +144,9 @@
   /* 세 업체 비교 */
   function renderCols() {
     var c = CRIT.filter(function (x) { return x.id === sel; })[0];
-    $('#scroll').innerHTML = '<div class="cp-hd"><h2>' + c.name + '</h2><span>' + c.pts + '점 · ' + c.hint + '</span></div><div class="cp-cols">' + V.map(function (v) {
+    $('#scroll').innerHTML = '<div class="cp-hd"><h2>' + c.name + '</h2><span>' + c.pts + '점 · ' + c.hint + '</span><span class="cp-tag">담당자 확정 근거</span></div><div class="cp-cols" style="--n:' + V.length + '">' + V.map(function (v) {
       var m = D.MATCH[sel][v];
-      if (!m) return '<article class="cp-col cp-none"><h3>' + D.NAME[v] + '</h3><p>연결된 부분을 찾지 못했어요</p><button type="button" class="cp-link" data-open="' + v + '" data-p="1" data-toc="1">목차에서 직접 보기</button></article>';
+      if (!m) return '<article class="cp-col cp-none"><h3>' + D.NAME[v] + '</h3><p>담당자가 확정한 근거가 없어요</p><button type="button" class="cp-link" data-open="' + v + '" data-p="1" data-toc="1">목차에서 직접 보기</button></article>';
       return '<article class="cp-col"><h3>' + D.NAME[v] + '</h3><div class="cp-sec">' + m.title + ' · <b>' + m.page + '–' + m.end + '쪽</b></div><ul class="cp-ex">' + m.lines.map(function (l) { return '<li>' + l + '</li>'; }).join('') + '</ul><button type="button" class="ev-btn ghost sm" data-open="' + v + '" data-p="' + m.page + '">이 쪽 열기 (' + m.page + '쪽)</button></article>';
     }).join('') + '</div>';
     try { history.replaceState(null, '', '?c=' + sel); } catch (e) {}
@@ -193,19 +202,22 @@
   function answer(text) {
     var hit = null, t = text.trim(); if (!t) return;
     D.CHAT.forEach(function (c) { if (!hit && (c.q === t || c.keys.some(function (k) { return t.toLowerCase().indexOf(k.toLowerCase()) >= 0; }))) hit = c; });
-    var cards = V.map(function (v) {
+    var cards = tgt.map(function (v) {
       var a = hit && hit.ans[v];
       if (!a || !a.text) return '<article class="cp-acard no"><h4>' + D.NAME[v] + '</h4><p>근거 없음</p><span class="pg">이 문서에서 관련 내용을 찾지 못했어요</span></article>';
       return '<article class="cp-acard"><h4>' + D.NAME[v] + '</h4><p>' + a.text + '</p><span class="pg">근거 ' + a.pages.map(function (p) { return '<button type="button" class="cp-pg" data-open="' + v + '" data-p="' + p + '" aria-label="' + D.NAME[v] + ' ' + p + '쪽 열기">' + p + '쪽</button>'; }).join('') + '</span></article>';
     }).join('');
-    $('#ans').innerHTML = '<p class="cp-q">' + t.replace(/</g, '&lt;') + '</p><div class="cp-acols">' + cards + '</div>';
+    $('#ans').innerHTML = '<p class="cp-q">' + t.replace(/</g, '&lt;') + '</p><div class="cp-acols" style="--n:' + tgt.length + '">' + cards + '</div>';
     $('#q').value = '';
   }
   $('#ans').addEventListener('click', function (e) {
     var s = e.target.closest('[data-q]'); if (s) { var c = D.CHAT[+s.dataset.q]; $('#q').value = c.q; answer(c.q); return; }
     var b = e.target.closest('[data-open]'); if (b) openSlide(b.dataset.open, +b.dataset.p, false, b);
   });
-  $('#ask').addEventListener('submit', function (e) { e.preventDefault(); answer($('#q').value); });
+  $('#ask').addEventListener('submit', function (e) { e.preventDefault(); if (!tgt.length) { EvalShell.toast('물어볼 업체를 하나 이상 골라 주세요'); return; } answer($('#q').value); });
+  $('#tg').insertAdjacentHTML('beforeend', V.map(function (v) { return '<label><input type="checkbox" data-t="' + v + '" checked> ' + D.NAME[v] + '</label>'; }).join(''));
+  $('#tg').addEventListener('change', function () { tgt = V.filter(function (v) { return $('#tg [data-t="' + v + '"]').checked; }); });
+  $('#reset').addEventListener('click', function () { renderSug(); $('#q').value = ''; EvalShell.toast('대화를 초기화했어요'); $('#q').focus(); });
 
   renderList(); renderCols();
   if (q.get('chat')) { setChat(true); if (q.get('chat') !== '1') answer(q.get('chat')); }

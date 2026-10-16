@@ -64,7 +64,8 @@
       pages: d.pages.map(function (p) {
         return p.n === 1 ? { cover: true, t: d.name + ' 제안서', p: p.lines.slice(1) } : { t: p.section.replace(/^[\d.]+\s/, ''), p: p.lines, sec: p.chapter };
       }),
-      note: '평가 시작 때 고정된 제안서예요',
+      note: '평가 시작 때 고정된 제안서예요 · A사 표시는 화면용이에요 · 파일 안의 회사명은 지워지지 않을 수 있어요',
+      actions: [{ label: '원본 내려받기', onClick: function () { EvalShell.toast('A사 표시는 화면용이에요 · 파일 안의 회사명은 지워지지 않을 수 있어요', 4000); } }],
       startPage: v === cur && +q.get('p') ? +q.get('p') : 1
     });
   });

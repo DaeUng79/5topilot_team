@@ -51,6 +51,7 @@
     <button type="button" data-s="mismatch" aria-pressed="false">정보 불일치</button>
     <button type="button" data-s="dup" aria-pressed="false">같은 신원 중복</button>
     <button type="button" data-s="notmember" aria-pressed="false">이 사업 위원 아님</button>
+    <button type="button" data-s="nolink" aria-pressed="false">사업 링크 없음</button>
   </span>
 </div>
 
@@ -59,7 +60,8 @@
 (function () {
   var MSG = {
     mismatch: '이름이나 휴대전화 뒤 4자리가 맞지 않아요. 다시 확인해 주세요.',
-    dup: '이미 같은 분이 다른 곳에서 들어와 있어요. 본인이 아니라면 사업 담당자에게 알려 주세요.',
+    dup: '같은 정보의 위원이 여러 명이에요 · 담당자에게 알려 주세요',
+    nolink: '사업 링크로 들어와 주세요',
     notmember: '이 사업의 평가위원으로 등록되어 있지 않아요. 사업 담당자에게 문의해 주세요.'
   };
   var state = 'ok', f = document.getElementById('f'), msg = document.getElementById('msg');
@@ -73,11 +75,12 @@
     var b = e.target.closest('button'); if (!b) return;
     state = b.dataset.s;
     [].forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', String(x === b)); });
-    show('');
+    show(state === 'nolink' ? MSG.nolink : '');
   });
   ph.addEventListener('input', function () { ph.value = ph.value.replace(/\D/g, ''); });
   f.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (state === 'nolink') return show(MSG.nolink);
     if (!nm.value.trim()) return show('이름을 넣어 주세요.', nm);
     if (!/^\d{4}$/.test(ph.value)) return show('휴대전화 뒤 4자리를 숫자로 넣어 주세요.', ph);
     if (state !== 'ok') return show(MSG[state]);

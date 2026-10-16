@@ -52,8 +52,8 @@ body{display:flex;flex-direction:column;background:var(--gray-0)}
   <button type="button" data-st="base" aria-pressed="true">기본</button>
   <button type="button" data-st="wrong" aria-pressed="false">틀림</button>
   <button type="button" data-st="lock" aria-pressed="false">5회 잠금</button>
-  <button type="button" data-st="off" aria-pressed="false">비활성 부서</button>
-  <span class="muted" style="margin-left:auto">직접 해 보기: 아이디 info01 · 비밀번호 demo1234 (info02는 비활성 부서)</span>
+  <button type="button" data-st="off" aria-pressed="false">비활성 부서 계정 (같은 문구)</button>
+  <span class="muted" style="margin-left:auto">직접 해 보기: 아이디 info01 · 비밀번호 demo1234 (info02는 비활성 계정이지만 같은 문구가 나와요)</span>
 </div>
 <div class="scrim" id="scrim"></div><div class="scrim top" id="scrim2"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -62,19 +62,20 @@ body{display:flex;flex-direction:column;background:var(--gray-0)}
 let tries=0,locked=false;
 function msg(kind,title,body){const m=$('#msg');if(!kind){m.hidden=true;m.className='';m.innerHTML='';return}
   m.className='msg '+(kind==='wrong'?'':kind);m.hidden=false;m.innerHTML=`<span class="mk" aria-hidden="true">${kind==='lock'?'⏳':kind==='off'?'ⓘ':'!'}</span><div><b>${title}</b>${body}</div>`}
-const fail=()=>{tries++;if(tries>=5)setLock();else msg('wrong','아이디 또는 비밀번호가 맞지 않아요','다시 확인해 주세요. '+(5-tries)+'번 더 틀리면 잠시 로그인할 수 없어요.')};
+const fail=()=>{tries++;if(tries>=5)setLock();else msg('wrong','아이디 또는 비밀번호가 맞지 않아요','다시 확인해 주세요. 여러 번 틀리면 잠시 로그인할 수 없어요.')};
 function setLock(){locked=true;msg('lock','5번 틀려서 잠시 잠겼어요','10분 뒤에 다시 시도해 주세요. 계속 안 되면 총괄관리자에게 알려 주세요.');$('#go').disabled=true;$('#uid').disabled=$('#upw').disabled=true}
 function reset(){locked=false;tries=0;$('#go').disabled=false;$('#uid').disabled=$('#upw').disabled=false;msg();$('#uid').value='info01';$('#upw').value='demo1234'}
-const offMsg=()=>msg('off','사용할 수 없는 부서 계정이에요','이 부서 계정은 비활성 상태예요. 총괄관리자에게 문의해 주세요.');
+const offMsg=()=>fail(); /* 비활성 계정도 틀린 입력과 같은 문구 (계정 존재 여부를 알려 주지 않음) */
 $('#f-login').addEventListener('submit',e=>{e.preventDefault();if(locked)return;const u=$('#uid').value.trim(),p=$('#upw').value;
   if(!u||!p){msg('wrong','아이디와 비밀번호를 모두 입력해 주세요','');return}
   if(u==='info02'){offMsg();return}
   if(u==='info01'&&p==='demo1234'){msg();location.href='../../PM-01-사업-목록-등록/시안/projects.html'}else fail()});
 function sync(s){$$('#demo [data-st]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.st===s))}
 $$('#demo [data-st]').forEach(b=>b.addEventListener('click',()=>{const s=b.dataset.st;reset();sync(s);
-  if(s==='wrong'){$('#upw').value='abcd0000';tries=1;msg('wrong','아이디 또는 비밀번호가 맞지 않아요','다시 확인해 주세요. 4번 더 틀리면 잠시 로그인할 수 없어요.')}
+  if(s==='wrong'){$('#upw').value='abcd0000';tries=1;msg('wrong','아이디 또는 비밀번호가 맞지 않아요','다시 확인해 주세요. 여러 번 틀리면 잠시 로그인할 수 없어요.')}
   if(s==='lock'){setLock()}
-  if(s==='off'){$('#uid').value='info02';offMsg()}}));
+  if(s==='off'){$('#uid').value='info02';tries=1;msg('wrong','아이디 또는 비밀번호가 맞지 않아요','다시 확인해 주세요. 여러 번 틀리면 잠시 로그인할 수 없어요.')}}));
+if(location.hash==='#logout'){$('#uid').value=$('#upw').value='';toast('로그아웃했어요')}
 setTimeout(()=>$('#go').focus(),30);
 </script>
 </body>

@@ -76,6 +76,8 @@
   function bindShell() {
     var host = shellState.host;
     host.addEventListener('click', function (e) {
+      var lo = e.target.closest('.ev-menu a[href]');
+      if (lo) { ['ev.chair', 'ev.unlocked', 'ev.reserve', 'ev.attend'].forEach(function (k) { LS.del(k); }); }  // 로그아웃: 화면 상태 초기화 (서버 세션 폐기는 실제 구현)
       var locked = e.target.closest('[data-locked]');
       if (locked) { e.preventDefault(); toast('모든 위원이 제출하면 열려요'); return; }
       var btn = e.target.closest('.ev-user-btn');
@@ -174,7 +176,7 @@
         var un = t.seen === false || !t.page;
         return '<button type="button" class="evr-toc-item' + (t.lv === 2 ? ' lv2' : '') + (un ? ' is-unseen' : '') + '" data-i="' + i + '"' + (un ? ' aria-disabled="true"' : '') + '>' +
           '<span class="t">' + esc(t.t) + '</span><span class="here" hidden>지금</span><span class="dots"></span>' +
-          (un ? '<span class="unseen-tag">쪽 미확인</span>' : '<span class="pn">' + t.page + '</span>') + '</button>';
+          (un ? '<span class="unseen-tag" title="쪽 연결이 맞지 않아 확인이 필요해요 (NEEDS_REVIEW)">확인 필요</span>' : '<span class="pn">' + t.page + '</span>') + '</button>';
       }).join('') + '</div></nav>' +
       '<div class="evr-main"><div class="evr-top"></div><div class="evr-stage"><div class="evr-bookw"><div class="evr-book"></div>' +
       '<button type="button" class="evr-side l" data-pg="-1" aria-label="앞 쪽"><span aria-hidden="true">‹</span><span class="lb" aria-hidden="true">앞 쪽</span></button>' +

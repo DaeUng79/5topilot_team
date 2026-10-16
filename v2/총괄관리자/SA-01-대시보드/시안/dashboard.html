@@ -62,6 +62,11 @@
 .drow .v{font-weight:700;text-align:right;font-size:var(--t-body)}
 .drow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sum{color:var(--text-3);margin-bottom:8px}
+.hfilt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.hfilt select{width:auto;min-width:130px;min-height:44px;appearance:auto}
+.hfilt .btn{min-height:44px}
+.asof{color:var(--text-3);font-size:var(--t-base);margin-top:2px}
+.asof .late{color:var(--warning-60)}
 </style>
 </head>
 <body>
@@ -77,11 +82,16 @@
   </nav>
   <div class="bottom">
     <a href="../../SA-00-로그인-권한/시안/login.html#account" data-account>내 계정</a>
-    <a href="../../SA-00-로그인-권한/시안/login.html" data-logout>로그아웃</a>
+    <a href="../../SA-00-로그인-권한/시안/login.html#logout" data-logout>로그아웃</a>
   </div>
 </aside>
 <div class="main">
-  <header class="head"><div><h1>대시보드</h1><p class="sub">오늘은 2026년 10월 16일이에요</p></div></header>
+  <header class="head"><div><h1>대시보드</h1><p class="sub">오늘은 2026년 10월 16일이에요</p><p class="asof" id="asof" role="status"></p></div>
+    <div class="hfilt">
+      <select id="f-per" aria-label="기간"><option value="">기간 전체</option><option value="cur">이번 달</option><option value="next">다음 달</option><option value="q">최근 3개월~다음 달</option></select>
+      <select id="f-dept" aria-label="부서"><option value="">부서 전체</option></select>
+      <button class="btn" type="button" id="b-refresh">새로고침</button>
+    </div></header>
   <div class="body">
     <section class="card">
       <div class="tabs" role="tablist" aria-label="대시보드">
@@ -171,7 +181,12 @@ const P=[ // [id,name,dept,date,stage]
 const tone={'준비':'info','평가 중':'primary','완료':'success'},mk={'준비':'○','평가 중':'●','완료':'✓'};
 let Y=2026,M=9,pick=null;
 const pad=n=>String(n).padStart(2,'0'),key=(y,m,d)=>`${y}-${pad(m+1)}-${pad(d)}`;
-const inMonth=(y,m)=>P.filter(p=>p[3].startsWith(y+'-'+pad(m+1)+'-'));
+const DEPTS=['정보화담당관','시설관리과','복지정책과','교통행정과','기획예산담당관','총무과'];
+let fper='',fdept='';
+DEPTS.forEach(d=>$('#f-dept').insertAdjacentHTML('beforeend',`<option>${d}</option>`));
+const perOk=p=>{if(!fper)return true;const d=p[3],c=d.slice(0,7);return fper==='cur'?c==='2026-10':fper==='next'?c==='2026-11':(c>='2026-07'&&c<='2026-11')};
+const FP=()=>P.filter(p=>(!fdept||p[2]===fdept)&&perOk(p));
+const inMonth=(y,m)=>FP().filter(p=>p[3].startsWith(y+'-'+pad(m+1)+'-'));
 $('#yy').innerHTML=[2025,2026,2027].map(y=>`<option value="${y}">${y}년</option>`).join('');
 $('#mm').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i}">${i+1}월</option>`).join('');
 function row(p,cls=''){return `<a class="lrow ${cls}" href="../../SA-03-전체-사업-현황/시안/projects.html#open=${p[0]}" aria-label="${h(p[1])} 자세히 보기"><span class="t">${h(p[1])}</span><span class="d">${p[2]}</span><span class="badge ${tone[p[4]]}">${mk[p[4]]} ${p[4]}</span></a>`}
@@ -182,12 +197,12 @@ function draw(){
   let html=['일','월','화','수','목','금','토'].map(d=>`<div class="dow" role="columnheader">${d}</div>`).join('');
   const total=Math.ceil((first+dim)/7)*7;
   for(let i=0;i<total;i++){let d=i-first+1,y=Y,m=M,out=false;if(d<1){out=true;d=prevDim+d;m=M-1;if(m<0){m=11;y--}}else if(d>dim){out=true;d=d-dim;m=M+1;if(m>11){m=0;y++}}
-    const k=key(y,m,d),ev=P.filter(p=>p[3]===k),t=y===TODAY.getFullYear()&&m===TODAY.getMonth()&&d===TODAY.getDate();
+    const k=key(y,m,d),ev=FP().filter(p=>p[3]===k),t=y===TODAY.getFullYear()&&m===TODAY.getMonth()&&d===TODAY.getDate();
     html+=`<button type="button" class="day${out?' out':''}${ev.length?' has':''}${t?' today':''}${pick===k?' pick':''}" data-k="${k}" role="gridcell" aria-pressed="${pick===k}" aria-label="${m+1}월 ${d}일${t?' 오늘':''}${ev.length?', 평가 '+ev.length+'건':''}"><span class="n">${d}</span>${ev.length?`<span class="ev">평가 ${ev.length}건</span>`:''}</button>`}
   $('#cal').innerHTML=html;$('#cal').style.gridTemplateRows=`auto repeat(${total/7},minmax(0,1fr))`;
   $$('#cal .day').forEach(b=>b.onclick=()=>{pick=pick===b.dataset.k?null:b.dataset.k;if(b.dataset.k.slice(0,7)!==Y+'-'+pad(M+1)){const[y,m]=b.dataset.k.split('-');Y=+y;M=+m-1}draw();const n=$(`#cal [data-k="${pick}"]`);n&&n.focus()});
   const nm=(M+1)%12,ny=M===11?Y+1:Y,cur=Y===TODAY.getFullYear()&&M===TODAY.getMonth();
-  const run=P.filter(p=>p[4]==='평가 중');
+  const run=FP().filter(p=>p[4]==='평가 중');
   $('#lists').innerHTML=(pick?`<div class="filt">${pick.slice(5).replace('-','월 ')}일 평가 사업을 강조했어요<button class="btn" type="button" id="clr">모두 보기</button></div>`:'')+
     sec('진행 중 사업','평가 중 · '+run.length+'건',run,'지금 평가 중인 사업이 없어요')+
     sec(cur?'이번 달 평가':(M+1)+'월 평가',(M+1)+'월 · '+inMonth(Y,M).length+'건',inMonth(Y,M),'이 달에는 평가가 없어요')+
@@ -198,9 +213,17 @@ $('#prev').onclick=()=>go(-1);$('#next').onclick=()=>go(1);$('#goto').onclick=()
 $('#yy').onchange=e=>{Y=+e.target.value;pick=null;draw()};$('#mm').onchange=e=>{M=+e.target.value;pick=null;draw()};
 // 부서별
 const DP=[['감사담당관 (비활성)',6],['시설관리과',5],['정보화담당관',4],['기획예산담당관',3],['총무과',2],['교통행정과',2],['복지정책과',1],['홍보담당관',1],['문화관광과',0],['환경정책과',0]];
-const tot=DP.reduce((a,b)=>a+b[1],0),mx=Math.max(...DP.map(x=>x[1]));
-$('#sum').textContent='전체 '+tot+'개 사업 · 부서 '+DP.length+'곳';
-$('#bars').innerHTML=DP.map(d=>`<a class="drow" href="../../SA-03-전체-사업-현황/시안/projects.html" aria-label="${d[0]} 사업 ${d[1]}개"><span class="nm">(가상)${d[0]}</span><span class="bar" aria-hidden="true"><i style="width:${d[1]/mx*100}%"></i></span><span class="v tnum">${d[1]}개</span></a>`).join('');
+function bars(){const f=fper||fdept;const rows=f?DP.map(d=>{const n=d[0].replace(' (비활성)','');return [d[0],FP().filter(p=>p[2]===n).length]}).filter(d=>!fdept||d[0].replace(' (비활성)','')===fdept):DP;
+  const tot=rows.reduce((a,b)=>a+b[1],0),mx=Math.max(1,...rows.map(x=>x[1]));
+  $('#sum').textContent=(f?'조건에 맞는 ':'전체 ')+tot+'개 사업 · 부서 '+rows.length+'곳 · 사업 수만 보여요(개인 정보 없음)';
+  $('#bars').innerHTML=rows.map(d=>`<a class="drow" href="../../SA-03-전체-사업-현황/시안/projects.html" aria-label="${d[0]} 사업 ${d[1]}개"><span class="nm">(가상)${d[0]}</span><span class="bar" aria-hidden="true"><i style="width:${d[1]/mx*100}%"></i></span><span class="v tnum">${d[1]}개</span></a>`).join('')}
+bars();
+/* DASH-01: 기준 시각과 수신 지연 (두 DB 값이 늦게 올 수 있음) */
+let late=true,asof='09:12';
+function paintAsof(){$('#asof').innerHTML='기준 시각 '+asof+(late?' · <span class="late">수신 지연 있음</span>':' · 모두 최신')}
+$('#b-refresh').onclick=()=>{late=false;asof='09:14';paintAsof();draw();bars();toast('최신 값으로 바꿨어요')};
+$('#f-per').onchange=e=>{fper=e.target.value;pick=null;draw();bars()};$('#f-dept').onchange=e=>{fdept=e.target.value;pick=null;draw();bars()};
+paintAsof();
 // 탭
 const TB={sched:$('#t-sched'),todo:$('#t-todo'),dept:$('#t-dept')};
 function tab(k){Object.entries(TB).forEach(([n,b])=>{b.setAttribute('aria-selected',n===k);b.tabIndex=n===k?0:-1;$('#p-'+n).hidden=n!==k})}

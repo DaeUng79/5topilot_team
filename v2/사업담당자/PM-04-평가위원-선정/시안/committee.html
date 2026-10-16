@@ -98,6 +98,22 @@ tr.sumrow td{font-weight:700;background:var(--gray-5);height:56px}
 .lstcard li{display:flex;gap:10px;align-items:center;min-height:48px;border-bottom:1px solid var(--line)}
 .lstcard li:last-child{border:0}
 .lstcard li .nm{font-weight:700;font-size:var(--t-body)}
+.stg .box td{height:44px}
+.demo .grp{flex-wrap:wrap;gap:4px}
+.demo{padding:4px 32px}
+.demo button{min-height:28px;padding:0 8px}
+.demo b{margin-right:0}
+.demo>.muted{display:none}
+.cfg td{height:42px}
+.cfg th{height:38px}
+tr.sumrow td{height:42px}
+.cfg{gap:12px}
+.stg{gap:12px;padding-top:12px}
+.fin{flex:none}
+.fin .src,.fin .box{flex:none;overflow:visible}
+.cfg-row select{min-height:40px}
+.fin .side2{align-self:start}
+.chk .muted{display:block}
 
 </style>
 </head>
@@ -133,7 +149,7 @@ tr.sumrow td{font-weight:700;background:var(--gray-5);height:56px}
   </div>
   <div class="demo"><b>시안 보기</b>
     <span class="grp" id="presets"></span>
-    <span class="muted">(가상 데이터) 추첨한 뒤에는 후보·정원이 잠겨요</span></div>
+    <span class="muted">(가상 데이터) 전화번호는 뒤 4자리만 보여요 · 추첨한 뒤에는 규칙이 잠겨요</span></div>
 
 </div>
 </div>
@@ -152,213 +168,146 @@ tr.sumrow td{font-weight:700;background:var(--gray-5);height:56px}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="../../_ui.js"></script>
 <script>
-/* 가상 데이터 */
+/* 가상 데이터. 휴대전화는 뒤 4자리만 보여요. */
 const FIELDS=['시스템 구축','정보보안','데이터·AI','사업관리'];
-const POOL=[
- [1,'(가상)한빛대학교','컴퓨터공학과','한도윤','교수',0,'doyun.han@example.com','010-0000-3001',3],
- [2,'(가상)한빛대학교','정보보호학과','이서연','부교수',1,'seoyeon.lee@example.com','010-0000-3002',2],
- [3,'(가상)누리연구원','AI연구실','박지호','책임연구원',2,'jiho.park@example.com','010-0000-3003',4],
- [4,'(가상)새솔대학교','경영학과','최유나','교수',3,'yuna.choi@example.com','010-0000-3004',1],
- [5,'(가상)푸른대학교','소프트웨어학과','정민재','교수',0,'minjae.jung@example.com','010-0000-3005',5],
- [6,'(가상)다온연구원','보안연구실','강예린','선임연구원',1,'yerin.kang@example.com','010-0000-3006',2],
- [7,'(가상)한빛대학교','데이터사이언스과','윤태오','조교수',2,'taeo.yoon@example.com','010-0000-3007',0],
- [8,'(가상)새솔대학교','산업공학과','장하은','교수',3,'haeun.jang@example.com','010-0000-3008',3],
- [9,'(가상)푸른대학교','컴퓨터공학과','임건우','교수',0,'gunwoo.lim@example.com','010-0000-3009',1],
- [10,'(가상)누리연구원','클라우드센터','오수아','책임연구원',0,'sua.oh@example.com','010-0000-3010',2],
- [11,'(가상)다온연구원','정보보호팀','신주원','수석연구원',1,'juwon.shin@example.com','010-0000-3011',6],
- [12,'(가상)한빛대학교','통계학과','배도하','교수',2,'doha.bae@example.com','010-0000-3012',1],
- [13,'(가상)새솔대학교','행정학과','조은서','부교수',3,'eunseo.cho@example.com','010-0000-3013',2],
- [14,'(가상)푸른대학교','정보보호학과','문시현','교수',1,'sihyun.moon@example.com','010-0000-3014',0],
- [15,'(가상)누리연구원','빅데이터팀','양지안','선임연구원',2,'jian.yang@example.com','010-0000-3015',3],
- [16,'(가상)다온연구원','SW공학팀','홍라온','책임연구원',0,'raon.hong@example.com','010-0000-3016',1],
- [17,'(가상)새솔대학교','공공정책대학원','서이준','교수',3,'ijun.seo@example.com','010-0000-3017',4],
- [18,'(가상)푸른대학교','시스템공학과','노아린','조교수',0,'arin.no@example.com','010-0000-3018',0]
-].map(r=>({id:r[0],org:r[1],dept:r[2],name:r[3],pos:r[4],field:FIELDS[r[5]],email:r[6],tel:r[7],n:r[8]}));
-const XLS=[
- ['(가상)한빛대학교','컴퓨터공학과','권도현','교수','시스템 구축','dohyun.kwon@example.com','010-0000-3101'],
- ['(가상)누리연구원','AI연구실','서하린','책임연구원','데이터·AI','harin.seo@example.com','010-0000-3102'],
- ['(가상)한빛대학교','컴퓨터공학과','한도윤','교수','시스템 구축','doyun.han@example.com','010-0000-3001'],
- ['(가상)새솔대학교','경영학과','문지후','교수','사업관리','jihu.moon.example.com','010-0000-3104'],
- ['(가상)푸른대학교','소프트웨어학과','배서윤','부교수','정보보안','seoyun.bae@example.com',''],
- ['(가상)다온연구원','보안연구실','류시우','선임연구원','정보보안','siwoo.ryu@example.com','010-0000-3106']
-];
-function checkRow(r,have){
-  if(!r[2]||!r[0])return {k:'err',m:'기관·이름이 비었어요'};
-  if(!FIELDS.includes(r[4]))return {k:'err',m:'분야를 확인해 주세요'};
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r[5]))return {k:'err',m:'이메일 형식이 아니에요'};
-  if(!/^010-\d{4}-\d{4}$/.test(r[6]))return {k:'err',m:'전화번호가 없거나 형식이 달라요'};
-  if(have(r[5]))return {k:'dup',m:'이미 있는 사람이에요'};
-  return {k:'ok',m:'넣을 수 있어요'}}
-function downloadTemplate(){const head=['기관','부서','이름','직책','분야('+FIELDS.join('/')+')','이메일','전화(010-0000-0000)'];
-  const csv='﻿'+head.join(',')+'\n'+XLS[0].join(',')+'\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='위원_올리기_양식.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);toast('양식을 내려받았어요')}
-/* 엑셀 올리기: box 안에 그리고, 정상 행만 onAdd로 넘긴다 */
-function excelBox(box,have,onAdd,primary=true){
-  box.innerHTML=`<div class="xl-top"><button class="btn" type="button" data-xl="tpl">양식 내려받기</button><label class="btn" tabindex="0" data-xl="pick">파일 고르기<input type="file" class="sr-only" accept=".xlsx,.xls,.csv" tabindex="-1"></label><button class="btn" type="button" data-xl="demo">예시 파일로 미리보기</button></div>
-  <div class="xl-prev"></div>`;
-  const prev=$('.xl-prev',box);
-  function show(name){const R=XLS.map(r=>({r,c:checkRow(r,have)}));const ok=R.filter(x=>x.c.k==='ok'),er=R.filter(x=>x.c.k==='err').length,du=R.filter(x=>x.c.k==='dup').length;
-    prev.innerHTML=`<div class="xl-sum"><b>${h(name)}</b><span class="badge success">✓ 정상 ${ok.length}</span><span class="badge danger">! 오류 ${er}</span><span class="badge warning">= 중복 ${du}</span></div>
-    <div class="xl-tbl"><table><thead><tr><th>줄</th><th>이름</th><th>분야</th><th>전화</th><th>확인 결과</th></tr></thead><tbody>${R.map((x,i)=>`<tr class="r-${x.c.k}"><td class="tnum">${i+2}</td><td class="strong">${h(x.r[2]||'(빈칸)')}</td><td>${h(x.r[4])}</td><td class="tnum">${h(x.r[6]||'(빈칸)')}</td><td><span class="badge ${x.c.k==='ok'?'success':x.c.k==='dup'?'warning':'danger'}">${x.c.k==='ok'?'✓ 정상':x.c.k==='dup'?'= 중복':'! 오류'}</span> <span class="muted">${x.c.k==='ok'?'':x.c.m}</span></td></tr>`).join('')}</tbody></table></div>
-    <div class="xl-act"><span class="muted">오류·중복 줄은 빼고 정상인 ${ok.length}명만 넣어요.</span><button class="btn${primary?' primary':''}" type="button" id="xl-go" ${ok.length?'':'disabled'}>정상 ${ok.length}명 넣기</button></div>`;
-    $('#xl-go',prev).onclick=()=>{onAdd(ok.map(x=>x.r));prev.innerHTML='<div class="note" style="margin-top:16px"><span>✓</span><span>'+ok.length+'명을 넣었어요. 오류·중복 '+(er+du)+'줄은 넣지 않았어요.</span></div>'}}
-  $('[data-xl=tpl]',box).onclick=downloadTemplate;
-  $('[data-xl=demo]',box).onclick=()=>show('예시_위원목록.xlsx');
-  const inp=$('input[type=file]',box);inp.onchange=()=>{if(inp.files[0])show(inp.files[0].name)};
-  $('[data-xl=pick]',box).addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
-  return {show}}
-
-const STAGES=['후보 모으기','정원 정하기','추첨','전화 확인','명단 확정'];
-const NEXT=['정원 정하기','추첨','전화 확인','명단 확정'];
-const fresh=()=>({stage:0,tab:0,sel:new Set(),cands:POOL.slice(0,8).map(p=>({...p,src:'풀'})),quota:7,reserve:2,by:[2,2,2,1],drawn:null,drawAt:'',calls:{},memo:{},role:{},manual:false,locked:false,confirmAt:'',err:{}});
-let S=fresh();let nid=100;
-const sum=()=>S.by.reduce((a,b)=>a+b,0);
-const V=[()=>S.cands.length>0,()=>sum()===S.quota,()=>!!S.drawn,()=>true];
-const canGo=i=>{for(let j=0;j<i;j++)if(!V[j]())return false;return true};
-const cnt=f=>S.cands.filter(c=>c.field===f).length;
-const haveEmail=e=>S.cands.some(c=>c.email===e);
-let fkey=null;
-
-function renderSub(){
-  $('#sub').innerHTML=STAGES.map((t,i)=>{
-    const st=S.locked||i<S.stage?'done':i===S.stage?'cur':!canGo(i)?'lock':'';
-    const frozen=!S.locked&&S.drawn&&i<2;
-    return `<button type="button" class="${st}" data-i="${i}" ${i===S.stage?'aria-current="step"':''} ${st==='lock'?'aria-disabled="true"':''}><span class="n" aria-hidden="true">${st==='done'?'✓':st==='lock'?'🔒':i+1}</span><span>${t}${frozen?' <span class="sr-only">(잠김)</span>':''}</span></button>`}).join('');
-  $$('#sub button').forEach(b=>b.onclick=()=>go(+b.dataset.i));
-  renderSteps($('#steps'),['done','done','done','current',S.locked?'open':'locked','locked']);
+const SUBN=['규칙','3배수 선정','연락·초청','명단 확정'];
+const RAW=[['한도윤',0,'0001','수락'],['정민재',0,'0005','수락'],['임건우',0,'0009','거절'],['오수아',0,'0010','부재'],['권도현',0,'0101','미연락'],['홍라온',0,'0016','미연락'],
+ ['이서연',1,'0002','수락'],['강예린',1,'0006','수락'],['신주원',1,'0011','수락'],['문시현',1,'0014','거절'],['류시우',1,'0106','미연락'],['이도윤',1,'3102','수락'],
+ ['박지호',2,'0003','수락'],['윤태오',2,'0007','수락'],['배도하',2,'0012','부재'],['양지안',2,'0015','수락'],['서하린',2,'0102','미연락'],['노아린',2,'0018','미연락'],
+ ['최유나',3,'0004','수락'],['이도윤',3,'3102','수락'],['조은서',3,'0013','수락']];
+const DIRPOOL=[['조현우',0,'0201'],['백승아',1,'0202'],['하준서',2,'0203'],['남지율',3,'0204']];
+const mkC=(r,i,src)=>({id:i,name:r[0],f:r[1],l4:r[2],st:r[3]||'미연락',memo:'',src,ex:null});
+const POOLN={ok:[9,8,7,5],short:[9,4,7,5]};   /* 부서 풀 분야별 인원(같은 사람이 여러 분야에 있어도 한 번만 센 값) */
+const base=()=>({mode:'POOL',cap:7,q:[2,2,2,1],saved:false,pool:'ok',err:false,drawn:false,cands:[],fst:'',ffd:'',stg:0,pick:{},ord:{},rost:'none',nid:100});
+let S=base();
+const need=()=>S.q.map(x=>x*3);
+const sum=()=>S.q.reduce((a,b)=>a+b,0);
+const tel=c=>'010-****-'+c.l4;
+const reach=()=>!S.saved?0:(S.mode==='DIRECT'||S.drawn)?(S.cands.some(c=>c.st==='수락'&&!c.ex)?3:2):1;
+function dl(name,rows){const t='﻿'+rows.map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function drawNow(){S.pool=S.pool;const sh=need().map((n,i)=>n-POOLN[S.pool][i]);
+  if(sh.some(x=>x>0)){S.err=true;render();return}
+  S.err=false;S.drawn=true;S.cands=RAW.map((r,i)=>mkC([r[0],r[1],r[2],'미연락'],i,'추첨'));render();toast('분야별 3배수 '+S.cands.length+'명을 뽑았어요')}
+function render(){
+  renderSteps($('#steps'),['done','done','done','current','locked','locked']);
+  const R=reach();
+  $('#sub').innerHTML=SUBN.map((t,i)=>{const cls=i===S.stg?'cur':i<R||(i===3&&R>=3&&S.rost!=='none')?'done':i>R?'lock':'';
+    return `<button type="button" class="${cls}" data-i="${i}" ${i===S.stg?'aria-current="step"':''} ${i>R?'aria-disabled="true"':''}><span class="n" aria-hidden="true">${i>R?'🔒':i<S.stg&&i<R?'✓':i+1}</span><span>${t}</span></button>`}).join('');
+  $$('#sub button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;if(i>R){toast('앞 단계를 먼저 끝내 주세요');return}S.stg=i;render()});
+  [stg1,stg2,stg3,stg4][S.stg]();
 }
-function go(i){
-  if(S.locked){return}
-  if(i===S.stage)return;
-  if(S.drawn&&i<2){toast('추첨한 뒤에는 후보·정원을 바꿀 수 없어요');return}
-  if(!canGo(i)){toast(i>=1&&!V[0]()?'후보를 먼저 넣어 주세요':!V[1]()&&i>=2?'분야별 인원 합계를 정원에 맞춰 주세요':'앞 단계를 먼저 끝내 주세요');return}
-  if(i===4&&!S.manual)autoAssign();
-  S.stage=i;render()}
-function foot(label,enabled,why,onClick,prevOk=true){
-  const f=$('#foot');
-  f.innerHTML=`${why?`<span class="why">${why}</span>`:''}${S.stage>0&&!S.locked?`<button class="btn" type="button" id="prev" ${prevOk?'':'disabled'}>이전</button>`:''}${label?`<button class="btn ${enabled?'primary':''}" type="button" id="next" ${enabled?'':'disabled'}>${label}</button>`:''}`;
-  $('#prev')&&($('#prev').onclick=()=>go(S.stage-1));
-  $('#next')&&($('#next').onclick=onClick)}
-function render(){renderSub();const m=[stage0,stage1,stage2,stage3,stage4][S.stage];$('#stage').innerHTML='';m();
-  if(fkey){const e=document.querySelector(fkey);e&&e.focus();fkey=null}}
-
-/* ① 후보 모으기 */
-function tray(){
-  const n=S.cands.length;
-  return `<aside class="tray" aria-label="지금 후보"><header><strong>지금 후보 <span class="tnum">${n}</span>명</strong><div class="chips" aria-label="분야별 후보 수">${FIELDS.map(f=>`<span class="badge">${f} ${cnt(f)}</span>`).join('')}</div></header>
-  ${n?`<ul>${S.cands.map(c=>`<li><span class="nm">${h(c.name)}</span><span class="fd">${h(c.field)} · ${h(c.src)}</span><button class="rm" type="button" data-rm="${c.id}" aria-label="${h(c.name)} 후보에서 빼기">×</button></li>`).join('')}</ul>`:`<div class="empty">아직 후보가 없어요.<br>왼쪽에서 넣어 주세요.</div>`}</aside>`}
-function stage0(){
-  const st=$('#stage');
-  st.innerHTML=`<div class="stg"><div class="two"><div class="src"><div class="seg" role="group" aria-label="후보 모으는 방법">${['풀에서 가져오기','직접 추가','엑셀로 올리기'].map((t,i)=>`<button type="button" data-tab="${i}" aria-pressed="${i===S.tab}">${t}</button>`).join('')}</div><div class="srcbox" id="srcbox"></div></div><div id="tray">${tray()}</div></div></div>`;
-  $$('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=+b.dataset.tab;fkey=`[data-tab="${S.tab}"]`;render()});
-  const box=$('#srcbox');
-  if(S.tab===0)poolTab(box);else if(S.tab===1)formTab(box);else{
-    box.innerHTML='<div class="xlbox" style="overflow:auto"></div>';
-    excelBox($('.xlbox',box),haveEmail,rows=>{addRows(rows,'엑셀');refreshTray()},false)}
-  bindTray();
-  foot('다음: 정원 정하기',V[0](),V[0]()?'':'후보를 한 명 이상 넣어 주세요',()=>go(1))}
-function bindTray(){$$('[data-rm]').forEach(b=>b.onclick=()=>{S.cands=S.cands.filter(c=>c.id!==+b.dataset.rm);S.sel.delete(+b.dataset.rm);refreshTray();if(S.tab===0)poolTab($('#srcbox'));syncFoot()})}
-function refreshTray(){$('#tray').innerHTML=tray();bindTray();syncFoot()}
-function syncFoot(){renderSub();foot('다음: 정원 정하기',V[0](),V[0]()?'':'후보를 한 명 이상 넣어 주세요',()=>go(1))}
-function addRows(rows,src){rows.forEach(r=>S.cands.push({id:nid++,org:r[0],dept:r[1],name:r[2],pos:r[3],field:r[4],email:r[5],tel:r[6],src}));toast(rows.length+'명을 후보에 넣었어요')}
-function poolTab(box){
-  const free=POOL.filter(p=>!S.cands.some(c=>c.id===p.id));
-  box.innerHTML=`<div class="box"><table><thead><tr><th style="width:56px"><input class="cb" type="checkbox" id="all" aria-label="모두 선택" ${free.length?'':'disabled'}></th><th>이름</th><th>기관 · 부서</th><th>분야</th><th class="num">참여</th></tr></thead><tbody>${POOL.map(p=>{const inC=S.cands.some(c=>c.id===p.id);return `<tr><td><input class="cb" type="checkbox" data-p="${p.id}" aria-label="${h(p.name)} 선택" ${inC?'checked disabled':S.sel.has(p.id)?'checked':''}></td><td class="strong">${h(p.name)}${inC?' <span class="badge primary">후보</span>':''}</td><td>${h(p.org.replace('(가상)',''))} · ${h(p.dept)}</td><td>${h(p.field)}</td><td class="num tnum">${p.n}회</td></tr>`}).join('')}</tbody></table></div>
-  <div class="xl-act" style="margin:0"><span class="muted">우리 과 위원 풀에서 골라요. 이미 후보인 사람은 잠겨 있어요.</span><button class="btn" type="button" id="addsel" ${S.sel.size?'':'disabled'}>선택한 ${S.sel.size}명 후보에 넣기</button></div>`;
-  $$('[data-p]',box).forEach(c=>c.onchange=()=>{c.checked?S.sel.add(+c.dataset.p):S.sel.delete(+c.dataset.p);poolTab(box);const e=document.querySelector(`[data-p="${c.dataset.p}"]`);e&&e.focus()});
-  $('#all',box).onchange=e=>{free.forEach(p=>e.target.checked?S.sel.add(p.id):S.sel.delete(p.id));poolTab(box)};
-  $('#addsel',box).onclick=()=>{const add=POOL.filter(p=>S.sel.has(p.id)).map(p=>({...p,src:'풀'}));S.cands.push(...add);S.sel.clear();toast(add.length+'명을 후보에 넣었어요');refreshTray();poolTab(box)}}
-function formTab(box){
-  const E=S.err;
-  const f=(k,l,ph,t='text')=>`<label class="field">${l}<input id="f-${k}" type="${t}" placeholder="${ph}" ${E[k]?'aria-invalid="true" aria-describedby="e-'+k+'"':''}>${E[k]?`<span class="err" id="e-${k}">${E[k]}</span>`:''}</label>`;
-  box.innerHTML=`<div style="overflow:auto;flex:1;min-height:0"><div class="fgrid">${f('org','기관','(가상)한빛대학교')}${f('dept','부서','컴퓨터공학과')}${f('name','이름','홍길동')}${f('pos','직책','교수')}${f('email','이메일','name@example.com','email')}${f('tel','전화','010-0000-0000','tel')}
-  <label class="field full">분야<select id="f-field">${FIELDS.map(x=>`<option>${x}</option>`).join('')}</select></label></div></div>
-  <div class="xl-act" style="margin:0"><span class="muted">직접 넣은 후보는 위원 풀에 저장되지 않아요.</span><button class="btn" type="button" id="addone">후보에 추가</button></div>`;
-  $('#addone',box).onclick=()=>{
-    const v=k=>$('#f-'+k).value.trim();const e={};
-    if(!v('org'))e.org='기관을 적어 주세요';if(!v('name'))e.name='이름을 적어 주세요';
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('email')))e.email='이메일 형식으로 적어 주세요';else if(haveEmail(v('email')))e.email='이미 후보에 있는 이메일이에요';
-    if(!/^010-\d{4}-\d{4}$/.test(v('tel')))e.tel='010-0000-0000 형식으로 적어 주세요';
-    S.err=e;if(Object.keys(e).length){const keep={};['org','dept','name','pos','email','tel'].forEach(k=>keep[k]=v(k));formTab(box);Object.entries(keep).forEach(([k,x])=>$('#f-'+k).value=x);const first=Object.keys(e)[0];$('#f-'+first).focus();return}
-    addRows([[v('org'),v('dept'),v('name'),v('pos'),$('#f-field').value,v('email'),v('tel')]],'직접');S.err={};formTab(box);refreshTray();$('#f-org').focus()}}
-
-/* ② 정원 정하기 */
-function stage1(){
-  const s=sum(),ok=s===S.quota;
+/* ① 규칙 (DRAW-01) */
+function stg1(){const ok=sum()===S.cap,lk=S.drawn;
   $('#stage').innerHTML=`<div class="stg"><div class="cfg">
-  <div class="cfg-row"><b>정원</b><div class="seg" role="group" aria-label="본위원 정원">${[7,8,9].map(n=>`<button type="button" data-q="${n}" aria-pressed="${S.quota===n}">${n}명</button>`).join('')}</div><b style="width:auto;margin-left:24px">예비</b><div class="seg" role="group" aria-label="예비 인원">${[1,2,3].map(n=>`<button type="button" data-r="${n}" aria-pressed="${S.reserve===n}">${n}명</button>`).join('')}</div></div>
-  <div><div class="sec-h" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span>분야별 인원</span>${ok?'<span class="badge success">✓ 합계 '+s+'명 = 정원</span>':`<span class="err" role="alert">합계 ${s}명이 정원 ${S.quota}명과 달라요. ${s>S.quota?(s-S.quota)+'명 줄여':(S.quota-s)+'명 늘려'} 주세요.</span>`}</div>
-  <div class="box" style="flex:none"><table><thead><tr><th>분야</th><th>인원</th><th class="num">지금 후보</th><th class="num">3배수 필요</th><th>후보 충분한가</th></tr></thead><tbody>
-  ${FIELDS.map((f,i)=>{const c=cnt(f),need=S.by[i]*3,short=c<need;return `<tr><td class="strong">${f}</td><td><span class="stp"><button type="button" data-d="${i}:-1" aria-label="${f} 인원 줄이기" ${S.by[i]<=0?'disabled':''}>−</button><output class="tnum" aria-live="polite">${S.by[i]}</output><button type="button" data-d="${i}:1" aria-label="${f} 인원 늘리기">+</button></span></td><td class="num tnum">${c}명</td><td class="num tnum">${need}명</td><td>${short?`<span class="badge warning">! ${need-c}명 모자라요</span> <span class="muted">있는 만큼만 뽑아요</span>`:'<span class="badge success">✓ 충분해요</span>'}</td></tr>`}).join('')}
-  
-  </tbody></table></div></div></div></div>`;
-  $$('[data-q]').forEach(b=>b.onclick=()=>{S.quota=+b.dataset.q;fkey=`[data-q="${S.quota}"]`;render()});
-  $$('[data-r]').forEach(b=>b.onclick=()=>{S.reserve=+b.dataset.r;fkey=`[data-r="${S.reserve}"]`;render()});
-  $$('[data-d]').forEach(b=>b.onclick=()=>{const [i,d]=b.dataset.d.split(':').map(Number);S.by[i]=Math.max(0,S.by[i]+d);fkey=`[data-d="${b.dataset.d}"]`;render()});
-  foot('다음: 추첨',ok,ok?(FIELDS.some((f,i)=>cnt(f)<S.by[i]*3)?'후보가 모자란 분야가 있어요 (경고일 뿐, 계속할 수 있어요)':''):'분야별 합계를 정원에 맞춰 주세요',()=>go(2))}
-
-/* ③ 추첨 */
-const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-function doDraw(){S.drawn=[];FIELDS.forEach((f,i)=>S.drawn.push(...shuffle(S.cands.filter(c=>c.field===f)).slice(0,S.by[i]*3)));S.drawAt='2026-10-16 14:02'}
-function stage2(){
-  const st=$('#stage');
+   <div class="cfg-row"><b>선정 방식</b><div class="seg" role="group" aria-label="선정 방식" id="mode"><button type="button" data-m="POOL" aria-pressed="${S.mode==='POOL'}" ${lk?'disabled':''}>풀에서 추첨 (POOL)</button><button type="button" data-m="DIRECT" aria-pressed="${S.mode==='DIRECT'}" ${lk?'disabled':''}>직접 선정 (DIRECT)</button></div></div>
+   <div class="cfg-row"><b>정원</b><div class="stp"><button type="button" id="cm" aria-label="정원 줄이기" ${S.cap<=7||lk?'disabled':''}>−</button><output>${S.cap}</output><button type="button" id="cp" aria-label="정원 늘리기" ${S.cap>=9||lk?'disabled':''}>＋</button><span class="muted">명 (7~9명)</span></div></div>
+   <div class="box"><table><thead><tr><th>분야</th><th class="num">본위원 인원</th></tr></thead><tbody>${FIELDS.map((f,i)=>`<tr><td class="strong">${f}</td><td class="num"><div class="stp" style="justify-content:flex-end"><button type="button" data-d="-1" data-i="${i}" aria-label="${f} 줄이기" ${S.q[i]<=0||lk?'disabled':''}>−</button><output>${S.q[i]}</output><button type="button" data-d="1" data-i="${i}" aria-label="${f} 늘리기" ${lk?'disabled':''}>＋</button></div></td></tr>`).join('')}
+   <tr class="sumrow"><td>합계</td><td class="num tnum ${ok?'':'err'}" style="justify-content:flex-end">${sum()} / ${S.cap}명</td></tr></tbody></table></div>
+   ${ok?'':`<p class="err" role="alert">분야별 인원의 합이 정원(${S.cap}명)과 달라요. 맞춰 주세요.</p>`}
+   ${S.mode==='DIRECT'?'<div class="note"><span>i</span><span>직접 선정은 추첨하지 않아요. [3배수 무작위 선정] 버튼이 숨겨지고, ③ 연락·초청에서 후보를 직접 넣어요.</span></div>':'<div class="note"><span>i</span><span>풀에서 추첨하면 분야별로 정원의 3배수를 뽑아요. 한 사람이 여러 분야에 있어도 한 번만 배정돼요.</span></div>'}
+   ${lk?'<div class="note warn"><span>🔒</span><span>추첨한 뒤에는 방식·정원·분야별 인원이 잠겨요.</span></div>':''}</div></div>`;
+  $$('#mode button').forEach(b=>b.onclick=()=>{S.mode=b.dataset.m;S.saved=false;render()});
+  $('#cm').onclick=()=>{S.cap--;S.saved=false;render()};$('#cp').onclick=()=>{S.cap++;S.saved=false;render()};
+  $$('[data-d]').forEach(b=>b.onclick=()=>{S.q[+b.dataset.i]+=+b.dataset.d;S.saved=false;render()});
+  $('#foot').innerHTML=`<span class="why">${S.saved?'✓ 저장했어요 · 규칙 '+S.mode+' · 정원 '+S.cap+'명':'바꾼 뒤에는 [저장]을 눌러 주세요'}</span><button class="btn ${S.saved?'':'primary'}" type="button" id="save" ${ok&&!lk?'':'disabled'}>저장</button>${S.saved?'<button class="btn primary" type="button" id="nx">다음: '+(S.mode==='DIRECT'?'3배수 선정 안내':'3배수 선정')+'</button>':''}`;
+  $('#save').onclick=()=>{S.saved=true;render();toast('규칙을 저장했어요')};$('#nx')&&($('#nx').onclick=()=>{S.stg=1;render()})}
+/* ② 3배수 선정 (DRAW-02, DRAW-03) */
+function stg2(){
+  if(S.mode==='DIRECT'){$('#stage').innerHTML=`<div class="ctr"><div class="ico" aria-hidden="true">✍</div><strong style="font-size:var(--t-2xl)">직접 선정이라 추첨하지 않아요</strong><p class="muted">③ 연락·초청에서 [사업 후보 추가]로 후보를 넣고 전화로 확인해요.</p></div>`;
+    $('#foot').innerHTML='<span class="why">추첨 버튼은 숨겨져 있어요.</span><button class="btn primary" type="button" id="nx">다음: 연락·초청</button>';
+    $('#nx').onclick=()=>{S.stg=2;render()};return}
+  const n=need(),a=POOLN[S.pool],sh=n.map((x,i)=>Math.max(0,x-a[i])),bad=sh.some(x=>x>0);
+  let body=`<div class="stg">`;
+  if(S.err&&bad)body+=`<div class="note bad" role="alert"><span>!</span><span><b>3배수를 뽑지 못해 추첨을 멈췄어요. 아무도 뽑히지 않았어요.</b><br>${sh.map((x,i)=>x?`${FIELDS[i]} 분야 ${x}명 부족 (필요 ${n[i]}명 · 풀 ${a[i]}명)`:'').filter(Boolean).join('<br>')}<br>풀에 위원을 더 등록한 뒤 다시 눌러 주세요.</span></div>`;
   if(!S.drawn){
-    const lack=FIELDS.map((f,i)=>({f,c:cnt(f),n:S.by[i]*3})).filter(x=>x.c<x.n);
-    st.innerHTML=`<div class="stg"><div class="ctr"><div class="ico" aria-hidden="true">🎲</div><strong style="font-size:var(--t-xl)">분야별로 정원의 3배수를 무작위로 뽑아요</strong>
-    <p class="muted">${FIELDS.map((f,i)=>f+' '+S.by[i]*3+'명').join(' · ')}</p>
-    ${lack.length?`<div class="note warn"><span>!</span><span>${lack.map(x=>`${x.f} 후보 ${x.c}명(필요 ${x.n}명)`).join(' · ')} — 있는 만큼만 뽑아요. 계속해도 괜찮아요.</span></div>`:''}
-    <button class="btn primary lg" type="button" id="draw">분야별 3배수 추첨</button><p class="muted">추첨은 한 번만 할 수 있어요.</p></div></div>`;
-    $('#draw').onclick=()=>confirmDlg({title:'추첨할까요?',body:'한 번만 할 수 있어요. 뽑은 뒤에는 다시 뽑거나 후보·정원을 바꿀 수 없어요.',ok:'추첨하기',onOk:()=>{doDraw();fkey='#next';render();toast('추첨했어요. 결과가 기록됐어요')}});
-    foot('다음: 전화 확인',false,'추첨을 먼저 해 주세요',null)}
+   body+=`<div class="box" style="flex:none"><table><thead><tr><th>분야</th><th class="num">본위원</th><th class="num">필요한 3배수</th><th class="num">풀 인원(중복 제외)</th><th>확인</th></tr></thead><tbody>${FIELDS.map((f,i)=>`<tr><td class="strong">${f}</td><td class="num tnum">${S.q[i]}명</td><td class="num tnum">${n[i]}명</td><td class="num tnum">${a[i]}명</td><td>${sh[i]?`<span class="badge danger">! ${sh[i]}명 부족</span>`:'<span class="badge success">✓ 충분</span>'}</td></tr>`).join('')}</tbody></table></div>
+   <p class="muted">부족한 분야가 하나라도 있으면 일부만 뽑지 않고 <b>전체를 멈춰요</b>. 한 사람은 한 분야에만 배정돼요.</p>`}
   else{
-    st.innerHTML=`<div class="stg"><div class="note"><span>✓</span><span><b>추첨 완료</b> · ${S.drawAt} · 모두 ${S.drawn.length}명 · 한 번만 할 수 있어서 다시 뽑을 수 없어요</span></div>
-    <div class="dgrid">${FIELDS.map((f,i)=>{const L=S.drawn.filter(c=>c.field===f),need=S.by[i]*3;return `<section class="dcard" aria-label="${f} 추첨 결과"><h3>${f} <span class="badge primary">${L.length}명</span>${L.length<need?`<span class="badge warning">! 후보 부족 (필요 ${need}명)</span>`:''}</h3><ul>${L.map(c=>`<li>${h(c.name)} <span>${h(c.org.replace('(가상)',''))}</span></li>`).join('')}</ul></section>`}).join('')}</div></div>`;
-    foot('다음: 전화 확인',true,'',()=>go(3),false)}}
-
-/* ④ 전화 확인 */
-const CALL=['가능','불가','부재'];
-function stage3(){
-  const L=S.drawn,done=L.filter(c=>S.calls[c.id]).length,k=x=>L.filter(c=>S.calls[c.id]===x).length;
-  $('#stage').innerHTML=`<div class="stg" style="padding-bottom:0"><div class="xl-sum" style="margin:0"><b>전화 확인 ${done}/${L.length}명</b><span class="badge success">✓ 가능 ${k('가능')}</span><span class="badge danger">× 불가 ${k('불가')}</span><span class="badge warning">… 부재 ${k('부재')}</span><span class="muted">통화한 결과를 눌러 기록해요. 메모는 선택이에요.</span></div>
-  <div class="box call" style="margin-bottom:20px"><table><thead><tr><th>이름</th><th>분야</th><th>전화</th><th>통화 결과</th><th>메모</th></tr></thead><tbody>${L.map(c=>`<tr><td class="strong">${h(c.name)}</td><td>${h(c.field)}</td><td class="tnum">${c.tel}</td><td><div class="seg" role="group" aria-label="${h(c.name)} 통화 결과">${CALL.map(x=>`<button type="button" data-c="${c.id}:${x}" aria-pressed="${S.calls[c.id]===x}">${x}</button>`).join('')}</div>${S.calls[c.id]?'':' <span class="muted">아직 안 함</span>'}</td><td><input class="cell" data-m="${c.id}" value="${h(S.memo[c.id]||'')}" placeholder="예: 오후 2시 이후 가능" aria-label="${h(c.name)} 메모"></td></tr>`).join('')}</tbody></table></div></div>`;
-  $$('[data-c]').forEach(b=>b.onclick=()=>{const [id,x]=b.dataset.c.split(':');S.calls[id]=x;S.manual=false;fkey=`[data-c="${b.dataset.c}"]`;const sc=$('.box.call').scrollTop;render();$('.box.call').scrollTop=sc});
-  $$('[data-m]').forEach(i=>i.oninput=()=>{S.memo[i.dataset.m]=i.value});
-  foot('다음: 명단 확정',true,done<L.length?'아직 전화하지 않은 후보가 '+(L.length-done)+'명 있어요':'',()=>go(4))}
-
-/* ⑤ 명단 확정 */
-function autoAssign(){
-  S.role={};const left=[];
-  FIELDS.forEach((f,i)=>{const ok=S.drawn.filter(c=>c.field===f&&S.calls[c.id]==='가능');ok.slice(0,S.by[i]).forEach(c=>S.role[c.id]='본');left.push(...ok.slice(S.by[i]))});
-  left.slice(0,S.reserve).forEach(c=>S.role[c.id]='예비');S.manual=false}
-const roleOf=c=>S.role[c.id]||'제외';
-function checks(){
-  const main=S.drawn.filter(c=>roleOf(c)==='본'),res=S.drawn.filter(c=>roleOf(c)==='예비');
-  const badF=FIELDS.map((f,i)=>({f,n:main.filter(c=>c.field===f).length,w:S.by[i]})).filter(x=>x.n!==x.w);
-  const badC=[...main,...res].filter(c=>S.calls[c.id]!=='가능');
-  return {main,res,list:[
-   {ok:main.length===S.quota&&res.length===S.reserve,t:'인원',m:`본위원 ${main.length}/${S.quota}명 · 예비 ${res.length}/${S.reserve}명`},
-   {ok:!badF.length,t:'분야',m:badF.length?badF.map(x=>`${x.f} ${x.n}/${x.w}명`).join(' · '):'분야별 인원이 맞아요'},
-   {ok:!badC.length,t:'연락',m:badC.length?badC.map(c=>c.name).join(', ')+'은 통화 결과가 가능이 아니에요':'모두 통화 결과가 가능이에요'}]}}
-function stage4(){
-  const C=checks(),all=C.list.every(x=>x.ok);
-  if(S.locked){
-    $('#stage').innerHTML=`<div class="stg"><div class="lockbar"><span role="img" aria-label="잠김">🔒</span> 명단을 확정했어요 · ${S.confirmAt} · 이제 바꿀 수 없어요</div>
-    <div class="two-l"><section class="lstcard" aria-label="본위원"><h3 class="sec-h" style="margin:0">본위원 ${C.main.length}명</h3><ol>${FIELDS.flatMap(f=>C.main.filter(c=>c.field===f)).map(c=>`<li><span class="nm">${h(c.name)}</span><span class="badge">${c.field}</span><span class="muted">${h(c.org.replace('(가상)',''))}</span></li>`).join('')}</ol></section>
-    <section class="lstcard" aria-label="예비"><h3 class="sec-h" style="margin:0">예비 ${C.res.length}명</h3><ol>${C.res.map(c=>`<li><span class="nm">${h(c.name)}</span><span class="badge">${c.field}</span><span class="muted">${h(c.org.replace('(가상)',''))}</span></li>`).join('')}</ol></section></div></div>`;
-    $('#foot').innerHTML=`<span class="why">다음은 위원이 참석 여부를 답하는 단계예요.</span><a class="btn primary" href="../../PM-05-참석-위원장/시안/attendance.html">다음: 참석·위원장</a>`;return}
-  $('#stage').innerHTML=`<div class="stg" style="padding-bottom:0"><div class="fin"><div class="box call" style="margin-bottom:20px"><table><thead><tr><th>이름</th><th>분야</th><th>통화</th><th>구분</th></tr></thead><tbody>${S.drawn.map(c=>`<tr><td class="strong">${h(c.name)}</td><td>${h(c.field)}</td><td><span class="badge ${S.calls[c.id]==='가능'?'success':S.calls[c.id]?'danger':'warning'}">${S.calls[c.id]==='가능'?'✓ 가능':S.calls[c.id]==='불가'?'× 불가':S.calls[c.id]==='부재'?'… 부재':'아직 안 함'}</span></td><td><select class="cell" data-r="${c.id}" aria-label="${h(c.name)} 구분" style="width:130px">${['본','예비','제외'].map(x=>`<option value="${x}" ${roleOf(c)===x?'selected':''}>${x==='본'?'본위원':x}</option>`).join('')}</select></td></tr>`).join('')}</tbody></table></div>
-  <aside class="side2" aria-label="확정 전 점검"><h3 class="sec-h" style="margin:0">확정 전 점검</h3><ul class="chk">${C.list.map(x=>`<li class="${x.ok?'okc':'badc'}"><span class="ic" aria-hidden="true">${x.ok?'✓':'!'}</span><span><b>${x.t} ${x.ok?'맞음':'확인 필요'}</b><span class="${x.ok?'muted':''}">${h(x.m)}</span></span></li>`).join('')}</ul>
-  <button class="btn sm" type="button" id="re">통화 결과대로 자동으로 나누기</button></aside></div></div>`;
-  $$('select[data-r]').forEach(s=>s.onchange=()=>{S.role[s.dataset.r]=s.value;S.manual=true;fkey=`select[data-r="${s.dataset.r}"]`;const sc=$('.box.call').scrollTop;render();$('.box.call').scrollTop=sc});
-  $('#re').onclick=()=>{autoAssign();render();toast('통화 결과대로 다시 나눴어요')};
-  foot('명단 확정',all,all?'':'점검에서 막힌 곳을 고쳐 주세요',()=>confirmDlg({title:'명단을 확정할까요?',body:`본위원 ${C.main.length}명 · 예비 ${C.res.length}명. 확정하면 명단을 바꿀 수 없어요.`,ok:'확정하기',onOk:()=>{S.locked=true;S.confirmAt='2026-10-16 14:20';render();toast('명단을 확정했어요')}}))}
-
-/* 시안 보기: 상태 바로가기 */
-function setup(drawn){S=fresh();S.cands=POOL.map(p=>({...p,src:'풀'}));if(drawn){doDraw();S.drawn.forEach(c=>{const same=S.drawn.filter(x=>x.field===c.field),i=same.indexOf(c);S.calls[c.id]=i%4===3?'불가':i===5?'부재':'가능'})}}
-const PRE={start:['처음 상태',()=>{S=fresh()}],draw:['추첨 직전',()=>{setup(false);S.stage=2}],ready:['명단 확정 직전',()=>{setup(true);S.stage=4;autoAssign()}],locked:['확정한 뒤',()=>{setup(true);S.stage=4;autoAssign();S.locked=true;S.confirmAt='2026-10-16 14:20'}]};
+   body+=`<div class="note"><span>✓</span><span>분야별 3배수 ${S.cands.length}명을 뽑았어요 · 규칙 v1 · 같은 요청은 한 번만 실행돼요. 이제 규칙과 후보가 잠겨요.</span></div>
+   <div class="dgrid">${FIELDS.map((f,i)=>`<div class="dcard"><h3>${f} <span class="badge">${S.cands.filter(c=>c.f===i).length}명</span></h3><ul>${S.cands.filter(c=>c.f===i).map(c=>`<li>${h(c.name)} <span>…${c.l4}</span></li>`).join('')}</ul></div>`).join('')}</div>`}
+  body+='</div>';$('#stage').innerHTML=body;
+  $('#foot').innerHTML=S.drawn
+   ?`<span class="why">선정명단에는 연락에 필요한 정보만 들어가요. 다운로드는 기록돼요.</span><button class="btn" type="button" id="dl">선정명단 다운로드</button><button class="btn primary" type="button" id="nx">다음: 연락·초청</button>`
+   :`<span class="why">${bad?'부족한 분야가 있어요. 눌러 보면 이유가 나와요.':'버튼을 누르면 분야별 3배수를 무작위로 뽑아요.'}</span><button class="btn primary" type="button" id="draw">3배수 무작위 선정</button>`;
+  $('#draw')&&($('#draw').onclick=drawNow);$('#nx')&&($('#nx').onclick=()=>{S.stg=2;render()});
+  $('#dl')&&($('#dl').onclick=()=>{dl('선정명단_3배수.csv',[['이름','분야','휴대전화(가림)'],...S.cands.map(c=>[c.name,FIELDS[c.f],tel(c)])]);toast('선정명단을 내려받았어요')})}
+/* ③ 연락·초청 (ROS-01~04) */
+const STS=['미연락','수락','거절','부재'];
+function stg3(){
+  const L=S.cands.filter(c=>(!S.fst||c.st===S.fst)&&(S.ffd===''||c.f===+S.ffd));
+  const cnt=s=>S.cands.filter(c=>!c.ex&&c.st===s).length;
+  $('#stage').innerHTML=`<div class="stg" style="padding-bottom:8px">
+   <div class="cfg-row"><div class="chips" role="group" aria-label="연락 상태로 거르기" id="cst">${['전체',...STS].map((s,i)=>`<button class="chip" type="button" data-s="${i?s:''}" aria-pressed="${(S.fst||'')===(i?s:'')}">${s}${i?' '+cnt(s):''}</button>`).join('')}</div>
+    <label class="sr-only" for="ffd">분야</label><select id="ffd" style="max-width:180px"><option value="">모든 분야</option>${FIELDS.map((f,i)=>`<option value="${i}" ${String(S.ffd)===String(i)?'selected':''}>${f}</option>`).join('')}</select>
+    <span style="margin-left:auto;display:flex;gap:8px;align-items:center">${S.mode==='DIRECT'?'<button class="btn" type="button" id="addc">사업 후보 추가</button>':''}</span></div>
+   <div class="box call"><table><thead><tr><th>이름</th><th>분야</th><th>휴대전화</th><th>출처</th><th>통화 결과</th><th>메모</th><th style="width:96px"></th></tr></thead><tbody>${L.length?L.map(c=>c.ex?`<tr style="color:var(--text-3)"><td><s>${h(c.name)}</s></td><td>${FIELDS[c.f]}</td><td class="tnum">${tel(c)}</td><td><span class="badge">${c.src}</span></td><td colspan="2"><span class="badge danger">제외</span> ${h(c.ex)}</td><td></td></tr>`
+     :`<tr><td class="strong">${h(c.name)}</td><td>${FIELDS[c.f]}</td><td class="tnum">${tel(c)}</td><td><span class="badge ${c.src==='추첨'?'info':'primary'}">${c.src}</span></td>
+      <td><select class="cell" data-st="${c.id}" aria-label="${h(c.name)} 통화 결과">${STS.map(s=>`<option ${s===c.st?'selected':''}>${s}</option>`).join('')}</select></td>
+      <td><input class="cell" data-memo="${c.id}" value="${h(c.memo)}" placeholder="메모" aria-label="${h(c.name)} 메모" style="min-width:160px"></td><td><button class="btn sm text-danger" type="button" data-ex="${c.id}">제외</button></td></tr>`).join(''):'<tr><td colspan="7" class="muted" style="text-align:center;height:120px">맞는 후보가 없어요</td></tr>'}</tbody></table></div>
+   <p class="muted" style="font-size:var(--t-base)">전화는 직접 걸어요. 결과만 적어 두세요(자동 통화 없음).${S.mode==='DIRECT'?'':' 추첨 명단은 바꾸지 않고, 맞지 않으면 [제외]만 해요.'}</p></div>`;
+  $$('#cst .chip').forEach(b=>b.onclick=()=>{S.fst=b.dataset.s;render()});$('#ffd').onchange=e=>{S.ffd=e.target.value;render()};
+  $$('[data-st]').forEach(s=>s.onchange=()=>{S.cands.find(c=>c.id==s.dataset.st).st=s.value;toast('통화 결과를 저장했어요');render()});
+  $$('[data-memo]').forEach(s=>s.onchange=()=>{S.cands.find(c=>c.id==s.dataset.memo).memo=s.value;toast('메모를 저장했어요')});
+  $$('[data-ex]').forEach(b=>b.onclick=()=>exclude(+b.dataset.ex));
+  $('#addc')&&($('#addc').onclick=addCand);
+  const acc=cnt('수락');
+  $('#foot').innerHTML=`<span class="why">수락 <b>${acc}명</b> · 거절 ${cnt('거절')} · 부재 ${cnt('부재')} · 미연락 ${cnt('미연락')} (본위원 ${S.cap}명 + 예비가 필요해요)</span><button class="btn primary" type="button" id="nx" ${acc?'':'disabled'}>다음: 명단 확정</button>`;
+  $('#nx').onclick=()=>{S.stg=3;render()}}
+function exclude(id){const c=S.cands.find(x=>x.id===id);$('#p-t').textContent=c.name+' 후보 제외';
+  $('#p-body').innerHTML=`<div class="fgrid2"><label class="field">사유<select id="xr"><option>연락처 오류</option><option>본인 사양</option><option>이해관계 있음</option><option>기타</option></select></label><label class="field">자세한 내용 (선택)<input id="xm" placeholder="예: 3회 연락했으나 닿지 않음"></label></div><div class="note" style="margin-top:16px"><span>i</span><span>제외해도 과거 추첨 기록은 지워지지 않아요.</span></div>`;
+  $('#p-foot').innerHTML='<button class="btn" type="button" data-close>취소</button><button class="btn danger" type="button" id="xo">제외하기</button>';
+  $$('#p-foot [data-close]').forEach(b=>b.onclick=()=>closeLayer($('#p')));
+  $('#xo').onclick=()=>{c.ex=$('#xr').value+($('#xm').value?' · '+$('#xm').value:'');closeLayer($('#p'));render();toast('후보에서 제외했어요')};openLayer($('#p'),'#xr')}
+function addCand(){$('#p-t').textContent='사업 후보 추가';const have=n=>S.cands.some(c=>c.name===n);
+  $('#p-body').innerHTML=`<p class="muted" style="margin-bottom:12px">‘위원 풀 · 이 사업 직접 등록’에 넣어 둔 사람이에요.</p><div class="box"><table><tbody>${DIRPOOL.map((r,i)=>`<tr><td class="strong">${r[0]}</td><td>${FIELDS[r[1]]}</td><td class="tnum">010-****-${r[2]}</td><td style="text-align:right">${have(r[0])?'<span class="badge success">✓ 추가됨</span>':`<button class="btn sm" type="button" data-a="${i}">추가</button>`}</td></tr>`).join('')}</tbody></table></div>`;
+  $('#p-foot').innerHTML='<button class="btn" type="button" id="xc">닫기</button>';$('#xc').onclick=()=>{closeLayer($('#p'));render()};
+  $$('[data-a]').forEach(b=>b.onclick=()=>{const r=DIRPOOL[+b.dataset.a];S.cands.push(mkC([r[0],r[1],r[2],'미연락'],S.nid++,'직접'));toast(r[0]+' 후보를 추가했어요');addCand()});
+  if(!stack.some(l=>l.el===$('#p')))openLayer($('#p'),'#xc')}
+/* ④ 명단 확정 (ROS-05, ROS-06) */
+function conflicts(){const ch=S.cands.filter(c=>S.pick[c.id]);const m={};ch.forEach(c=>{(m[c.name+c.l4]=m[c.name+c.l4]||[]).push(c)});return Object.values(m).filter(a=>a.length>1)}
+function stg4(){
+  const acc=S.cands.filter(c=>!c.ex&&c.st==='수락');
+  if(S.rost!=='none'){return rosterDone()}
+  const bon=acc.filter(c=>S.pick[c.id]==='본'),res=acc.filter(c=>S.pick[c.id]==='예비');
+  const fq=FIELDS.map((f,i)=>bon.filter(c=>c.f===i).length);
+  const cf=conflicts(),ords=res.map(c=>S.ord[c.id]||0),dupo=new Set(ords).size!==ords.length||ords.includes(0);
+  const C=[{ok:bon.length===S.cap,t:'본위원 수',s:`${bon.length} / ${S.cap}명`},{ok:FIELDS.every((f,i)=>fq[i]===S.q[i]),t:'분야별 인원',s:FIELDS.map((f,i)=>`${f} ${fq[i]}/${S.q[i]}`).join(' · ')},{ok:!dupo,t:'예비 순서',s:res.length?(dupo?'순서를 1부터 겹치지 않게 정해 주세요':`예비 ${res.length}명 · 순서 확인`):'예비 없음'},{ok:!cf.length,t:'로그인 겹침',s:cf.length?'같은 이름·뒤4자리가 있어요':'겹치는 사람 없음'}];
+  const ok=C.every(x=>x.ok);
+  $('#stage').innerHTML=`<div class="stg"><div class="fin" style="grid-template-columns:1fr 330px">
+   <div class="src"><div class="box"><table><thead><tr><th>이름</th><th>분야</th><th>휴대전화</th><th>지정</th><th>예비 순서</th></tr></thead><tbody>${acc.map(c=>{const bad=cf.some(a=>a.includes(c));return `<tr ${bad?'style="background:var(--danger-5)"':''}><td class="strong">${h(c.name)} ${bad?'<span class="badge danger">! 겹침</span>':''}</td><td>${FIELDS[c.f]}</td><td class="tnum">${tel(c)}</td>
+     <td><select class="cell" data-pk="${c.id}" aria-label="${h(c.name)} 지정"><option value="">고르지 않음</option><option ${S.pick[c.id]==='본'?'selected':''} value="본">본위원</option><option ${S.pick[c.id]==='예비'?'selected':''} value="예비">예비위원</option></select></td>
+     <td>${S.pick[c.id]==='예비'?`<select class="cell" data-od="${c.id}" aria-label="${h(c.name)} 예비 순서"><option value="0">순서</option>${[1,2,3,4].map(n=>`<option ${S.ord[c.id]===n?'selected':''}>${n}</option>`).join('')}</select>`:'<span class="muted">—</span>'}</td></tr>`}).join('')}</tbody></table></div></div>
+   <div class="side2"><strong>확정 전 점검</strong><ul class="chk">${C.map(x=>`<li class="${x.ok?'okc':'badc'}"><span class="ic">${x.ok?'✓':'!'}</span><span><b>${x.t}</b><span class="muted">${x.s}</span></span></li>`).join('')}</ul>
+   ${cf.length?`<div class="note bad" role="alert"><span>!</span><span><b>같은 이름·뒤4자리 위원이 있어 로그인이 겹쳐요</b><br>${cf.map(a=>a[0].name+' (…'+a[0].l4+') '+a.length+'명: '+a.map(c=>FIELDS[c.f]).join('·')).join('<br>')}<br>한 명만 고르거나 다른 후보로 바꿔 주세요.</span></div>`:''}</div></div></div>`;
+  $$('[data-pk]').forEach(s=>s.onchange=()=>{S.pick[s.dataset.pk]=s.value;if(s.value!=='예비')delete S.ord[s.dataset.pk];render()});
+  $$('[data-od]').forEach(s=>s.onchange=()=>{S.ord[s.dataset.od]=+s.value;render()});
+  $('#foot').innerHTML=`<span class="why">수락한 ${acc.length}명 가운데 본위원 ${S.cap}명과 예비위원을 골라 주세요.</span><button class="btn primary" type="button" id="cf" ${ok?'':'disabled'}>본위원·예비위원 명단 확정</button>`;
+  $('#cf').onclick=()=>confirmDlg({title:'본위원 '+bon.length+'명, 예비 '+res.length+'명으로 확정할까요?',body:'확정하면 평가 쪽으로 명단을 보내요. 받았다는 확인이 오기 전까지 위원 로그인은 준비 중이에요.',ok:'확정하기',onOk:()=>{S.rost='sent';render();toast('명단을 확정했어요')}})}
+function rosterDone(){
+  const acc=S.cands.filter(c=>S.pick[c.id]),bon=acc.filter(c=>S.pick[c.id]==='본'),res=acc.filter(c=>S.pick[c.id]==='예비').sort((a,b)=>S.ord[a.id]-S.ord[b.id]);
+  const rd=S.rost==='ready';
+  $('#stage').innerHTML=`<div class="stg"><div class="note ${rd?'':'warn'}"><span>${rd?'✓':'…'}</span><span><b>${rd?'준비 완료 · 위원이 이름과 전화 뒤 4자리로 들어올 수 있어요':'평가 쪽 수신 확인 전 · 위원 로그인 준비 중'}</b><br><span class="muted">${rd?'평가 쪽에서 명단을 받았다고 확인했어요.':'평가 쪽이 명단을 받으면 자동으로 바뀌어요. 이 단계에서는 위원이 아직 들어올 수 없어요.'}</span></span>${rd?'':'<button class="btn sm" type="button" id="rf" style="margin-left:auto">상태 새로고침</button>'}</div>
+   <div class="two-l"><div class="lstcard"><h3>초청 확정 목록 <span class="badge success">본위원 ${bon.length}</span> <span class="badge">예비 ${res.length}</span></h3><ol>${bon.map(c=>`<li><span class="nm">${h(c.name)}</span><span class="muted">${FIELDS[c.f]} · …${c.l4}</span><span class="badge info" style="margin-left:auto">본위원</span></li>`).join('')}${res.map(c=>`<li><span class="nm">${h(c.name)}</span><span class="muted">${FIELDS[c.f]} · …${c.l4}</span><span class="badge" style="margin-left:auto">예비 ${S.ord[c.id]}</span></li>`).join('')}</ol></div>
+   <div class="lstcard"><h3>후보 3배수 목록 <span class="badge">${S.cands.length}명</span></h3><p class="muted">초청 확정 목록과 따로 보관돼요. 수락 ${S.cands.filter(c=>!c.ex&&c.st==='수락').length} · 거절 ${S.cands.filter(c=>c.st==='거절').length} · 부재 ${S.cands.filter(c=>c.st==='부재').length} · 미연락 ${S.cands.filter(c=>c.st==='미연락'&&!c.ex).length} · 제외 ${S.cands.filter(c=>c.ex).length}</p><ol style="max-height:300px;overflow:auto">${S.cands.map(c=>`<li><span class="nm">${h(c.name)}</span><span class="muted">${FIELDS[c.f]}</span><span class="badge ${c.st==='수락'?'success':''}" style="margin-left:auto">${c.ex?'제외':c.st}</span></li>`).join('')}</ol></div></div></div>`;
+  $('#rf')&&($('#rf').onclick=()=>{S.rost='ready';render();toast('위원 로그인 준비가 끝났어요')});
+  $('#foot').innerHTML=`<span class="why">${rd?'다음 단계에서 위원의 참석 확인을 기다려요.':'명단은 확정됐어요. 수신 확인을 기다리는 중이에요.'}</span><button class="btn" type="button" id="dlr">확정명단 다운로드</button>${rd?'<a class="btn primary" href="../../PM-05-참석-위원장/시안/attendance.html">다음: 참석·위원장</a>':''}`;
+  $('#dlr').onclick=()=>{dl('확정명단.csv',[['구분','이름','분야','휴대전화(가림)','예비 순서'],...bon.map(c=>['본위원',c.name,FIELDS[c.f],tel(c),'']),...res.map(c=>['예비위원',c.name,FIELDS[c.f],tel(c),S.ord[c.id]]),[],['[후보 3배수 목록]'],...S.cands.map(c=>[c.src,c.name,FIELDS[c.f],tel(c),c.ex?'제외':c.st])]);toast('확정명단을 내려받았어요. 후보 목록과 초청 확정 목록은 따로 담겨요')}}
+/* 시안 보기 */
+const drawn=()=>RAW.map((r,i)=>mkC(r,i,'추첨'));
+const PRE={
+ rules:['① 규칙',()=>({})],
+ dir:['① 직접 선정',()=>({mode:'DIRECT',saved:true})],
+ pre:['② 선정 전',()=>({saved:true,stg:1})],
+ short:['② 부족 → 중단',()=>({saved:true,stg:1,pool:'short',err:true})],
+ draw:['② 선정 완료',()=>({saved:true,stg:1,drawn:true,cands:RAW.map((r,i)=>mkC([r[0],r[1],r[2],'미연락'],i,'추첨'))})],
+ call:['③ 연락',()=>{const c=drawn();c[2].ex='본인 사양';return {saved:true,stg:2,drawn:true,cands:c}}],
+ dcall:['③ 직접 후보',()=>({mode:'DIRECT',saved:true,stg:2,cands:[mkC(['조현우',0,'0201','수락'],0,'직접'),mkC(['백승아',1,'0202','미연락'],1,'직접')],nid:10})],
+ ros:['④ 겹침 막힘',()=>{const c=drawn();return {saved:true,stg:3,drawn:true,cands:c,pick:{0:'본',1:'본',6:'본',11:'본',12:'본',13:'본',19:'본',7:'예비',15:'예비'},ord:{7:1,15:2}}}],
+ sent:['④ 수신 확인 전',()=>{const c=drawn();return {saved:true,stg:3,drawn:true,cands:c,pick:{0:'본',1:'본',6:'본',11:'본',12:'본',13:'본',18:'본',7:'예비',15:'예비'},ord:{7:1,15:2},rost:'sent'}}],
+ ready:['④ 준비 완료',()=>{const c=drawn();return {saved:true,stg:3,drawn:true,cands:c,pick:{0:'본',1:'본',6:'본',11:'본',12:'본',13:'본',18:'본',7:'예비',15:'예비'},ord:{7:1,15:2},rost:'ready'}}]};
 $('#presets').innerHTML=Object.entries(PRE).map(([k,v],i)=>`<button type="button" data-pre="${k}" aria-pressed="${i===0}">${v[0]}</button>`).join('');
-$$('[data-pre]').forEach(b=>b.onclick=()=>{PRE[b.dataset.pre][1]();$$('[data-pre]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
-render();
-
+$$('[data-pre]').forEach(b=>b.onclick=()=>{S=Object.assign(base(),PRE[b.dataset.pre][1]());$$('[data-pre]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
+const hs=location.hash.slice(1);if(PRE[hs])$$('[data-pre]').find(b=>b.dataset.pre===hs).click();else render();
 </script>
 </body>
 </html>

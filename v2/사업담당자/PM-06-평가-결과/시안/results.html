@@ -52,6 +52,9 @@ td.sc s{color:var(--text-3);text-decoration:line-through}
 td.sc small{display:block;font-size:14px;color:var(--text-3);line-height:1.2}
 th.sc{text-align:center}
 .legend{padding:12px 20px;color:var(--text-3);font-size:var(--t-base);border-top:1px solid var(--line);flex:none}
+.wm{position:relative;overflow:hidden}
+.wm .wmk{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;font-size:120px;font-weight:700;letter-spacing:.1em;color:rgba(160,0,0,.10);transform:rotate(-18deg);user-select:none}
+.facts .hint,.pj-act .hint{color:var(--text-3);font-size:var(--t-base)}
 @media print{.tabs,.demo{display:none!important}}
 
 </style>
@@ -84,7 +87,7 @@ th.sc{text-align:center}
   </div>
   <div class="demo"><b>시안 보기</b>
     <span class="grp" id="presets"></span>
-    <span class="muted">(가상 데이터) 위원 이름은 보이지 않고 위원 1, 2…로만 나와요</span></div>
+    <span class="muted">(가상 데이터) 전원 제출 전에는 개별 점수가 보이지 않아요 · 위원은 위원 1, 2…로만 나와요</span></div>
 
 </div>
 </div>
@@ -104,90 +107,38 @@ th.sc{text-align:center}
 <script src="../../_ui.js"></script>
 <script>
 /* 가상 데이터 */
-const FIELDS=['시스템 구축','정보보안','데이터·AI','사업관리'];
-const POOL=[
- [1,'(가상)한빛대학교','컴퓨터공학과','한도윤','교수',0,'doyun.han@example.com','010-0000-3001',3],
- [2,'(가상)한빛대학교','정보보호학과','이서연','부교수',1,'seoyeon.lee@example.com','010-0000-3002',2],
- [3,'(가상)누리연구원','AI연구실','박지호','책임연구원',2,'jiho.park@example.com','010-0000-3003',4],
- [4,'(가상)새솔대학교','경영학과','최유나','교수',3,'yuna.choi@example.com','010-0000-3004',1],
- [5,'(가상)푸른대학교','소프트웨어학과','정민재','교수',0,'minjae.jung@example.com','010-0000-3005',5],
- [6,'(가상)다온연구원','보안연구실','강예린','선임연구원',1,'yerin.kang@example.com','010-0000-3006',2],
- [7,'(가상)한빛대학교','데이터사이언스과','윤태오','조교수',2,'taeo.yoon@example.com','010-0000-3007',0],
- [8,'(가상)새솔대학교','산업공학과','장하은','교수',3,'haeun.jang@example.com','010-0000-3008',3],
- [9,'(가상)푸른대학교','컴퓨터공학과','임건우','교수',0,'gunwoo.lim@example.com','010-0000-3009',1],
- [10,'(가상)누리연구원','클라우드센터','오수아','책임연구원',0,'sua.oh@example.com','010-0000-3010',2],
- [11,'(가상)다온연구원','정보보호팀','신주원','수석연구원',1,'juwon.shin@example.com','010-0000-3011',6],
- [12,'(가상)한빛대학교','통계학과','배도하','교수',2,'doha.bae@example.com','010-0000-3012',1],
- [13,'(가상)새솔대학교','행정학과','조은서','부교수',3,'eunseo.cho@example.com','010-0000-3013',2],
- [14,'(가상)푸른대학교','정보보호학과','문시현','교수',1,'sihyun.moon@example.com','010-0000-3014',0],
- [15,'(가상)누리연구원','빅데이터팀','양지안','선임연구원',2,'jian.yang@example.com','010-0000-3015',3],
- [16,'(가상)다온연구원','SW공학팀','홍라온','책임연구원',0,'raon.hong@example.com','010-0000-3016',1],
- [17,'(가상)새솔대학교','공공정책대학원','서이준','교수',3,'ijun.seo@example.com','010-0000-3017',4],
- [18,'(가상)푸른대학교','시스템공학과','노아린','조교수',0,'arin.no@example.com','010-0000-3018',0]
-].map(r=>({id:r[0],org:r[1],dept:r[2],name:r[3],pos:r[4],field:FIELDS[r[5]],email:r[6],tel:r[7],n:r[8]}));
-const XLS=[
- ['(가상)한빛대학교','컴퓨터공학과','권도현','교수','시스템 구축','dohyun.kwon@example.com','010-0000-3101'],
- ['(가상)누리연구원','AI연구실','서하린','책임연구원','데이터·AI','harin.seo@example.com','010-0000-3102'],
- ['(가상)한빛대학교','컴퓨터공학과','한도윤','교수','시스템 구축','doyun.han@example.com','010-0000-3001'],
- ['(가상)새솔대학교','경영학과','문지후','교수','사업관리','jihu.moon.example.com','010-0000-3104'],
- ['(가상)푸른대학교','소프트웨어학과','배서윤','부교수','정보보안','seoyun.bae@example.com',''],
- ['(가상)다온연구원','보안연구실','류시우','선임연구원','정보보안','siwoo.ryu@example.com','010-0000-3106']
-];
-function checkRow(r,have){
-  if(!r[2]||!r[0])return {k:'err',m:'기관·이름이 비었어요'};
-  if(!FIELDS.includes(r[4]))return {k:'err',m:'분야를 확인해 주세요'};
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(r[5]))return {k:'err',m:'이메일 형식이 아니에요'};
-  if(!/^010-\d{4}-\d{4}$/.test(r[6]))return {k:'err',m:'전화번호가 없거나 형식이 달라요'};
-  if(have(r[5]))return {k:'dup',m:'이미 있는 사람이에요'};
-  return {k:'ok',m:'넣을 수 있어요'}}
-function downloadTemplate(){const head=['기관','부서','이름','직책','분야('+FIELDS.join('/')+')','이메일','전화(010-0000-0000)'];
-  const csv='﻿'+head.join(',')+'\n'+XLS[0].join(',')+'\n';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='위원_올리기_양식.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);toast('양식을 내려받았어요')}
-/* 엑셀 올리기: box 안에 그리고, 정상 행만 onAdd로 넘긴다 */
-function excelBox(box,have,onAdd,primary=true){
-  box.innerHTML=`<div class="xl-top"><button class="btn" type="button" data-xl="tpl">양식 내려받기</button><label class="btn" tabindex="0" data-xl="pick">파일 고르기<input type="file" class="sr-only" accept=".xlsx,.xls,.csv" tabindex="-1"></label><button class="btn" type="button" data-xl="demo">예시 파일로 미리보기</button></div>
-  <div class="xl-prev"></div>`;
-  const prev=$('.xl-prev',box);
-  function show(name){const R=XLS.map(r=>({r,c:checkRow(r,have)}));const ok=R.filter(x=>x.c.k==='ok'),er=R.filter(x=>x.c.k==='err').length,du=R.filter(x=>x.c.k==='dup').length;
-    prev.innerHTML=`<div class="xl-sum"><b>${h(name)}</b><span class="badge success">✓ 정상 ${ok.length}</span><span class="badge danger">! 오류 ${er}</span><span class="badge warning">= 중복 ${du}</span></div>
-    <div class="xl-tbl"><table><thead><tr><th>줄</th><th>이름</th><th>분야</th><th>전화</th><th>확인 결과</th></tr></thead><tbody>${R.map((x,i)=>`<tr class="r-${x.c.k}"><td class="tnum">${i+2}</td><td class="strong">${h(x.r[2]||'(빈칸)')}</td><td>${h(x.r[4])}</td><td class="tnum">${h(x.r[6]||'(빈칸)')}</td><td><span class="badge ${x.c.k==='ok'?'success':x.c.k==='dup'?'warning':'danger'}">${x.c.k==='ok'?'✓ 정상':x.c.k==='dup'?'= 중복':'! 오류'}</span> <span class="muted">${x.c.k==='ok'?'':x.c.m}</span></td></tr>`).join('')}</tbody></table></div>
-    <div class="xl-act"><span class="muted">오류·중복 줄은 빼고 정상인 ${ok.length}명만 넣어요.</span><button class="btn${primary?' primary':''}" type="button" id="xl-go" ${ok.length?'':'disabled'}>정상 ${ok.length}명 넣기</button></div>`;
-    $('#xl-go',prev).onclick=()=>{onAdd(ok.map(x=>x.r));prev.innerHTML='<div class="note" style="margin-top:16px"><span>✓</span><span>'+ok.length+'명을 넣었어요. 오류·중복 '+(er+du)+'줄은 넣지 않았어요.</span></div>'}}
-  $('[data-xl=tpl]',box).onclick=downloadTemplate;
-  $('[data-xl=demo]',box).onclick=()=>show('예시_위원목록.xlsx');
-  const inp=$('input[type=file]',box);inp.onchange=()=>{if(inp.files[0])show(inp.files[0].name)};
-  $('[data-xl=pick]',box).addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}});
-  return {show}}
-
 const CO=[['(가상) 가나다시스템',[88,92,85,90,94,79,91]],['(가상) 라마바소프트',[84,87,90,82,86,88,95]],['(가상) 사아자테크',[78,85,80,88,76,83,81]]];
-const N=7,SUB=5;let open=false,tab=0;
+const N=7;let st='before',SUB=5,tab=0,dlLog=[];   /* before: 제출 중 · preview: 전원 제출, 위원장 확정 전 · final: 위원장 최종 제출 */
 function calc(){return CO.map(([name,s])=>{const mx=Math.max(...s),mn=Math.min(...s);const imx=s.indexOf(mx),imn=s.indexOf(mn);
   const keep=s.filter((v,i)=>i!==imx&&i!==imn);return {name,s,imx,imn,avg:keep.reduce((a,b)=>a+b,0)/keep.length}}).sort((a,b)=>b.avg-a.avg)}
 const f1=x=>x.toFixed(1);
-function csv(){const R=calc();const rows=[['순위','업체','최종 점수(최고·최저 제외 평균)',...Array.from({length:N},(_,i)=>'위원 '+(i+1))],...R.map((r,i)=>[i+1,r.name,f1(r.avg),...r.s])];
-  const t='﻿'+rows.map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='평가결과.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);toast('결과를 내려받았어요')}
+function report(){const R=calc();const rows=[['순위','업체','최종 점수(최고·최저 제외 평균)',...Array.from({length:N},(_,i)=>'위원 '+(i+1))],...R.map((r,i)=>[i+1,r.name,f1(r.avg),...r.s])];
+  const t='﻿'+rows.map(r=>r.join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='평가결과_보고서.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);
+  dlLog.push('2026-10-28 17:05');render();toast('다운로드했어요. 누가 언제 받았는지 기록돼요')}
 function render(){
+  const fin=st==='final';
   renderSteps($('#steps'),['done','done','done','done','done','current']);
-  $('#pst').className='badge '+(open?'success':'primary');$('#pst').textContent=open?'✓ 완료':'● 평가 중';
-  $('#acts').innerHTML=open?'<button class="btn" type="button" id="prt">인쇄</button><button class="btn primary" type="button" id="dl">내려받기</button>':'';
+  $('#pst').className='badge '+(fin?'success':'primary');$('#pst').textContent=fin?'✓ 완료':'● 평가 중';
+  $('#acts').innerHTML=`<span class="hint">${fin?'다운로드는 기록돼요':st==='preview'?'확정 전에는 내려받을 수 없어요':''}</span><button class="btn primary" type="button" id="dl" ${fin?'':'disabled'}>결과 보고서 다운로드</button>`;
   const card=$('#card');
-  if(!open){
-    card.innerHTML=`<div class="lockc"><div class="ico" aria-hidden="true">🔒</div><strong>위원장이 확인하면 열려요</strong><p class="muted">점수 제출 <b class="tnum" style="color:var(--text-1)">${SUB}/${N}</b>명 · 위원장 확인 전</p>
+  if(st==='before'){
+    card.innerHTML=`<div class="lockc"><div class="ico" aria-hidden="true">🔒</div><strong>모든 위원이 제출하면 열려요</strong><p class="muted">점수 제출 <b class="tnum" style="color:var(--text-1)">${SUB}/${N}</b>명</p>
     <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="${N}" aria-valuenow="${SUB}" aria-label="점수 제출 ${SUB}/${N}"><i style="width:${SUB/N*100}%"></i></div>
-    <p class="muted">모든 위원이 점수를 내고 위원장이 확인해 제출하면 순위가 나타나요.</p></div>`;return}
+    <p class="muted">사업담당자(관리자)에게는 위원별 점수가 공개되지 않아요. 제출한 사람 수만 보여요.</p></div>`;return}
   const R=calc();
-  card.innerHTML=`<div class="facts"><span class="badge success">✓ 위원장 확인 2026-10-28 16:42</span><span class="formula">업체 점수 = 위원 ${N}명 점수에서 가장 높은 점수와 가장 낮은 점수를 뺀 ${N-2}명의 평균</span></div>
-  <div class="tabs" role="tablist"><button class="tab" role="tab" id="t0" aria-selected="${tab===0}" type="button">업체 순위</button><button class="tab" role="tab" id="t1" aria-selected="${tab===1}" type="button">위원별 점수</button></div>
-  <div class="tbl-wrap" role="tabpanel" aria-labelledby="t${tab}">${tab===0
-   ?`<table class="rk"><thead><tr><th>순위</th><th>업체</th><th>점수 (100점 만점)</th></tr></thead><tbody>${R.map((r,i)=>`<tr><td class="no ${i?'':'first'} tnum">${i+1}위</td><td class="strong">${r.name}</td><td><div class="bar"><i class="${i?'':'top'}" style="width:${r.avg*3.2}px"></i><b class="tnum">${f1(r.avg)}</b>${i?'':'<span class="badge primary">최고 점수</span>'}</div></td></tr>`).join('')}</tbody></table>`
-   :`<table><thead><tr><th>업체</th>${Array.from({length:N},(_,i)=>`<th class="sc">위원 ${i+1}</th>`).join('')}<th class="num">최종</th></tr></thead><tbody>${R.map(r=>`<tr><td class="strong">${r.name}</td>${r.s.map((v,i)=>`<td class="sc tnum">${i===r.imx?`<s>${v}</s><small>최고 · 제외</small>`:i===r.imn?`<s>${v}</s><small>최저 · 제외</small>`:v}</td>`).join('')}<td class="num strong tnum">${f1(r.avg)}</td></tr>`).join('')}</tbody></table>`}</div>
-  ${tab===1?'<p class="legend">취소선 점수는 평균에서 뺀 점수예요. 위원 번호는 이름과 이어지지 않아요.</p>':''}`;
-  $('#t0').onclick=()=>{tab=0;render();$('#t0').focus()};$('#t1').onclick=()=>{tab=1;render();$('#t1').focus()};
-  $('#prt').onclick=()=>window.print();$('#dl').onclick=csv}
-const PRE={before:['위원장 확인 전',()=>{open=false}],after:['위원장 확인 후',()=>{open=true}]};
+  card.innerHTML=`<div class="facts">${fin?'<span class="badge success">✓ 위원장 최종 제출 2026-10-28 16:42</span>':'<span class="badge warning">미확정</span><span class="badge success">✓ 제출 7/7</span><span class="muted">위원장이 서명하고 최종 제출하면 확정돼요</span>'}<span class="formula">업체 점수 = 위원 ${N}명 점수에서 가장 높은 점수와 가장 낮은 점수를 뺀 ${N-2}명의 평균</span></div>
+  ${fin?`<div class="tabs" role="tablist"><button class="tab" role="tab" id="t0" aria-selected="${tab===0}" type="button">업체 순위</button><button class="tab" role="tab" id="t1" aria-selected="${tab===1}" type="button">위원별 점수</button></div>`:''}
+  <div class="tbl-wrap wm ${fin?'':'on'}" role="tabpanel">${fin&&tab===1
+   ?`<table><thead><tr><th>업체</th>${Array.from({length:N},(_,i)=>`<th class="sc">위원 ${i+1}</th>`).join('')}<th class="num">최종</th></tr></thead><tbody>${R.map(r=>`<tr><td class="strong">${r.name}</td>${r.s.map((v,i)=>`<td class="sc tnum">${i===r.imx?`<s>${v}</s><small>최고 · 제외</small>`:i===r.imn?`<s>${v}</s><small>최저 · 제외</small>`:v}</td>`).join('')}<td class="num strong tnum">${f1(r.avg)}</td></tr>`).join('')}</tbody></table>`
+   :`<table class="rk"><thead><tr><th>순위</th><th>업체</th><th>점수 (100점 만점)</th></tr></thead><tbody>${R.map((r,i)=>`<tr><td class="no ${i?'':'first'} tnum">${i+1}위</td><td class="strong">${r.name}</td><td><div class="bar"><i class="${i?'':'top'}" style="width:${r.avg*3.2}px"></i><b class="tnum">${f1(r.avg)}</b>${i?'':'<span class="badge primary">'+(fin?'최고 점수':'잠정 1위')+'</span>'}</div></td></tr>`).join('')}</tbody></table>`}
+   ${fin?'':'<div class="wmk" aria-hidden="true">미확정</div>'}</div>
+  <p class="legend">${fin?(tab===1?'취소선 점수는 평균에서 뺀 점수예요. 위원 번호는 이름과 이어지지 않아요. ':'')+'결과 보고서를 내려받으면 누가 언제 받았는지 기록돼요'+(dlLog.length?' · 마지막 다운로드 '+dlLog[dlLog.length-1]:'')+'.':'미확정 미리보기예요. 보고서는 확정 뒤에만 내려받을 수 있어요.'}</p>`;
+  if(fin){$('#t0').onclick=()=>{tab=0;render();$('#t0').focus()};$('#t1').onclick=()=>{tab=1;render();$('#t1').focus()}}
+  $('#dl').onclick=report}
+const PRE={before:['전원 제출 전 (5/7)',()=>{st='before'}],preview:['전원 제출 · 확정 전',()=>{st='preview'}],after:['위원장 최종 제출 후',()=>{st='final'}]};
 $('#presets').innerHTML=Object.entries(PRE).map(([k,v],i)=>`<button type="button" data-pre="${k}" aria-pressed="${i===0}">${v[0]}</button>`).join('');
 $$('[data-pre]').forEach(b=>b.onclick=()=>{PRE[b.dataset.pre][1]();$$('[data-pre]').forEach(x=>x.setAttribute('aria-pressed',x===b));render()});
-render();
-
+const hs=location.hash.slice(1);if(PRE[hs])$$('[data-pre]').find(b=>b.dataset.pre===hs).click();else render();
 </script>
 </body>
 </html>

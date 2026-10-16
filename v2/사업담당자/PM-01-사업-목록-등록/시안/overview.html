@@ -24,6 +24,11 @@
 .sync .btn{min-height:36px;padding:0 12px;font-size:var(--t-base);margin-left:auto}
 .form{display:flex;flex-direction:column;gap:18px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+textarea{width:100%;min-height:88px;padding:10px 14px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:var(--t-body);resize:vertical}
+textarea:focus{outline:none;border-color:var(--primary-50);box-shadow:var(--focus)}
+input:disabled{cursor:not-allowed}
+.top .acts{display:flex;gap:8px}
+.why{color:var(--text-3);font-size:var(--t-base);margin-top:8px}
 </style>
 </head>
 <body>
@@ -37,7 +42,7 @@
   </nav>
   <div class="bottom">
     <a href="#" data-account>내 계정</a>
-    <a href="../../PM-00-로그인/시안/login.html">로그아웃</a>
+    <a href="../../PM-00-로그인/시안/login.html#logout">로그아웃</a>
   </div>
 </aside>
 <div class="main">
@@ -52,7 +57,8 @@
   <div class="body">
     <div class="cols">
       <section class="card panel" aria-label="사업 정보">
-        <div class="top"><h2>사업 정보</h2><button class="btn" type="button" id="b-edit">수정</button></div>
+        <div class="top"><h2>사업 정보</h2><div class="acts"><button class="btn text-danger" type="button" id="b-del">삭제</button><button class="btn" type="button" id="b-edit">수정</button></div></div>
+        <div class="note warn" id="lockn" hidden>평가가 시작돼 사업 식별·평가조건은 바꿀 수 없어요. 삭제도 할 수 없어요.</div>
         <dl class="kv" id="info"></dl>
       </section>
       <section class="card panel" aria-label="한눈에 보기">
@@ -78,18 +84,27 @@
 <aside class="drawer" id="p" role="dialog" aria-modal="true" aria-labelledby="p-t">
   <header><h2 id="p-t">사업 정보 수정</h2><button class="x" type="button" data-close aria-label="닫기">×</button></header>
   <form class="dbody form" id="f-edit" novalidate>
+    <div class="note warn" id="e-lock" hidden>평가가 시작돼 바꿀 수 없어요 (사업 식별·평가조건). 담당 정보만 고칠 수 있어요.</div>
     <label class="field">사업명<input id="e-name" aria-describedby="e-name-e"><span class="err" id="e-name-e" hidden></span></label>
     <div class="two">
-      <label class="field">담당자 이름<input id="e-owner"></label>
-      <label class="field">직급<input id="e-pos"></label>
+      <label class="field">소속<input id="e-org"></label>
+      <label class="field">부서<input id="e-dept" disabled></label>
     </div>
-    <label class="field">소속<input id="e-org"></label>
+    <div class="two">
+      <label class="field">직책/직급<input id="e-pos"></label>
+      <label class="field">성명<input id="e-owner"></label>
+    </div>
     <label class="field">전화<input id="e-tel" type="tel"></label>
     <label class="field"><span>이메일 <span class="hint">(선택)</span></span><input id="e-mail" type="email"></label>
-    <label class="field">평가일<input id="e-date" type="date"></label>
+    <label class="field">평가일 <span class="hint">평가조건</span><input id="e-date" type="date"></label>
   </form>
   <footer><button class="btn" type="button" data-close>취소</button><button class="btn primary" type="submit" form="f-edit">저장</button></footer>
 </aside>
+<div class="dlg" id="dlg" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t" aria-describedby="dlg-b">
+  <h2 id="dlg-t">사업을 삭제할까요?</h2><p id="dlg-b">목록에서만 빠지고 기록은 남아요. 서명 자료는 보존돼요.</p>
+  <label class="field">삭제 사유<textarea id="d-why" aria-describedby="d-why-e" placeholder="예: 사업이 취소돼서"></textarea><span class="err" id="d-why-e" hidden></span></label>
+  <div class="acts"><button class="btn" type="button" id="dlg-cancel" data-close>취소</button><button class="btn danger" type="button" id="dlg-ok">삭제</button></div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="../../_ui.js"></script>
 <script>
@@ -98,18 +113,23 @@ const ALL={
  3:{name:'(가상) 시민 앱 고도화 용역',owner:'박다상',pos:'팀장',tel:'010-0000-2103',mail:'',date:'2026-10-20'},
 };
 const id=+(new URLSearchParams(location.search).get('id')||1);
-const D=Object.assign({org:'(가상) 정보화담당관'},ALL[id]||{name:'(가상) 사업',owner:'이나상',pos:'주무관',tel:'010-0000-2199',mail:'',date:''});
+const STARTED={3:'평가 중',8:'평가 중',15:'완료'};const started=!!STARTED[id];
+const D=Object.assign({org:'(가상)시청',dept:'정보화담당관'},ALL[id]||{name:'(가상) 사업',owner:'이나상',pos:'주무관',tel:'010-0000-2199',mail:'',date:''});
 function paint(){
   document.title=D.name+' · 사업 정보';$('#t-name').textContent=D.name;
-  $('#info').innerHTML=[['사업명',D.name],['담당자',D.owner+' · '+D.pos],['소속',D.org],['전화',`<span class="tnum">${h(D.tel)}</span>`],['이메일',D.mail?h(D.mail):'<span class="muted" style="font-weight:400">없음</span>'],['평가일',D.date?`<span class="tnum">${D.date}</span>`:'<span class="muted" style="font-weight:400">아직 안 정함</span>']]
-   .map(([k,v])=>`<dt>${k}</dt><dd>${k==='사업명'||k==='담당자'||k==='소속'?h(v):v}</dd>`).join('')}
+  $('#info').innerHTML=[['사업명',D.name],['담당자',D.owner+' · '+D.pos],['소속',D.org],['부서',D.dept],['전화',`<span class="tnum">${h(D.tel)}</span>`],['이메일',D.mail?h(D.mail):'<span class="muted" style="font-weight:400">없음</span>'],['평가일',D.date?`<span class="tnum">${D.date}</span>`:'<span class="muted" style="font-weight:400">아직 안 정함</span>']]
+   .map(([k,v])=>`<dt>${k}</dt><dd>${k==='사업명'||k==='담당자'||k==='소속'||k==='부서'?h(v):v}</dd>`).join('')}
 paint();
+if(started){const b=$('#t-st');b.className='badge '+(STARTED[id]==='완료'?'success':'primary');b.textContent=(STARTED[id]==='완료'?'✓ ':'● ')+STARTED[id];$('#lockn').hidden=false;$('#b-del').disabled=true;$('#b-del').title='평가가 시작돼 삭제할 수 없어요'}
 renderSteps($('#steps'),['current','open','locked','locked','locked','locked']);
-$('#b-edit').onclick=()=>{const m={name:'e-name',owner:'e-owner',pos:'e-pos',org:'e-org',tel:'e-tel',mail:'e-mail',date:'e-date'};for(const k in m)$('#'+m[k]).value=D[k]||'';$('#e-name-e').hidden=true;$('#e-name').removeAttribute('aria-invalid');openLayer($('#p'),'#e-name')};
+$('#b-edit').onclick=()=>{const m={name:'e-name',owner:'e-owner',pos:'e-pos',org:'e-org',dept:'e-dept',tel:'e-tel',mail:'e-mail',date:'e-date'};for(const k in m)$('#'+m[k]).value=D[k]||'';$('#e-lock').hidden=!started;['e-name','e-org','e-date'].forEach(x=>$('#'+x).disabled=started);$('#e-name-e').hidden=true;$('#e-name').removeAttribute('aria-invalid');openLayer($('#p'),'#e-name')};
 $('#f-edit').addEventListener('submit',e=>{e.preventDefault();const n=$('#e-name').value.trim();
-  if(!n){$('#e-name-e').textContent='사업명을 적어 주세요';$('#e-name-e').hidden=false;$('#e-name').setAttribute('aria-invalid','true');$('#e-name').focus();return}
-  Object.assign(D,{name:n,owner:$('#e-owner').value.trim()||D.owner,pos:$('#e-pos').value.trim()||D.pos,org:$('#e-org').value.trim()||D.org,tel:$('#e-tel').value.trim()||D.tel,mail:$('#e-mail').value.trim(),date:$('#e-date').value});
+  if(!started&&!n){$('#e-name-e').textContent='사업명을 적어 주세요';$('#e-name-e').hidden=false;$('#e-name').setAttribute('aria-invalid','true');$('#e-name').focus();return}
+  Object.assign(D,started?{owner:$('#e-owner').value.trim()||D.owner,pos:$('#e-pos').value.trim()||D.pos,tel:$('#e-tel').value.trim()||D.tel,mail:$('#e-mail').value.trim()}:{name:n,owner:$('#e-owner').value.trim()||D.owner,pos:$('#e-pos').value.trim()||D.pos,org:$('#e-org').value.trim()||D.org,tel:$('#e-tel').value.trim()||D.tel,mail:$('#e-mail').value.trim(),date:$('#e-date').value,dept:D.dept});
   paint();closeLayer($('#p'));toast('저장했어요')});
+$('#b-del').onclick=()=>{$('#d-why').value='';$('#d-why-e').hidden=true;$('#d-why').removeAttribute('aria-invalid');openLayer($('#dlg'),'#d-why')};
+$('#dlg-ok').onclick=()=>{if(!$('#d-why').value.trim()){$('#d-why-e').textContent='삭제 사유를 적어 주세요';$('#d-why-e').hidden=false;$('#d-why').setAttribute('aria-invalid','true');$('#d-why').focus();return}
+  closeLayer($('#dlg'));toast('목록에서 뺐어요 · 서명 자료는 보존돼요');setTimeout(()=>{location.href='projects.html'},1400)};
 function setSync(stale){$('#sync').hidden=!stale;$('#docs').textContent=stale?'3 / 5':'4 / 5';$('#docs-bar').style.width=stale?'60%':'80%';
   $$('#demo [data-st]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.st===(stale?'stale':'fresh')))}
 $$('#demo [data-st]').forEach(b=>b.onclick=()=>setSync(b.dataset.st==='stale'));

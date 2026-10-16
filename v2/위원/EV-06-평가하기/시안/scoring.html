@@ -95,6 +95,7 @@
 .sc-sum td { padding: 10px 4px; border-bottom: 1px solid var(--line); }
 .sc-sum td:last-child { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
 .sc-sum small { color: var(--text-3); font-weight: 400; }
+.sc-rule { flex: none; margin: 6px 0 0; font-size: 15px; color: var(--text-3); text-align: center; }
 .sc-warn { color: var(--danger-60); font-weight: 700; font-size: 16px; }
 </style>
 </head>
@@ -107,7 +108,7 @@
 </div>
 
 <div class="ev-demo" id="demo"><b>시안 보기</b>
-  <span class="ev-seg"><button type="button" data-d="reset" aria-pressed="false">처음 상태</button><button type="button" data-d="fail" aria-pressed="false">저장 실패 시험</button><button type="button" data-d="done" aria-pressed="false">제출 완료 화면</button></span>
+  <span class="ev-seg"><button type="button" data-d="reset" aria-pressed="false">처음 상태</button><button type="button" data-d="fail" aria-pressed="false">저장 실패 시험</button><button type="button" data-d="conflict" aria-pressed="false">다른 곳에서 먼저 저장(409)</button><button type="button" data-d="done" aria-pressed="false">제출 완료 화면</button></span>
 </div>
 
 <script src="../../EV-04-제안서-업체별/시안/proposals-data.js"></script>
@@ -154,6 +155,8 @@
     return n;
   }
   function invalidN() { var n = 0; V.forEach(function (v) { CRIT.forEach(function (c) { if (check(c, S.vals[key(v, c.id)])) n++; }); }); return n; }
+  function savedTotal(v) { var t = 0; CRIT.forEach(function (c) { var r = S.saved[key(v, c.id)]; if (r !== '' && r != null) t += Number(r); }); return t; }
+  function savedFilled(v) { return CRIT.filter(function (c) { var r = S.saved[key(v, c.id)]; return r !== '' && r != null; }).length; }
   function hash() { return JSON.stringify(S.vals); }
 
   function toast(m) { EvalShell.toast(m, 3200); }
@@ -164,9 +167,9 @@
   function saveHtml() {
     if (S.submitted) return '';
     var n = dirtyN();
-    if (S.failed) return '<span class="sc-save fail" id="sv"><span class="mk" aria-hidden="true">!</span>저장 실패 <button type="button" data-a="save">다시 시도</button></span>';
-    if (n) return '<span class="sc-save dirty" id="sv"><span class="mk" aria-hidden="true">●</span>저장 안 된 변경 ' + n + '개 <button type="button" data-a="save">저장</button></span>';
-    return '<span class="sc-save" id="sv"><span class="mk" aria-hidden="true">✓</span>저장됨 ' + S.savedAt + '</span>';
+    if (S.failed) return '<span class="sc-save fail" id="sv"><span class="mk" aria-hidden="true">!</span>임시 저장 실패 <button type="button" data-a="save">다시 시도</button></span>';
+    if (n) return '<span class="sc-save dirty" id="sv"><span class="mk" aria-hidden="true">●</span>임시 저장 안 된 변경 ' + n + '개 <button type="button" data-a="save">임시 저장</button></span>';
+    return '<span class="sc-save" id="sv"><span class="mk" aria-hidden="true">✓</span>임시 저장됨 ' + S.savedAt + '</span>';
   }
   function scoreCell(v, c) {
     var k = key(v, c.id), e = S.errs[k];
@@ -175,7 +178,7 @@
   function render() {
     var h = '<div class="sc-top"><h1>평가하기</h1><span class="sc-seg" role="group" aria-label="보기 방식"><button type="button" data-m="one" aria-pressed="' + (S.mode === 'one') + '">업체별</button><button type="button" data-m="all" aria-pressed="' + (S.mode === 'all') + '">한꺼번에 비교</button></span><span class="sp"></span>' +
       '<span id="savewrap">' + saveHtml() + '</span>' +
-      (S.submitted ? '<span class="sc-done"><span aria-hidden="true">✓</span> 제출 완료 ' + S.submittedAt + ' · 점수는 바꿀 수 없어요</span>' : '<button type="button" class="ev-btn" data-a="submit">제출하기</button>') + '</div>';
+      (S.submitted ? '<span class="sc-done"><span aria-hidden="true">✓</span> 제출 완료 ' + S.submittedAt + ' · 점수는 바꿀 수 없어요</span>' : '<button type="button" class="ev-btn" data-a="submit">점수 확인</button>') + '</div>';
     if (S.mode === 'one') {
       h += '<div class="sc-vtabs" role="tablist" aria-label="업체">' + V.map(function (v) { return '<button type="button" class="sc-vtab" role="tab" data-v="' + v + '" aria-selected="' + (S.vendor === v) + '">' + D.NAME[v] + '<small>' + fmt(total(v)) + '점</small></button>'; }).join('') + '</div>';
       var v1 = S.vendor;
@@ -194,6 +197,7 @@
       });
       h += '</div></div><div class="sc-tr"><span>총점 (자동) <span class="part">100점 만점</span></span>' + V.map(function (v) { return '<b id="tot' + v + '">' + fmt(total(v)) + '</b>'; }).join('') + '</div></div>';
     }
+    h += '<p class="sc-rule">다른 위원 점수는 위원장도 진행 중에 볼 수 없어요 · 0점은 점수이고 빈칸은 점수가 아니에요</p>';
     root.innerHTML = h;
   }
   function refresh() {
@@ -211,7 +215,7 @@
       var cell = el.closest('.sc-c'), old = cell.querySelector('.sc-err');
       if (msg) { S.errs[el.dataset.k] = msg; el.setAttribute('aria-invalid', 'true'); if (!old) { old = document.createElement('div'); old.className = 'sc-err'; old.setAttribute('role', 'alert'); cell.appendChild(old); } old.textContent = msg; }
       else { delete S.errs[el.dataset.k]; el.removeAttribute('aria-invalid'); old && old.remove(); }
-      if (S.signed && hash() !== S.signed) { S.signed = null; toast('점수가 바뀌어 서명이 지워졌어요. 제출할 때 다시 서명해 주세요'); }
+      if (S.signed && hash() !== S.signed) { S.signed = null; toast('점수가 바뀌어 서명이 무효가 됐어요. 점수 확인 뒤 다시 서명해 주세요'); }
       refresh();
     } else if (el.dataset.ok) { S.ops[el.dataset.ok] = el.value; refresh(); }
   });
@@ -230,8 +234,9 @@
 
   function save() {
     if (invalidN()) { toast('점수를 확인해 주세요. 범위를 벗어난 칸이 있어요'); return false; }
+    if (S.conflict) { S.conflict = false; document.querySelector('[data-d="conflict"]').setAttribute('aria-pressed', 'false'); openLayer('<h2 id="dlg-t">다른 곳에서 먼저 저장됐어요</h2><p style="font-size:17px;color:var(--text-2)">다른 기기나 창에서 이 평가표가 먼저 저장됐어요(409). 최신 내용을 불러온 뒤 다시 확인해 주세요. 지금 쓴 내용은 그대로 남아 있어요.</p><div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="x">확인</button></div>').onclick = function (e) { if (e.target.dataset.g) closeLayer(); }; return false; }
     if (S.fail) { S.failed = true; refresh(); toast('저장하지 못했어요. 다시 시도해 주세요'); return false; }
-    S.failed = false; S.saved = Object.assign({}, S.vals); S.savedOps = Object.assign({}, S.ops); S.savedAt = now(); refresh(); toast('저장했어요'); return true;
+    S.failed = false; S.saved = Object.assign({}, S.vals); S.savedOps = Object.assign({}, S.ops); S.savedAt = now(); refresh(); toast('임시 저장했어요'); return true;
   }
 
   /* ── 제출 흐름: 점검 → 서명 → 확인 ── */
@@ -253,7 +258,7 @@
     if (e.key === 'Tab') { var f = [].slice.call(layer.querySelectorAll('button:not([disabled]),input,canvas')).filter(function (x) { return x.tagName !== 'CANVAS'; }); if (!f.length) return; var a = f[0], z = f[f.length - 1]; if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus(); } }
   });
 
-  function stepsHtml(n) { return '<div class="sc-steps" aria-label="제출 단계 ' + n + '/3"><b>' + n + '/3</b> ' + ['점검', '서명', '확인'].map(function (t, i) { return '<span' + (i + 1 === n ? ' style="font-weight:700;color:var(--text-1)"' : '') + '>' + t + '</span>' + (i < 2 ? '<i class="' + (i + 1 < n ? 'on' : '') + '"></i>' : ''); }).join('') + '</div>'; }
+  function stepsHtml(n) { return '<div class="sc-steps" aria-label="제출 단계 ' + n + '/3"><b>' + n + '/3</b> ' + ['점수 확인', '서명 저장', '평가 제출'].map(function (t, i) { return '<span' + (i + 1 === n ? ' style="font-weight:700;color:var(--text-1)"' : '') + '>' + t + '</span>' + (i < 2 ? '<i class="' + (i + 1 < n ? 'on' : '') + '"></i>' : ''); }).join('') + '</div>'; }
 
   function openSubmit() {
     if (S.signed && S.signed !== hash()) { S.signed = null; }
@@ -264,11 +269,11 @@
     var ok = !em.length && !dn && !bad;
     var li = function (good, title, sub, btn) { return '<li class="' + (good ? 'ok' : 'no') + '"><span class="ic" aria-hidden="true">' + (good ? '✓' : '!') + '</span><div class="tx">' + title + (sub ? '<small>' + sub + '</small>' : '') + (btn || '') + '</div></li>'; };
     var emTxt = em.slice(0, 3).map(function (x) { return D.NAME[x.v] + ' ' + x.c.name; }).join(', ') + (em.length > 3 ? ' 외 ' + (em.length - 3) + '곳' : '');
-    var l = openLayer(stepsHtml(1) + '<h2 id="dlg-t">제출하기 전에 확인해요</h2><ul class="sc-chk">' +
+    var l = openLayer(stepsHtml(1) + '<h2 id="dlg-t">점수 확인</h2><ul class="sc-chk">' +
       li(!em.length && !bad, em.length ? '비어 있는 점수 칸이 ' + em.length + '개 있어요' : (bad ? '범위를 벗어난 점수가 ' + bad + '개 있어요' : '모든 업체·항목에 점수를 썼어요'), em.length ? emTxt : '', em.length || bad ? '<button type="button" data-g="empty">빈 칸으로 가기</button>' : '') +
-      li(!dn, dn ? '저장 안 된 변경이 ' + dn + '개 있어요' : '저장 안 된 변경이 없어요', dn ? '제출하려면 먼저 저장해야 해요' : '', dn ? '<button type="button" data-g="save">지금 저장</button>' : '') +
-      '</ul><div class="ev-note">의견은 비워도 돼요. 제출하면 점수를 바꿀 수 없어요.</div>' +
-      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="next"' + (ok ? '' : ' disabled') + '>다음: 서명하기</button><button type="button" class="ev-btn text" data-g="close">닫기</button></div>');
+      li(!dn, dn ? '저장 안 된 변경이 ' + dn + '개 있어요' : '저장 안 된 변경이 없어요', dn ? '서버에 저장된 점수로 계산해요. 먼저 임시 저장해 주세요' : '', dn ? '<button type="button" data-g="save">임시 저장</button>' : '') +
+      '</ul><table class="sc-sum" aria-label="업체별 합계 (서버 계산)"><tbody>' + V.map(function (v) { return '<tr><td>' + D.NAME[v] + ' <small>' + savedFilled(v) + '/' + CRIT.length + '개 항목</small></td><td>' + fmt(savedTotal(v)) + '점</td></tr>'; }).join('') + '</tbody></table><div class="ev-note">합계는 서버가 저장된 점수로 다시 계산한 값이에요. 의견은 비워도 돼요.</div>' +
+      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="next"' + (ok ? '' : ' disabled') + '>다음: 서명 저장</button><button type="button" class="ev-btn text" data-g="close">닫기</button></div>');
     l.onclick = function (e) {
       var g = e.target.dataset.g; if (!g) return;
       if (g === 'close') closeLayer();
@@ -279,10 +284,10 @@
   }
   function stepSign() {
     var re = S.signed === hash();
-    var l = openLayer(stepsHtml(2) + '<h2 id="dlg-t">개인 서명</h2><p style="font-size:17px;color:var(--text-2)">아래 칸에 손가락이나 마우스로 서명해 주세요.</p>' +
+    var l = openLayer(stepsHtml(2) + '<h2 id="dlg-t">서명 저장</h2><p style="font-size:17px;color:var(--text-2)">아래 칸에 손가락이나 마우스로 서명해 주세요.</p>' +
       '<div class="sc-canvas-w"><canvas id="pad" aria-label="서명 칸"></canvas><div class="ph" id="ph">여기에 서명해 주세요</div><button type="button" class="ev-btn text sm" data-g="clear">지우기</button></div>' +
-      '<div class="ev-note info"><span aria-hidden="true">ⓘ</span><span>서명 뒤 점수를 바꾸면 다시 서명해야 해요.</span></div>' +
-      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="next" disabled>서명했어요</button><button type="button" class="ev-btn text" data-g="back">이전</button></div>');
+      '<div class="ev-note info"><span aria-hidden="true">ⓘ</span><span>서명만으로 제출되지 않아요. 서명 뒤 점수를 바꾸면 서명이 무효가 되어 다시 서명해야 해요.</span></div>' +
+      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="next" disabled>서명 저장</button><button type="button" class="ev-btn text" data-g="back">이전</button></div>');
     var nx = l.querySelector('[data-g="next"]');
     pad = SignPad.mount(l.querySelector('#pad'), { onChange: function (ink) { nx.disabled = !ink; l.querySelector('#ph').hidden = ink; } });
     l.onclick = function (e) {
@@ -294,14 +299,14 @@
   }
   function stepConfirm() {
     var rows = V.map(function (v) { return '<tr><td>' + D.NAME[v] + ' <small>' + filled(v) + '/' + CRIT.length + '개 항목</small></td><td>' + fmt(total(v)) + '점</td></tr>'; }).join('');
-    var l = openLayer(stepsHtml(3) + '<h2 id="dlg-t">이대로 제출할까요?</h2><table class="sc-sum" aria-label="업체별 총점"><tbody>' + rows + '</tbody></table><p class="sc-warn">제출하면 점수를 바꿀 수 없어요.</p>' +
-      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="go">제출하기</button><button type="button" class="ev-btn text" data-g="back" autofocus>돌아가기</button></div>');
+    var l = openLayer(stepsHtml(3) + '<h2 id="dlg-t">이대로 평가를 제출할까요?</h2><table class="sc-sum" aria-label="업체별 총점"><tbody>' + rows + '</tbody></table><p class="sc-warn">제출하면 점수를 바꿀 수 없어요.</p>' +
+      '<div class="ev-modal-actions"><button type="button" class="ev-btn" data-g="go">평가 제출</button><button type="button" class="ev-btn text" data-g="back" autofocus>돌아가기</button></div>');
     l.onclick = function (e) {
       var g = e.target.dataset.g; if (!g) return;
       if (g === 'back') closeLayer();
       else if (g === 'go') {
         if (S.signed !== hash()) { toast('점수가 바뀌어 다시 서명해야 해요'); S.signed = null; stepSign(); return; }
-        S.submitted = true; S.submittedAt = now(); closeLayer(true); render(); toast('제출했어요');
+        S.submitted = true; S.submittedAt = now(); closeLayer(true); render(); toast('평가를 제출했어요');
       }
     };
   }
@@ -310,6 +315,7 @@
   document.getElementById('demo').addEventListener('click', function (e) {
     var d = e.target.dataset.d; if (!d) return;
     if (d === 'reset') { reset(); document.querySelector('[data-d="fail"]').setAttribute('aria-pressed', 'false'); closeLayer(true); render(); }
+    if (d === 'conflict') { S.conflict = !S.conflict; e.target.setAttribute('aria-pressed', S.conflict); if (S.conflict) toast('이제 임시 저장하면 충돌 안내가 떠요'); }
     if (d === 'fail') { S.fail = !S.fail; e.target.setAttribute('aria-pressed', S.fail); if (S.fail) toast('이제 저장하면 실패해요'); }
     if (d === 'done') { V.forEach(function (v) { CRIT.forEach(function (c, i) { var k = key(v, c.id); if (!S.vals[k]) S.vals[k] = String(Math.round(c.pts * (0.7 + 0.04 * ((i + v.charCodeAt(0)) % 6)) * 2) / 2); }); }); S.saved = Object.assign({}, S.vals); S.savedOps = Object.assign({}, S.ops); S.submitted = true; S.submittedAt = now(); closeLayer(true); render(); }
   });
