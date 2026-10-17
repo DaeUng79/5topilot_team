@@ -27,6 +27,8 @@ dist/
 !.env.example
 
 # Team application generated/local data (PR #1 foundation)
+!projects_delete.sqlite3
+!projects.sqlite3
 Thumbs.db
 *.db
 *.db-*

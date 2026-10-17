@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- PM-01 · PRJ-01 · PRJ-03 -->
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>사업 목록 · 심사임당</title>
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <a class="brand" href="./"><span class="brand-mark">심</span><span>심사임당</span></a>
+      <p class="role">사업담당자</p>
+      <nav aria-label="주 메뉴"><a href="./" aria-current="page">사업 목록</a></nav>
+      <div class="bottom"><p class="role">사업 준비부터 문서 확인까지</p></div>
+    </aside>
+    <main class="main" id="main" tabindex="-1"><div class="state" role="status">사업 정보를 불러오는 중이에요.</div></main>
+  </div>
+  <dialog id="editor" class="sheet" aria-labelledby="editor-title">
+    <form id="project-form">
+      <header><h2 id="editor-title">사업 등록</h2><button type="button" class="x" data-close aria-label="닫기">×</button></header>
+      <div class="form-body">
+        <p class="muted">사업 정보를 저장한 뒤 제안요청서(HWPX)를 올릴 수 있어요.</p>
+        <p class="note warn" id="edit-lock" hidden>평가가 시작돼 담당자 정보만 수정할 수 있어요.</p>
+        <label class="field">사업명<input name="name" required maxlength="300" placeholder="예: 통합 민원 시스템 구축 용역"></label>
+        <div class="two"><label class="field">소속<input name="org" required maxlength="150" placeholder="예: 시청"></label><label class="field">부서<input name="dept" required maxlength="150" placeholder="예: 정보화담당관"></label></div>
+        <div class="two"><label class="field">직책/직급<input name="pos" required maxlength="150" placeholder="예: 주무관"></label><label class="field">성명<input name="owner" required maxlength="150"></label></div>
+        <label class="field">전화<input name="tel" type="tel" required maxlength="30" placeholder="02-1234-5678"></label>
+        <label class="field">이메일 <span class="hint">선택</span><input name="mail" type="email" maxlength="150"></label>
+        <label class="field">평가일 <span class="hint">선택 · 평가조건</span><input name="date" type="date" max="9999-12-31"></label>
+        <p id="form-error" class="note bad" role="alert" hidden></p>
+      </div>
+      <footer><button class="btn" type="button" data-close>취소</button><button class="btn primary" type="submit" id="save-project">등록</button></footer>
+    </form>
+  </dialog>
+  <dialog id="delete-dialog" aria-labelledby="delete-title">
+    <form id="delete-form" class="delete-form">
+      <h2 id="delete-title">사업을 삭제할까요?</h2><p>사업 정보와 요약, 삭제 사유는 별도 보관하고 원본 문서와 분석 자료는 완전히 삭제해요.</p>
+      <label class="field">삭제 사유<textarea name="reason" required maxlength="1000" placeholder="예: 사업이 취소돼서"></textarea></label>
+      <p id="delete-error" class="note bad" role="alert" hidden></p>
+      <footer><button class="btn" type="button" data-close>취소</button><button class="btn danger" type="submit">삭제</button></footer>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
